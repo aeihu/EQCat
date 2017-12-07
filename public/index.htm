@@ -1,0 +1,186 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Webpack Sample Project</title>
+    <script src="http://d3js.org/d3.v4.min.js" type="text/javascript"></script>
+    <style>
+        html,body,.box{
+            height:100%;
+        }
+        body{
+            margin:0;
+
+        }
+        .box{
+            display:-webkit-flex;
+            -webkit-flex-direction: row;
+            display:flex;
+            flex-direction:row;
+        }
+        .box .child{
+            height:40px;
+            background:#f00;
+        }
+        .box .child1{
+            flex:1;
+            background:#0f0
+        }
+        #tooltip{
+            display:flex;
+            flex-direction:column;
+        }
+        
+        .nodes circle {
+            stroke: rgb(212, 22, 22);
+            stroke-width: 100.5px;
+        }
+
+		.links{
+			stroke:steelblue;
+        }
+
+        .tooltip{
+            position: absolute;
+            width: 120;
+            height: auto;
+            font-family: simsun;
+            font-size: 14px;
+            text-align: center;
+            border-width: 1px;
+            background-color: white;
+            border-radius: 5px;
+        }
+    </style>
+  </head>
+  <body>
+    <div id='app' class="box">
+    </div>
+    
+    <script src="bundle.js"></script>
+    <svg width="960" height="600"></svg>
+	<script>
+        alert('ss');
+        var tooltip = d3.select("body")
+            .append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0.0);
+
+        var svg = d3.select("svg"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
+
+        var nodes = [
+            {name : "0", age:12},
+            {name : "1", age:12},
+            {name : "2", age:12},
+            {name : "3", age:12},
+            {name : "4", age:12},
+            {name : "5", age:12},
+            {name : "6", age:12},
+            {name : "7", age:12}
+        ];
+        alert('1ss');
+
+        var edges = [
+            {source:0, target:1},
+            {source:0, target:2},
+            {source:0, target:3},
+            {source:1, target:4},
+            {source:2, target:5},
+            {source:3, target:6}
+        ];
+
+        alert('ss');
+        //var simulation = d3.forceSimulation(nodes);
+
+        var simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(function(d) { return d.id; }))
+            .force("charge", d3.forceManyBody())
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+            function dragstarted(d) {
+                if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(d) {
+                d.fx = d3.event.x;
+                d.fy = d3.event.y;
+            }
+
+            function dragended(d) {
+                if (!d3.event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+
+        
+        var node = svg//.append("g")
+            .selectAll("g")
+            .data(nodes)
+            .enter()
+            .append("g")
+            .attr("class", "nodes")
+            .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+                    
+      
+        node.append("circle")
+            .attr("r", 5);
+            //.attr("fill", function(d) { return color(d.group); });
+
+                    
+        node.append("text")
+            .attr("dy", "-0.050000000000000044em")
+            .attr("text-anchor", "middle")
+            .text(function(d) { 
+                return d.name; });
+        
+        node.on("mouseover", function (d){
+            tooltip.html(d.name)
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY + 20) + "px")
+                .style("opacity", 1.0);
+        })
+        // node.append("img")
+        //     .attr("src", "./images/runoob-logo.png");
+
+            simulation
+                .nodes(nodes)
+                .on("tick", ticked);
+
+                alert('0s');
+                
+        var link = svg//.append("g")
+            //.attr("class", "links")
+            .selectAll("line")
+            .data(edges)
+            .enter().append("line")
+            .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
+
+            alert('1s');
+
+    simulation//.force("link")
+        .links(edges);
+            alert('aas');
+
+  function ticked() {
+    link
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node
+        .attr('transform', function(d) {
+            return 'translate(' + d.x + ',' + d.y + ')';
+        });
+  }
+</script>
+  </body>
+</html>
