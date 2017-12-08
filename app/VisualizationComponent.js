@@ -38,51 +38,51 @@ export default class VisualizationComponent extends React.Component {
     
             //var simulation = d3.forceSimulation(nodes);
     
-            var simulation = d3.forceSimulation()
-                .force("link", d3.forceLink().id(function(d) { return d.id; }))
-                .force("charge", d3.forceManyBody())
-                .force("center", d3.forceCenter(width / 2, height / 2));
+            // var simulation = d3.forceSimulation()
+            //     .force("link", d3.forceLink().id(function(d) { return d.id; }))
+            //     .force("charge", d3.forceManyBody())
+            //     .force("center", d3.forceCenter(width / 2, height / 2));
     
-                function dragstarted(d) {
-                    if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-                    d.fx = d.x;
-                    d.fy = d.y;
-                }
+            //     function dragstarted(d) {
+            //         if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+            //         d.fx = d.x;
+            //         d.fy = d.y;
+            //     }
     
-                function dragged(d) {
-                    d.fx = d3.event.x;
-                    d.fy = d3.event.y;
-                }
+            //     function dragged(d) {
+            //         d.fx = d3.event.x;
+            //         d.fy = d3.event.y;
+            //     }
     
-                function dragended(d) {
-                    if (!d3.event.active) simulation.alphaTarget(0);
-                    d.fx = null;
-                    d.fy = null;
-                }
+            //     function dragended(d) {
+            //         if (!d3.event.active) simulation.alphaTarget(0);
+            //         d.fx = null;
+            //         d.fy = null;
+            //     }
     
             
-            var node = svg//.append("g")
-                .selectAll("g")
-                .data(nodes)
-                .enter()
-                .append("g")
-                .attr("class", "nodes")
-                .call(d3.drag()
-                        .on("start", dragstarted)
-                        .on("drag", dragged)
-                        .on("end", dragended));
+            // var node = svg//.append("g")
+            //     .selectAll("g")
+            //     .data(nodes)
+            //     .enter()
+            //     .append("g")
+            //     .attr("class", "nodes")
+            //     .call(d3.drag()
+            //             .on("start", dragstarted)
+            //             .on("drag", dragged)
+            //             .on("end", dragended));
                         
           
-            node.append("circle")
-                .attr("r", 5);
-                //.attr("fill", function(d) { return color(d.group); });
+            // node.append("circle")
+            //     .attr("r", 5);
+            //     //.attr("fill", function(d) { return color(d.group); });
     
                         
-            node.append("text")
-                .attr("dy", "-0.050000000000000044em")
-                .attr("text-anchor", "middle")
-                .text(function(d) { 
-                    return d.name; });
+            // node.append("text")
+            //     .attr("dy", "-0.050000000000000044em")
+            //     .attr("text-anchor", "middle")
+            //     .text(function(d) { 
+            //         return d.name; });
     }
 
 
