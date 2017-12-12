@@ -10,9 +10,7 @@ const App = () => (
     <div id="tooltip">
       <TooltipComponent />
     </div>
-    <div id="visualization">
-      <VisualizationComponent />
-    </div>
+    <VisualizationComponent />
   </MuiThemeProvider>
 );
 
