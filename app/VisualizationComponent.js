@@ -65,12 +65,13 @@ export default class VisualizationComponent extends React.Component {
                 .enter().append("line")
                 .attr("class", "links");
                 //.attr("stroke-width", function(d) { return Math.sqrt(d.value); });
-                
+
             var node = svg//.append("g")
                 .selectAll("g")
                 .data(nodes)
                 .enter()
                 .append("g")
+                .on("click", function(){alert('hello');})
                 .attr("class", "nodes")
                 .call(d3.drag()
                         .on("start", dragstarted)
