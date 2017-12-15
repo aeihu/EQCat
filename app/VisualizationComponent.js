@@ -1,5 +1,6 @@
 import React from 'react';
 import * as d3 from 'd3';
+import CardComponent from './CardComponent';
 
 export default class VisualizationComponent extends React.Component {
     constructor(props) {
@@ -7,6 +8,11 @@ export default class VisualizationComponent extends React.Component {
         // alert(d3);
 
     }
+
+    infoList = [
+        <h1>hello</h1>,
+        <CardComponent />
+    ];
 
     componentDidMount()
     {
@@ -71,7 +77,11 @@ export default class VisualizationComponent extends React.Component {
                 .data(nodes)
                 .enter()
                 .append("g")
-                .on("click", function(){alert('hello');})
+                .on("click", function(){
+                    alert('hello');
+                    //this.infoList.push("asas");
+                    alert('wqeqw');
+                })
                 .attr("class", "nodes")
                 .call(d3.drag()
                         .on("start", dragstarted)
@@ -115,8 +125,16 @@ export default class VisualizationComponent extends React.Component {
 
 
     render() {
+        // var elements=[];
+
+        // this.infoList.map(function(v,k) { 
+        //     elements.push(<h1>hello</h1>);
+        // });
+
         return (
-            <div id="visualization"></div>
+            <div id="visualization">
+                {this.infoList}
+            </div>
         )
     }
 }
