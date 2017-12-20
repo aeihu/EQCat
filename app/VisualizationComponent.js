@@ -1,23 +1,19 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import * as d3 from 'd3';
 import CardComponent from './CardComponent';
 
 export default class VisualizationComponent extends React.Component {
     constructor(props) {
         super(props);
-        // alert(d3);
+        this.state = {infoList: []};
 
     }
 
-    infoList = [
-        1,
-        2,
-        4,
-    ];
-
     componentDidMount()
     {
-         var asd =this.infoList;
+         var asd = ReactDOM.findDOMNode(this);
+         alert('sasad');
         // asd.map(function(v,k) { 
         //          alert(v);
         //      });
@@ -84,12 +80,8 @@ export default class VisualizationComponent extends React.Component {
                 .append("g")
                 .on("click", function(){
                     alert('hello');
-                    asd.push(<CardComponent />);
-                    alert('wqeqw');
-
-                    asd.map(function(v,k) { 
-                                 alert(v);
-                             });
+                    ReactDOM.findDOMNode(this);//.state.infoList.push(<CardComponent />);
+                    alert(asd);
                 })
                 .attr("class", "nodes")
                 .call(d3.drag()
