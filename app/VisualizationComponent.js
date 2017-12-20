@@ -10,12 +10,17 @@ export default class VisualizationComponent extends React.Component {
     }
 
     infoList = [
-        <h1>hello</h1>,
-        <CardComponent />
+        1,
+        2,
+        4,
     ];
 
     componentDidMount()
     {
+         var asd =this.infoList;
+        // asd.map(function(v,k) { 
+        //          alert(v);
+        //      });
         var svg = d3.select("#visualization")
             .append("svg")
             .attr("width", "100%")
@@ -79,8 +84,12 @@ export default class VisualizationComponent extends React.Component {
                 .append("g")
                 .on("click", function(){
                     alert('hello');
-                    //this.infoList.push("asas");
+                    asd.push(<CardComponent />);
                     alert('wqeqw');
+
+                    asd.map(function(v,k) { 
+                                 alert(v);
+                             });
                 })
                 .attr("class", "nodes")
                 .call(d3.drag()
@@ -99,7 +108,6 @@ export default class VisualizationComponent extends React.Component {
                 .attr("text-anchor", "middle")
                 .text(function(d) { 
                     return d.name; });
-
 
                     function ticked() {
                         link
