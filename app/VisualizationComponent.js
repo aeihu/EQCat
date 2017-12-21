@@ -6,23 +6,8 @@ import CardComponent from './CardComponent';
 export default class VisualizationComponent extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {infoList: []};
-
-    }
-
-    componentDidMount()
-    {
-         var asd = ReactDOM.findDOMNode(this);
-         alert('sasad');
-        // asd.map(function(v,k) { 
-        //          alert(v);
-        //      });
-        var svg = d3.select("#visualization")
-            .append("svg")
-            .attr("width", "100%")
-            .attr("height", "99%");
-
-            var nodes = [
+        this.state = {
+            nodes: [
                 {id:"0", name : "0", age:12},
                 {id:"1", name : "1", age:12},
                 {id:"2", name : "2", age:12},
@@ -31,16 +16,31 @@ export default class VisualizationComponent extends React.Component {
                 {id:"5", name : "5", age:12},
                 {id:"6", name : "6", age:12},
                 {id:"7", name : "7", age:12}
-            ];
-    
-            var edges = [
+            ],
+            edges : [
                 {source:"0", target:"1"},
                 {source:"0", target:"2"},
                 {source:"0", target:"3"},
                 {source:"1", target:"4"},
                 {source:"2", target:"5"},
                 {source:"3", target:"6"}
-            ];
+            ]
+        };
+
+    }
+
+    componentDidMount()
+    {
+        alert(el);
+        var el = ReactDOM.findDOMNode(this);
+        alert(el);
+        // asd.map(function(v,k) { 
+        //          alert(v);
+        //      });
+        var svg = d3.select("#visualization")
+            .append("svg")
+            .attr("width", "100%")
+            .attr("height", "99%");
 
             var simulation = d3.forceSimulation()
             .force("link", d3.forceLink().id(function(d) { return d.id; }))
@@ -68,20 +68,21 @@ export default class VisualizationComponent extends React.Component {
     
                 var link = svg.append("g")
                 .selectAll("line")
-                .data(edges)
+                .data(this.state.edges)
                 .enter().append("line")
                 .attr("class", "links");
                 //.attr("stroke-width", function(d) { return Math.sqrt(d.value); });
 
             var node = svg//.append("g")
                 .selectAll("g")
-                .data(nodes)
+                .data(this.state.nodes)
                 .enter()
                 .append("g")
-                .on("click", function(){
-                    alert('hello');
-                    ReactDOM.findDOMNode(this);//.state.infoList.push(<CardComponent />);
-                    alert(asd);
+                .on("click", function(d){
+                    var vis = [122,2];
+                    var v = d3.select("#visualization");
+                    v.datum(vis);
+                    alert(el);
                 })
                 .attr("class", "nodes")
                 .call(d3.drag()
@@ -101,26 +102,26 @@ export default class VisualizationComponent extends React.Component {
                 .text(function(d) { 
                     return d.name; });
 
-                    function ticked() {
-                        link
-                            .attr("x1", function(d) { return d.source.x; })
-                            .attr("y1", function(d) { return d.source.y; })
-                            .attr("x2", function(d) { return d.target.x; })
-                            .attr("y2", function(d) { return d.target.y; });
-                    
-                        node
-                            .attr("transform", function(d) {
-                                return 'translate(' + d.x + ',' + d.y + ')';
-                        });
-                    }
+            function ticked() {
+                link
+                    .attr("x1", function(d) { return d.source.x; })
+                    .attr("y1", function(d) { return d.source.y; })
+                    .attr("x2", function(d) { return d.target.x; })
+                    .attr("y2", function(d) { return d.target.y; });
+            
+                node
+                    .attr("transform", function(d) {
+                        return 'translate(' + d.x + ',' + d.y + ')';
+                });
+            }
                           
             simulation
-                .nodes(nodes)
+                .nodes(this.state.nodes)
                 .on("tick", ticked);
                 
             simulation
                 .force("link")
-                .links(edges);
+                .links(this.state.edges);
     }
 
 
@@ -130,10 +131,10 @@ export default class VisualizationComponent extends React.Component {
         // this.infoList.map(function(v,k) { 
         //     elements.push(<h1>hello</h1>);
         // });
-
+        var Elements = document.getElementById("visualization");
+        alert(Elements);
         return (
             <div id="visualization">
-                {this.infoList}
             </div>
         )
     }
