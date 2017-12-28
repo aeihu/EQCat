@@ -10,7 +10,9 @@ D3ForceSimulation.create = function(el, props, state) {
     this.svg = d3.select("#visualization")
         .append("svg")
         .attr("width", props.width)
-        .attr("height", props.height);
+        .attr("height", props.height)
+        .style("position", "absolute")
+        .style("z-index", 0);
 
     this.simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function(d) { return d.id; }))
@@ -18,7 +20,7 @@ D3ForceSimulation.create = function(el, props, state) {
         .force("center", d3.forceCenter(300, 300));
 
     var dispatcher = new EventEmitter();
-    this.update(el, state, dispatcher);
+    this.update(el, props, state, dispatcher);
   
     return dispatcher;
 };
@@ -44,13 +46,13 @@ D3ForceSimulation.dragended = function dragended(d) {
     d.fy = null;
 }
 
-D3ForceSimulation.update = function(el, state, dispatcher) {
+D3ForceSimulation.update = function(el, props, state, dispatcher) {
     // Re-compute the scales, and render the data points
     // var scales = this._scales(el, state.domain);
-    this._drawNodesAndEdges(el, state.data, dispatcher);
+    this._drawNodesAndEdges(el, props, state.data, dispatcher);
   };
 
-D3ForceSimulation._drawNodesAndEdges = function(el, data, dispatcher){
+D3ForceSimulation._drawNodesAndEdges = function(el, props, data, dispatcher){
     var link = this.svg.append("g")
         .selectAll("line")
         .data(data.edges)

@@ -1,16 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import TooltipComponent from './TooltipComponent';
-import DialogExampleModal from './DialogExampleModal';
-import VisualizationComponent from './VisualizationComponent'
+import TooltipComponent from './Component/TooltipComponent';
+import VisualizationComponent from './Component/VisualizationComponent'
 
 const App = () => (
   <MuiThemeProvider>
     <div id="tooltip">
       <TooltipComponent />
     </div>
-    <VisualizationComponent />
+    <VisualizationComponent width='100%' height='99%' />
   </MuiThemeProvider>
 );
 

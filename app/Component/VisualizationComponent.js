@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import CardComponent from './CardComponent';
 import {D3ForceSimulation} from './D3ForceSimulation';
 //var D3ForceSimulation = require('./D3ForceSimulation');
+import PropTypes from 'prop-types';
 
 export default class VisualizationComponent extends React.Component {
     constructor(props) {
@@ -36,28 +37,51 @@ export default class VisualizationComponent extends React.Component {
 
     dispatcher = null;
 
-    asdasd()
-    {
-        return 'hello';
-    }
-    showTooltip(d) {
-        alert(this.asdasd());
-    }
+    showCard = function(d) {
+        for (var index in this.state.cards){
+            if (this.state.cards[index].id == d.id){
+                //alert(this.state.cards[index].id)
+                return;
+            }
+        }
+
+        this.setState(function(prevState, props) {
+            prevState.cards.push(d);
+            return {
+                data: prevState.data,
+                cards: prevState.cards
+            }
+        });
+    }.bind(this);
+
+    
+    hideCard = function(id) {
+        for (var index in this.state.cards){
+            if (this.state.cards[index].id == id){
+                this.setState(function(prevState, props) {
+                    prevState.cards.splice(index, 1);
+                    return {
+                        data: prevState.data,
+                        cards: prevState.cards
+                    }
+                });
+            }
+        }
+    }.bind(this);
 
     componentDidMount()
     {
         var el = ReactDOM.findDOMNode();
         var dispatcher = D3ForceSimulation.create(el, 
-            { width: '100%', height: '99%'}, 
+            this.props, 
             this.state);
 
-        dispatcher.on('node:click', this.showTooltip);
+        dispatcher.on('node:click', this.showCard);
         this.dispatcher = dispatcher;
     }
 
     componentDidUpdate()
     {
-        alert("2");
         // var el = ReactDOM.findDOMNode();
         // D3ForceSimulation.update(el, this.state, this.dispatcher);
     }
@@ -70,16 +94,20 @@ export default class VisualizationComponent extends React.Component {
     }
 
     render() {
-        // var elements=[];
+        var elements=[];
 
-        // this.infoList.map(function(v,k) { 
-        //     elements.push(<h1>hello</h1>);
-        // });
-        //var Elements = document.getElementById("visualization");
-        //alert(Elements);
+        this.state.cards.map(function(v,k) { 
+            elements.push(<CardComponent nodeData={v} closeCard={this.hideCard} />);
+        }.bind(this));
+
         return (
             <div id="visualization">
+                {elements}
             </div>
         )
     }
 }
+
+// VisualizationComponent.propTypes = {
+//     showed: PropTypes.func
+// };
