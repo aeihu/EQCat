@@ -22,8 +22,7 @@ export default class CardComponent extends React.Component {
     }
 
     render() {
-        var i = 0;
-        var __cardTitle = [];
+        let __cardTitle = [];
         for (var key in this.props.nodeData){
             if (key != 'name' && 
                 key != 'id' && 

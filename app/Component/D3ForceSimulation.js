@@ -19,7 +19,7 @@ D3ForceSimulation.create = function(el, props, state) {
         .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(300, 300));
 
-    var dispatcher = new EventEmitter();
+    let dispatcher = new EventEmitter();
     this.update(el, props, state, dispatcher);
   
     return dispatcher;
@@ -53,13 +53,13 @@ D3ForceSimulation.update = function(el, props, state, dispatcher) {
   };
 
 D3ForceSimulation._drawNodesAndEdges = function(el, props, data, dispatcher){
-    var link = this.svg.append("g")
+    let link = this.svg.append("g")
         .selectAll("line")
         .data(data.edges)
         .enter().append("line")
         .attr("class", "links");
 
-    var node = this.svg//.append("g")
+    let node = this.svg//.append("g")
         .selectAll("g")
         .data(data.nodes)
         .enter()
