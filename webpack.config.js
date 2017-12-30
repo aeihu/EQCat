@@ -1,3 +1,6 @@
+
+const nodeExternals = require('webpack-node-externals');
+
 module.exports = [
     {
         devtool: 'eval-source-map',
@@ -24,7 +27,7 @@ module.exports = [
                         loader: "babel-loader",
                         options: {
                             presets: [
-                                "es2015", "react","stage-1"
+                                "es2015", "react", "stage-1"
                             ]
                         }
                     },
@@ -36,7 +39,7 @@ module.exports = [
     
     {
         // server
-        entry:  __dirname + "/server/main.js",
+        entry: __dirname + "/server/main.js",
         output: {
             path: __dirname + "/server",
             filename: 'server.js'
@@ -49,7 +52,7 @@ module.exports = [
                         loader: "babel-loader",
                         options: {
                             presets: [
-                                "es2015", "react","stage-1"
+                                "es2015", "stage-1"
                             ]
                         }
                     },
@@ -58,6 +61,6 @@ module.exports = [
             ]
         },
         target: 'node',
-        //externals: nodeModules
+        externals: [nodeExternals()]
     },
 ]
