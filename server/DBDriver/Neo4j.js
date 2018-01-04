@@ -5,7 +5,7 @@ export default class Neo4j
     _driver = null;
     constructor(bolt, username, password)
     {
-        console.log('error');
+        //console.log('error');
         this._driver = neo4j.driver(bolt, neo4j.auth.basic(username, password), {maxTransactionRetryTime: 30000});
     }
 
@@ -28,6 +28,8 @@ export default class Neo4j
                     });
 
                     session.close();
+                    //console.log('dsadsadsadsa');
+                    return result;
                 })
                 .catch(function (error) {
                     console.log(error);

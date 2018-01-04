@@ -17,7 +17,8 @@ export default class TooltipComponent extends React.Component {
                 <div style={{zIndex: 2, position:"relative"}}>
                     <RaisedButton
                         label="A"
-                        onClick={this.handleToggle}
+                        // onClick={this.handleToggle}
+                        href="example/d"
                     >
                     </RaisedButton>
                 </div>

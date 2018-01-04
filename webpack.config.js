@@ -1,5 +1,6 @@
 
 const nodeExternals = require('webpack-node-externals');
+webpack = require('webpack');
 
 module.exports = [
     {
@@ -39,9 +40,9 @@ module.exports = [
     
     {
         // server
-        entry: __dirname + "/server/main.js",
+        entry:  __dirname + "/server/main.js",
         output: {
-            path: __dirname + "/server",
+            path: __dirname +"/server" ,
             filename: 'server.js'
         },
         module: {
@@ -60,6 +61,9 @@ module.exports = [
                 }
             ]
         },
+        plugins: [
+            new webpack.HotModuleReplacementPlugin() 
+          ],
         target: 'node',
         externals: [nodeExternals()]
     },

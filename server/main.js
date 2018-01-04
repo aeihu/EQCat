@@ -7,12 +7,16 @@ import Neo4j from './DBDriver/Neo4j';
 const DBDriver = new Neo4j('bolt://localhost', 'neo4j', 'neo.yuukosan.4j');
 
 app.get('/', function (req, res) {
-  res.send('Hello Wxssosrld!');
-  DBDriver.runStatement('MATCH (n) RETURN n LIMIT 25');
+  console.log('11111');
+  //res.send('Hello=!');
+  //res.sendfile("index.html");
+  //console.log(req);
+  // console.log(res);
+  res.send(DBDriver.runStatement('MATCH (n) RETURN n LIMIT 25'));
 });
 
 var cb0 = function (req, res, next) {
-    console.log('CB0');
+    console.log('CBdd0');
     next();
   }
   
@@ -25,8 +29,7 @@ var cb0 = function (req, res, next) {
     res.send('Hello from C!');
   }
   
-  app.get('/example/c', [cb0, cb1, cb2]);
-  
+app.get('/example/c', [cb0, cb1, cb2]);
 
 app.use(express.static('public'));
 
