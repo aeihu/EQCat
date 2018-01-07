@@ -6,13 +6,14 @@ import Neo4j from './DBDriver/Neo4j';
 
 const DBDriver = new Neo4j('bolt://localhost', 'neo4j', 'neo.yuukosan.4j');
 
+app.use(express.static('public'));
 app.get('/', function (req, res) {
   console.log('11111');
   //res.send('Hello=!');
-  //res.sendfile("index.html");
+  res.sendfile("index.html");
   //console.log(req);
   // console.log(res);
-  res.send(DBDriver.runStatement('MATCH (n) RETURN n LIMIT 25'));
+  //res.send(DBDriver.runStatement('MATCH (n) RETURN n LIMIT 25'));
 });
 
 var cb0 = function (req, res, next) {
@@ -31,7 +32,10 @@ var cb0 = function (req, res, next) {
   
 app.get('/example/c', [cb0, cb1, cb2]);
 
-app.use(express.static('public'));
+app.get('/example/d', function (req, res) {
+  res.jsonp(DBDriver.runStatement('MATCH (ns:Movie) -[r]- (p:Person) RETURN ns,p,r LIMIT 5'));
+});
+
 
 var server = app.listen(3000, function () {
   var host = server.address().address;

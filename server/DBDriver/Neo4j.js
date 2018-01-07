@@ -18,22 +18,41 @@ export default class Neo4j
     runStatement(statement)
     {
         if (this._driver != null){
-            let session = this._driver.session();
+            let __session = this._driver.session();
+            let __result = null; 
 
-            session
+            __session
                 .run(statement)
                 .then(function (result) {
-                    result.records.forEach(function (record) {
-                        console.log(record);
+                    __result = result.records;
+                    console.log("1");
+                    console.log(__result);
+                    let i = 0;
+                    result.records.forEach(function (value, key, record) {
+                        console.log("no" + i++);
+                        console.log(value);
+                        // for (let p in value.get('n').properties)
+                        // {
+                        //     console.log(p + ':' + value.get('n').properties[p]);
+                        // }
+
+                        //console.log(value.get('n').properties.released.toNumber());
+                        console.log(key);
                     });
 
-                    session.close();
-                    //console.log('dsadsadsadsa');
-                    return result;
+                    __session.close();
                 })
                 .catch(function (error) {
                     console.log(error);
+                    __session.close();
                 });
+
+                console.log("2");
+            console.log(__result);
+            console.log(__result);
+            return __result;
         }
+        
+        return null;
     }
 }

@@ -20,7 +20,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "c29db0976b433cf95c44"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "ed47b333d8f804c26fa1"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -703,13 +703,14 @@ var app = express();
 
 var DBDriver = new _Neo4j2.default('bolt://localhost', 'neo4j', 'neo.yuukosan.4j');
 
+app.use(express.static('public'));
 app.get('/', function (req, res) {
   console.log('11111');
   //res.send('Hello=!');
-  //res.sendfile("index.html");
+  res.sendfile("index.html");
   //console.log(req);
   // console.log(res);
-  res.send(DBDriver.runStatement('MATCH (n) RETURN n LIMIT 25'));
+  //res.send(DBDriver.runStatement('MATCH (n) RETURN n LIMIT 25'));
 });
 
 var cb0 = function cb0(req, res, next) {
@@ -728,7 +729,9 @@ var cb2 = function cb2(req, res) {
 
 app.get('/example/c', [cb0, cb1, cb2]);
 
-app.use(express.static('public'));
+app.get('/example/d', function (req, res) {
+  res.jsonp(DBDriver.runStatement('MATCH (ns:Movie) -[r]- (p:Person) RETURN ns,p,r LIMIT 5'));
+});
 
 var server = app.listen(3000, function () {
   var host = server.address().address;
@@ -765,28 +768,47 @@ var Neo4j = function () {
     }
 
     _createClass(Neo4j, [{
-        key: 'close',
+        key: "close",
         value: function close() {
             if (this._driver != null) this._driver.close();
         }
     }, {
-        key: 'runStatement',
+        key: "runStatement",
         value: function runStatement(statement) {
             if (this._driver != null) {
-                var session = this._driver.session();
+                var __session = this._driver.session();
+                var __result = null;
 
-                session.run(statement).then(function (result) {
-                    result.records.forEach(function (record) {
-                        console.log(record);
+                __session.run(statement).then(function (result) {
+                    __result = result.records;
+                    console.log("1");
+                    console.log(__result);
+                    var i = 0;
+                    result.records.forEach(function (value, key, record) {
+                        console.log("no" + i++);
+                        console.log(value);
+                        // for (let p in value.get('n').properties)
+                        // {
+                        //     console.log(p + ':' + value.get('n').properties[p]);
+                        // }
+
+                        //console.log(value.get('n').properties.released.toNumber());
+                        console.log(key);
                     });
 
-                    session.close();
-                    //console.log('dsadsadsadsa');
-                    return result;
+                    __session.close();
                 }).catch(function (error) {
                     console.log(error);
+                    __session.close();
                 });
+
+                console.log("2");
+                console.log(__result);
+                console.log(__result);
+                return __result;
             }
+
+            return null;
         }
     }]);
 

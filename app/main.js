@@ -14,6 +14,7 @@ const App = () => (
       <TooltipComponent />
     </div>
     <VisualizationComponent width='100%' height='99%' />
+    <CypherCodeMirror />
   </MuiThemeProvider>
 );
 
