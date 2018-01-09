@@ -1,9 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import * as d3 from 'd3';
 import CardComponent from './CardComponent';
 import {D3ForceSimulation} from './D3ForceSimulation';
-//var D3ForceSimulation = require('./D3ForceSimulation');
 import PropTypes from 'prop-types';
 
 export default class VisualizationComponent extends React.Component {
@@ -30,12 +28,11 @@ export default class VisualizationComponent extends React.Component {
                     {source:"3", target:"6"}
                 ]
             },
-            cards:[]
+            cards:[],
+            showCard: this.showCard
         };
 
     }
-
-    dispatcher = null;
 
     showCard = function(d) {
         for (var index in this.state.cards){
@@ -47,10 +44,11 @@ export default class VisualizationComponent extends React.Component {
 
         this.setState(function(prevState, props) {
             prevState.cards.push(d);
-            return {
-                data: prevState.data,
-                cards: prevState.cards
-            }
+            return prevState;
+            // return {
+            //     data: prevState.data,
+            //     cards: prevState.cards
+            // }
         });
     }.bind(this);
 
@@ -60,10 +58,11 @@ export default class VisualizationComponent extends React.Component {
             if (this.state.cards[index].id == id){
                 this.setState(function(prevState, props) {
                     prevState.cards.splice(index, 1);
-                    return {
-                        data: prevState.data,
-                        cards: prevState.cards
-                    }
+                    return prevState;
+                    // return {
+                    //     data: prevState.data,
+                    //     cards: prevState.cards
+                    // }
                 });
             }
         }
@@ -72,12 +71,9 @@ export default class VisualizationComponent extends React.Component {
     componentDidMount()
     {
         var el = ReactDOM.findDOMNode();
-        var dispatcher = D3ForceSimulation.create(el, 
+        D3ForceSimulation.create(el, 
             this.props, 
             this.state);
-
-        dispatcher.on('node:click', this.showCard);
-        this.dispatcher = dispatcher;
     }
 
     componentDidUpdate()

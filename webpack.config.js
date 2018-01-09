@@ -20,6 +20,9 @@ module.exports = [
             dns: 'empty',
             net: 'empty'
         },
+        // plugins: [
+        //     new webpack.IgnorePlugin(/^codemirror$/),
+        //   ],
         module: {
             rules: [
                 {
@@ -33,6 +36,16 @@ module.exports = [
                         }
                     },
                     exclude: /node_modules/
+                },
+                {
+                    test: /\.css$/,
+                    use: [
+                        {
+                            loader: "style-loader"
+                        }, {
+                            loader: "css-loader"
+                        }
+                    ]
                 }
             ]
         }
@@ -61,9 +74,9 @@ module.exports = [
                 }
             ]
         },
-        plugins: [
-            new webpack.HotModuleReplacementPlugin() 
-          ],
+        // plugins: [
+        //     new webpack.HotModuleReplacementPlugin() 
+        //   ],
         target: 'node',
         externals: [nodeExternals()]
     },
