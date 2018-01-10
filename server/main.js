@@ -32,10 +32,10 @@ var cb0 = function (req, res, next) {
   
 app.get('/example/c', [cb0, cb1, cb2]);
 
-app.get('/example/d', function (req, res) {
-  res.jsonp(DBDriver.runStatement('MATCH (ns:Movie) -[r]- (p:Person) RETURN ns,p,r LIMIT 5'));
+app.get('/example?:cypher', function (req, res) {
+  console.log(req.query.cypher);
+  DBDriver.runStatement(req.query.cypher, res);
 });
-
 
 var server = app.listen(3000, function () {
   var host = server.address().address;

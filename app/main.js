@@ -11,6 +11,7 @@ class App extends React.Component {
         
         this.state = {
             data: {
+                records:{},
                 nodes: [
                     //{id:"0", name : "0", age:12},
                 ],
@@ -26,15 +27,18 @@ class App extends React.Component {
         
         xmlhttp.onreadystatechange = function(){
             if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                console.log(xmlhttp.readyState + " : " + xmlhttp.responseText)
+                let __data = JSON.parse(xmlhttp.responseText);
+                console.log(__data[0].keys[1]);
                 this.setState(function(prevState, props) {
                     return {
-                        data: xmlhttp.responseText
+                        data: JSON.parse(xmlhttp.responseText)
                     }
                 });
             }
         }.bind(this)
 
-        xmlhttp.open("GET","/example/d?cypher=" + statement, true);
+        xmlhttp.open("GET","/example?cypher=" + statement, true);
         xmlhttp.send();
     }.bind(this)
 

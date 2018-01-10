@@ -8,26 +8,6 @@ export default class VisualizationComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: {
-                nodes: [
-                    {id:"0", name : "0", age:12},
-                    {id:"1", name : "1", age:12},
-                    {id:"2", name : "2", age:12},
-                    {id:"3", name : "3", age:12},
-                    {id:"4", name : "4", age:12},
-                    {id:"5", name : "5", age:12},
-                    {id:"6", name : "6", age:12},
-                    {id:"7", name : "7", age:12}
-                ],
-                edges : [
-                    {source:"0", target:"1"},
-                    {source:"0", target:"2"},
-                    {source:"0", target:"3"},
-                    {source:"1", target:"4"},
-                    {source:"2", target:"5"},
-                    {source:"3", target:"6"}
-                ]
-            },
             cards:[],
             showCard: this.showCard
         };
