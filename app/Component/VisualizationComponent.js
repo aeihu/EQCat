@@ -15,7 +15,7 @@ export default class VisualizationComponent extends React.Component {
     }
 
     showCard = function(d) {
-        for (var index in this.state.cards){
+        for (let index in this.state.cards){
             if (this.state.cards[index].id == d.id){
                 //alert(this.state.cards[index].id)
                 return;
@@ -34,7 +34,7 @@ export default class VisualizationComponent extends React.Component {
 
     
     hideCard = function(id) {
-        for (var index in this.state.cards){
+        for (let index in this.state.cards){
             if (this.state.cards[index].id == id){
                 this.setState(function(prevState, props) {
                     prevState.cards.splice(index, 1);
