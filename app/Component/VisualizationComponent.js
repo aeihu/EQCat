@@ -50,7 +50,8 @@ export default class VisualizationComponent extends React.Component {
 
     componentDidMount()
     {
-        var el = ReactDOM.findDOMNode();
+        console.log('aa');
+        let el = ReactDOM.findDOMNode();
         D3ForceSimulation.create(el, 
             this.props, 
             this.state);
@@ -58,13 +59,16 @@ export default class VisualizationComponent extends React.Component {
 
     componentDidUpdate()
     {
+        console.log('bb');
+        let el = ReactDOM.findDOMNode();
+        D3ForceSimulation.update(el, this.props, this.state);
         // var el = ReactDOM.findDOMNode();
         // D3ForceSimulation.update(el, this.state, this.dispatcher);
     }
 
     componentWillUnmount()
     {
-        alert("3");
+        console.log('cc');
         // var el = ReactDOM.findDOMNode();
         // D3ForceSimulation.destroy(el);
     }

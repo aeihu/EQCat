@@ -70,18 +70,17 @@ export default class Neo4j
                             if (typeof value.get(value.keys[i]) == 'object'){
                                 switch (value.get(value.keys[i]).constructor){
                                     case neo4j.types.Relationship:
-                                    console.log(value.get(value.keys[i]).properties);
                                         __record[value.keys[i]] = { 
-                                            identity: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).identity),
-                                            type: value.get(value.keys[i]).type,
-                                            start: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).start),
-                                            end: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).end),
-                                            properties: this.propertiesToJson(value.get(value.keys[i]).properties)
+                                            //name: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).identity).toString(),
+                                            //type: value.get(value.keys[i]).type,
+                                            source: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).start).toString(),
+                                            target: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).end).toString(),
+                                            //properties: this.propertiesToJson(value.get(value.keys[i]).properties)
                                         };
                                     break;
                                     case neo4j.types.Node:
                                         __record[value.keys[i]] = { 
-                                            identity: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).identity),
+                                            id: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).identity).toString(),
                                             labels: value.get(value.keys[i]).labels,
                                             properties: this.propertiesToJson(value.get(value.keys[i]).properties)
                                         };

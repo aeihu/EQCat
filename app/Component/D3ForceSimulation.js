@@ -18,98 +18,110 @@ D3ForceSimulation.create = function(el, props, state) {
         .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(300, 300));
 
-    this.update(el, props, state);
+    //this.update(el, props, state);
 };
 
 D3ForceSimulation.dragstarted = function dragstarted(d) {
-    if (!d3.event.active) 
-        this.simulation.alphaTarget(0.3).restart();
+    if (!d3.event.active) {
+        console.log('dragstarted');
+        D3ForceSimulation.simulation.alphaTarget(0.3).restart();
+    }
 
     d.fx = d.x;
     d.fy = d.y;
-}.bind(this)
+}
 
 D3ForceSimulation.dragged = function dragged(d) {
+    console.log('dragged');
     d.fx = d3.event.x;
     d.fy = d3.event.y;
-}.bind(this)
+}
 
 D3ForceSimulation.dragended = function dragended(d) {
-    if (!d3.event.active) 
-        this.simulation.alphaTarget(0);
+    if (!d3.event.active) {
+        console.log('dragended');
+        D3ForceSimulation.simulation.alphaTarget(0);
+    }
 
     d.fx = null;
     d.fy = null;
-}.bind(this)
+}
 
 D3ForceSimulation.update = function(el, props, state) {
     // Re-compute the scales, and render the data points
     // var scales = this._scales(el, state.domain);
     this._drawNodesAndEdges(el, props, state);
-  };
+};
 
 D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     let __data = props.data
-    let link = this.svg.append("g")
+    console.log('/////////////////////////');
+    console.log(__data);
+
+    let __updataForLink = this.svg.append("g")
         .selectAll("line")
         .data(__data.edges)
-        .enter().append("line")
+    
+    let __link = __updataForLink
+        .enter()
+        .append("line")
         .attr("class", "links");
 
-    let node = this.svg//.append("g")
+    __updataForLink.exit().remove();
+
+    let __updataForNode = this.svg
         .selectAll("g")
         .data(__data.nodes)
+        
+    let __node = __updataForNode
         .enter()
         .append("g")
-        // .on("click", function(d){
-        //     //state.showCard(d);
-        //     console.log('dsadsa');
-        // })
+        .on("click", function(d){
+            //state.showCard(d);
+            console.log('dsadsa');
+        })
         .attr("class", "nodes")
         .call(d3.drag()
                 .on("start", this.dragstarted)
                 .on("drag", this.dragged)
                 .on("end", this.dragended));
-            
+        
+    __updataForNode.exit().remove();
 
-    node.append("circle")
+    __node.append("circle")
         .attr("r", 1);
    // .attr("fill", function(d) { return color(d.group); });
             
-    node.append("text")
+    __node.append("text")
         .attr("dy", "-0.050000000000000044em")
         .attr("text-anchor", "middle")
         .text(function(d) { 
-            return d.name; });
+            return d.properties.name; });
 
     function ticked() {
-        link
+        __link
             .attr("x1", function(d) { return d.source.x; })
             .attr("y1", function(d) { return d.source.y; })
             .attr("x2", function(d) { return d.target.x; })
             .attr("y2", function(d) { return d.target.y; });
 
-        node
+        __node
             .attr("transform", function(d) {
                 return 'translate(' + d.x + ',' + d.y + ')';
         });
     }
-              
+    
+    //return;
+    
     this.simulation
         .nodes(__data.nodes)
         .on("tick", ticked);
         
     this.simulation
         .force("link")
-        .links(__data.edges);
+        .links(__data.edges);    
 
-// var svg = d3.select(el).append('svg')
-//     .attr('class', 'd3')
-//     .attr('width', props.width)
-//     .attr('height', props.height);
-
-// svg.append('g')
-//     .attr('class', 'd3-points');
+    this.simulation.restart();
 }
 
   
