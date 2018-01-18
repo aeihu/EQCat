@@ -71,11 +71,11 @@ export default class Neo4j
                                 switch (value.get(value.keys[i]).constructor){
                                     case neo4j.types.Relationship:
                                         __record[value.keys[i]] = { 
-                                            //name: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).identity).toString(),
-                                            //type: value.get(value.keys[i]).type,
+                                            name: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).identity).toString(),
+                                            type: value.get(value.keys[i]).type,
                                             source: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).start).toString(),
                                             target: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).end).toString(),
-                                            //properties: this.propertiesToJson(value.get(value.keys[i]).properties)
+                                            properties: this.propertiesToJson(value.get(value.keys[i]).properties)
                                         };
                                     break;
                                     case neo4j.types.Node:
