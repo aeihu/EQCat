@@ -47,11 +47,10 @@ class App extends React.Component {
 
                             if (__b)
                                 __nodes.push(v[key]);
-                        }else if (//v[key].hasOwnProperty("name") 
-                            //&& v[key].hasOwnProperty("type") 
-                            //&& v[key].hasOwnProperty("properties")
-                            //&& 
-                            v[key].hasOwnProperty("source")
+                        }else if (v[key].hasOwnProperty("name") 
+                            && v[key].hasOwnProperty("type") 
+                            && v[key].hasOwnProperty("properties")
+                            && v[key].hasOwnProperty("source")
                             && v[key].hasOwnProperty("target")){
 
                             // let __b = true;

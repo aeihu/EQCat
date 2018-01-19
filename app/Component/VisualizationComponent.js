@@ -17,12 +17,12 @@ export default class VisualizationComponent extends React.Component {
     showCard = function(d) {
         for (let index in this.state.cards){
             if (this.state.cards[index].id == d.id){
-                //alert(this.state.cards[index].id)
                 return;
             }
         }
 
         this.setState(function(prevState, props) {
+            console.log(d);
             prevState.cards.push(d);
             return prevState;
             // return {
@@ -76,9 +76,9 @@ export default class VisualizationComponent extends React.Component {
     render() {
         var elements=[];
 
-        this.state.cards.map(function(v,k) { 
-            elements.push(<CardComponent nodeData={v} closeCard={this.hideCard} />);
-        }.bind(this));
+        for (let i = 0; i < this.state.cards.length; i++){
+            elements.push(<CardComponent nodeData={this.state.cards[i]} closeCard={this.hideCard} />);
+        }
 
         return (
             <div id="visualization">
@@ -87,7 +87,3 @@ export default class VisualizationComponent extends React.Component {
         )
     }
 }
-
-// VisualizationComponent.propTypes = {
-//     showed: PropTypes.func
-// };

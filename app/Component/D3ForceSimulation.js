@@ -4,18 +4,43 @@ export const D3ForceSimulation = {};
 
 D3ForceSimulation.simulation = null;
 D3ForceSimulation.svg = null;
+D3ForceSimulation.x = 0;
+D3ForceSimulation.y = 0;
+D3ForceSimulation.tx = 1920;
+D3ForceSimulation.ty = 1080;
 
 D3ForceSimulation.create = function(el, props, state) {
     this.svg = d3.select("#visualization")
         .append("svg")
         .attr("width", props.width)
         .attr("height", props.height)
+        .attr("xmlns", "http://www.w3.org/2000/svg")
+        //.attr("viewBox", this.viewBox.x + " " + this.viewBox.y + " " + this.viewBox.w + " " + this.viewBox.h)
+        //.attr("preserveAspectRatio", "xMaxYMax slice")
+        .call(d3.drag()
+                .on("start", function (){
+                    console.log('dragstarted');
+                    D3ForceSimulation.tx = d3.event.x;
+                    D3ForceSimulation.ty = d3.event.y;
+                })
+                .on("drag", function (){
+                    console.log('dragged');
+                    D3ForceSimulation.svg.attr("transform", 
+                        'translate(' + (D3ForceSimulation.x - (D3ForceSimulation.tx - d3.event.x)) + ',' 
+                        + (D3ForceSimulation.y - (D3ForceSimulation.ty - d3.event.y)) + ')')
+                })
+                .on("end", function (){
+                    D3ForceSimulation.x = D3ForceSimulation.x - (D3ForceSimulation.tx - d3.event.x);
+                    D3ForceSimulation.y = D3ForceSimulation.y - (D3ForceSimulation.ty - d3.event.y);
+                }))
+        .append("g");
         // .style("position", "absolute")
         // .style("z-index", 0);
 
     this.simulation = d3.forceSimulation()
-        .force("link", d3.forceLink().id(function(d) { return d.id; }))
-        .force("charge", d3.forceManyBody())
+        .force("link", d3.forceLink().id(function(d) { return d.id; }).strength(0.5))
+        .force("charge", d3.forceManyBody().strength(-5200))
+        // /.force("collide", d3.forceCollide().strength())
         .force("center", d3.forceCenter(300, 300));
 
     //this.update(el, props, state);
@@ -23,7 +48,6 @@ D3ForceSimulation.create = function(el, props, state) {
 
 D3ForceSimulation.dragstarted = function dragstarted(d) {
     if (!d3.event.active) {
-        console.log('dragstarted');
         D3ForceSimulation.simulation.alphaTarget(0.3).restart();
     }
 
@@ -32,14 +56,12 @@ D3ForceSimulation.dragstarted = function dragstarted(d) {
 }
 
 D3ForceSimulation.dragged = function dragged(d) {
-    console.log('dragged');
     d.fx = d3.event.x;
     d.fy = d3.event.y;
 }
 
 D3ForceSimulation.dragended = function dragended(d) {
     if (!d3.event.active) {
-        console.log('dragended');
         D3ForceSimulation.simulation.alphaTarget(0);
     }
 
@@ -58,7 +80,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     console.log('/////////////////////////');
     console.log(__data);
 
-    let __updataForLink = this.svg.append("g")
+    let __updataForLink = this.svg
         .selectAll("line")
         .data(__data.edges)
     
@@ -70,15 +92,14 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     __updataForLink.exit().remove();
 
     let __updataForNode = this.svg
-        .selectAll("g")
+        .selectAll(".nodes")
         .data(__data.nodes)
         
     let __node = __updataForNode
         .enter()
         .append("g")
         .on("click", function(d){
-            //state.showCard(d);
-            console.log('dsadsa');
+            state.showCard(d);
         })
         .attr("class", "nodes")
         .call(d3.drag()
@@ -89,7 +110,13 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     __updataForNode.exit().remove();
 
     __node.append("circle")
-        .attr("r", 1);
+        .attr("r", 1)
+ 
+    __node.append("image")
+        .attr("xlink:href", "https://mdn.mozillademos.org/files/6457/mdn_logo_only_color.png")
+        .attr("height", "100")
+        .attr("width", "100")
+        .attr("transform", "translate(-50 -50)");
    // .attr("fill", function(d) { return color(d.group); });
             
     __node.append("text")
@@ -98,6 +125,10 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .text(function(d) { 
             return d.properties.name; });
 
+    __node = __node.merge(__updataForNode);   
+    __link = __link.merge(__updataForLink);   
+    // console.log(__updataForNode);
+    // console.log(__node);
     function ticked() {
         __link
             .attr("x1", function(d) { return d.source.x; })
@@ -108,10 +139,8 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         __node
             .attr("transform", function(d) {
                 return 'translate(' + d.x + ',' + d.y + ')';
-        });
+            });
     }
-    
-    //return;
     
     this.simulation
         .nodes(__data.nodes)
@@ -119,7 +148,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         
     this.simulation
         .force("link")
-        .links(__data.edges);    
+        .links(__data.edges);
 
     this.simulation.restart();
 }

@@ -23,23 +23,18 @@ export default class CardComponent extends React.Component {
 
     render() {
         let __cardTitle = [];
-        for (let key in this.props.nodeData){
-            if (key != 'name' && 
-                key != 'id' && 
-                key != 'pics' && 
-                key != 'vx' && 
-                key != 'vy' && 
-                key != 'x' && 
-                key != 'y' && 
-                key != 'memo' && 
-                key != 'index' && 
-                this.props.nodeData[key] != null ){
-                __cardTitle.push(<TextField disabled={true} floatingLabelText={key} defaultValue={this.props.nodeData[key]} />);
-            }
+        for (let key in this.props.nodeData.properties){
+            __cardTitle.push(<TextField disabled={true} floatingLabelText={key} defaultValue={this.props.nodeData.properties[key]} />);
+        }
+
+        let __cardChip = [];
+        for (let i = 0; i <  this.props.nodeData.labels.length; i++){
+            __cardChip.push(<Chip style={{margin: 4}}>{this.props.nodeData.labels[i]}</Chip>);
         }
     
         return (
-            <Draggable defaultPosition={{x: this.props.nodeData.x, y: this.props.nodeData.y}}>
+            // <Draggable defaultPosition={{x: this.props.nodeData.x, y: this.props.nodeData.y}}>
+            <Draggable>
                 <Card style={{position:"absolute", width:"30%"}}>
                     <AppBar 
                         iconElementLeft={<IconButton><NavigationClose /></IconButton>}
@@ -50,14 +45,10 @@ export default class CardComponent extends React.Component {
                         subtitle={this.props.nodeData.id != null ? 'ID: ' + this.props.nodeData.id : null}
                         avatar={this.props.nodeData.avatar}
                         actAsExpander={true}
-                    >
-                        <Chip>
-                            Text Chip
-                        </Chip>
-                        <Chip>
-                            Text Chip
-                        </Chip>
-
+                    >               
+                        <div style={{display: 'flex', flexWrap: 'wrap'}}>        
+                            {__cardChip}
+                        </div>
                     </CardHeader>
                 {/* <CardMedia
                     overlay={<CardTitle title="Overlay title" subtitle="Overlay subtitle" />}
