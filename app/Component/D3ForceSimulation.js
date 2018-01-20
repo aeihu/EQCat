@@ -15,8 +15,6 @@ D3ForceSimulation.create = function(el, props, state) {
         .attr("width", props.width)
         .attr("height", props.height)
         .attr("xmlns", "http://www.w3.org/2000/svg")
-        //.attr("viewBox", this.viewBox.x + " " + this.viewBox.y + " " + this.viewBox.w + " " + this.viewBox.h)
-        //.attr("preserveAspectRatio", "xMaxYMax slice")
         .call(d3.drag()
                 .on("start", function (){
                     console.log('dragstarted');
@@ -108,16 +106,16 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                 .on("end", this.dragended));
         
     __updataForNode.exit().remove();
-
-    __node.append("circle")
-        .attr("r", 1)
  
     __node.append("image")
         .attr("xlink:href", "https://mdn.mozillademos.org/files/6457/mdn_logo_only_color.png")
+        .attr("style", "opacity:0.9")
         .attr("height", "100")
-        .attr("width", "100")
-        .attr("transform", "translate(-50 -50)");
-   // .attr("fill", function(d) { return color(d.group); });
+        .attr("width", "100");
+
+    __node.append("circle")
+        .attr("r", 1)
+        //.attr("transform", "translate(-50 -50)");
             
     __node.append("text")
         .attr("dy", "-0.050000000000000044em")
@@ -126,9 +124,8 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
             return d.properties.name; });
 
     __node = __node.merge(__updataForNode);   
-    __link = __link.merge(__updataForLink);   
-    // console.log(__updataForNode);
-    // console.log(__node);
+    __link = __link.merge(__updataForLink); 
+    
     function ticked() {
         __link
             .attr("x1", function(d) { return d.source.x; })
