@@ -34,12 +34,14 @@ export default class CardComponent extends React.Component {
     
         return (
             // <Draggable defaultPosition={{x: this.props.nodeData.x, y: this.props.nodeData.y}}>
-            <Draggable>
+            <Draggable handle="strong" bounds="parent">
                 <Card style={{position:"absolute", width:"30%"}}>
-                    <AppBar 
-                        iconElementLeft={<IconButton><NavigationClose /></IconButton>}
-                        onLeftIconButtonClick={function(event){this.props.closeCard(this.props.nodeData.id)}.bind(this)}
-                    />
+                    <strong>
+                        <AppBar 
+                            iconElementLeft={<IconButton><NavigationClose /></IconButton>}
+                            onLeftIconButtonClick={function(event){this.props.closeCard(this.props.nodeData.id)}.bind(this)}
+                        />
+                    </strong>
                     <CardHeader
                         title={this.props.nodeData.name}
                         subtitle={this.props.nodeData.id != null ? 'ID: ' + this.props.nodeData.id : null}

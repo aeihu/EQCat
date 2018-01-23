@@ -10,10 +10,10 @@ D3ForceSimulation.tx = 1920;
 D3ForceSimulation.ty = 1080;
 
 D3ForceSimulation.create = function(el, props, state) {
-    this.svg = d3.select("#visualization")
+    this.svg = d3.select("#displayContent")
         .append("svg")
-        .attr("width", props.width)
-        .attr("height", props.height)
+        .attr("width", '100%')
+        .attr("height", '100%')
         .attr("xmlns", "http://www.w3.org/2000/svg")
         .call(d3.drag()
                 .on("start", function (){

@@ -21,13 +21,6 @@ export default class CypherBarComponent extends React.Component {
         //width:"98%", 
     }
 
-    componentDidUpdate()
-    {
-        console.log('bb');
-        let el = ReactDOM.findDOMNode();
-        D3ForceSimulation.update(el, this.props, this.state);
-    }
-
     render() {
         return (
             <Toolbar style={{width:"98%", 
