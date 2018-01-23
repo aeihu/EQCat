@@ -18,11 +18,23 @@ export default class CypherBarComponent extends React.Component {
             text: '',
             height: 57
         }
+        //width:"98%", 
+    }
+
+    componentDidUpdate()
+    {
+        console.log('bb');
+        let el = ReactDOM.findDOMNode();
+        D3ForceSimulation.update(el, this.props, this.state);
     }
 
     render() {
         return (
-            <Toolbar style={{width:"100%", height: this.state.height.toString() + 'px'}}>
+            <Toolbar style={{width:"98%", 
+                flex:'0 0 auto',
+                height: this.state.height.toString() + 'px', 
+                boxShadow: "0px 1px 5px #333333",
+                margin:"10px"}}>
                 <ToolbarGroup>
                     <CodeMirror 
                         style={{padding:'5px'}}
