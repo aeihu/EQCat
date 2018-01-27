@@ -4,33 +4,40 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import TooltipComponent from './Component/TooltipComponent';
 import VisualizationComponent from './Component/VisualizationComponent'
 import CypherBarComponent from './Component/CypherBarComponent'
+import CircularProgress from 'material-ui/CircularProgress';
+import Dialog from 'material-ui/Dialog';
 
 class App extends React.Component {
     constructor(props) {
         super(props);
         
         this.state = {
+            open: false,
             data: {
                 statement:'',
                 records:[],
-                table:[],
-                colName:[],
-                nodes: [
-                    //{id:"0", name : "0", age:12},
-                ],
-                edges: [
-                    //{source:"0", target:"1"},
-                ],
-                count: {
-                    nodes: {},
-                    edges: {}
+                graph: {
+                    nodes: [
+                        //{id:"0", name : "0", age:12},
+                    ],
+                    edges: [
+                        //{source:"0", target:"1"},
+                    ],
+                    count: {
+                        nodes: {},
+                        edges: {}
+                    }
+                },
+                table:{
+                    rows: [],
+                    columns: [],
                 }
             }
         };
     }
 
     runCypher = function(statement) {
-        var xmlhttp = new XMLHttpRequest()
+        let xmlhttp = new XMLHttpRequest()
         
         xmlhttp.onreadystatechange = function(){
             if (xmlhttp.readyState==4 && xmlhttp.status==200){
@@ -38,8 +45,8 @@ class App extends React.Component {
                 let __json = JSON.parse(xmlhttp.responseText);
                 let __nodes = [];
                 let __edges = [];
-                let __table = [];
-                let __colName = [];
+                let __rows = [];
+                let __columns = [];
                 let __count = {
                     nodes: {},
                     edges: {}
@@ -48,7 +55,7 @@ class App extends React.Component {
                 __json.forEach(function (v, k) {
                     if (__isFirst){
                         for (let key in v)
-                            __colName.push(key);
+                            __columns.push(key);
                         
                         __isFirst = false;
                     }
@@ -108,19 +115,24 @@ class App extends React.Component {
                         }
                     }
                     console.log(__row);
-                    __table.push(__row);
+                    __rows.push(__row);
                 }.bind(this));
 
                 this.setState(function(prevState, props) {
                     return {
+                        open: false,
                         data: {
                             statement: statement,
                             records: __json,
-                            table: __table,
-                            colName: __colName,
-                            nodes: __nodes,
-                            edges: __edges,
-                            count: __count
+                            graph: {
+                                nodes: __nodes,
+                                edges: __edges,
+                                count: __count
+                            },
+                            table: {
+                                rows: __rows,
+                                columns: __columns
+                            }
                         }
                     }
                 });
@@ -129,11 +141,24 @@ class App extends React.Component {
 
         xmlhttp.open("GET","/example?cypher=" + statement, true);
         xmlhttp.send();
+
+        this.setState(function(prevState, props) {
+            return {
+                open: true,
+                data: prevState.data
+            }
+        });
     }.bind(this)
 
     render() {
         return (
             <MuiThemeProvider>
+                <Dialog
+                    open={this.state.open}
+                    modal={false}
+                >
+                    <CircularProgress size={80} thickness={5} />
+                </Dialog>
                 <div id="tooltip">
                     <TooltipComponent />
                 </div>

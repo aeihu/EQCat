@@ -29,7 +29,7 @@ export default class CardComponent extends React.Component {
 
         let __cardChip = [];
         for (let i = 0; i <  this.props.nodeData.labels.length; i++){
-            __cardChip.push(<Chip style={{margin: 4}}>{this.props.nodeData.labels[i]}</Chip>);
+            __cardChip.push(<Chip className="NodeLabelChip" style={{margin: 4}} >{this.props.nodeData.labels[i]}</Chip>);
         }
     
         return (

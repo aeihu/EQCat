@@ -8,6 +8,7 @@ D3ForceSimulation.x = 0;
 D3ForceSimulation.y = 0;
 D3ForceSimulation.tx = 1920;
 D3ForceSimulation.ty = 1080;
+D3ForceSimulation.showedImage = false;
 
 D3ForceSimulation.create = function(el, props, state) {
     this.svg = d3.select("#displayContent")
@@ -109,7 +110,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
  
     __node.append("image")
         .attr("xlink:href", "https://mdn.mozillademos.org/files/6457/mdn_logo_only_color.png")
-        .attr("style", "opacity:0.9")
+        .attr("enabled", this.showedImage)
         .attr("height", "100")
         .attr("width", "100");
 
@@ -150,8 +151,15 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     this.simulation.restart();
 }
 
+D3ForceSimulation.showOrHideImage = function(){
+    D3ForceSimulation.showedImage = !D3ForceSimulation.showedImage;
+    D3ForceSimulation.svg
+        .selectAll("image")
+        .attr("enabled", D3ForceSimulation.showedImage);
+}
+
   
-  D3ForceSimulation.destroy = function(el) {
+D3ForceSimulation.destroy = function(el) {
     // Any clean-up would go here
     // in this example there is nothing to do
-  };
+};
