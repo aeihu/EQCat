@@ -20,15 +20,18 @@ export default class VisualizationComponent extends React.Component {
                     flexDirection: 'column'}}
                 contentContainerStyle={{flex:'1 1 auto'}}
                 tabTemplateStyle={{height: '100%', width:'100%'}}
+                tabItemContainerStyle={{height: '30px'}}
             >
                 <Tab
                     // icon={<FontIcon className="material-icons">phone</FontIcon>}
+                    buttonStyle={{height: '100%'}}
                     label="Graph"
                 >
                     <GraphForDataComponent data={this.props.data.graph} />
                 </Tab>
                 <Tab
                     // icon={<FontIcon className="material-icons">favorite</FontIcon>}
+                    buttonStyle={{height: '100%'}}
                     label="Table"
                 >
                     <TableForDataComponent data={this.props.data.table} />  

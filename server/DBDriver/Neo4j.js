@@ -63,8 +63,6 @@ export default class Neo4j
                 .then(function (result) {
                     let __result = [];
                     result.records.forEach(function (value, key, record) {
-                        console.log(value);
-                        
                         let __record = {};
                         for (let i = 0; i < value.length; i++){
                             if (typeof value.get(value.keys[i]) == 'object'){
@@ -103,9 +101,6 @@ export default class Neo4j
                             else{
                                 __record[value.keys[i]] = value.get(value.keys[i]);
                             }
-                            console.log('ssaaaaaaaaaaaaaaaaaaa');
-                            console.log(typeof value.get(value.keys[i]));
-                            console.log(value.get(value.keys[i]));
                         }
 
                         __result.push(__record)
@@ -117,7 +112,7 @@ export default class Neo4j
                 }.bind(this))
                 .catch(function (error) {
                     console.log(error);
-                    res.send('error');
+                    res.jsonp(error);
                     __session.close();
                 });
         }

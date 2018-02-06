@@ -44,6 +44,15 @@
             stroke-width: 50.5px;
         }
 
+        .nodes image {
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .nodes image[enabled='true'] {
+            opacity: 0.9;
+        }
+
 		.links{
 			stroke:steelblue;
         }
@@ -65,6 +74,12 @@
             line-height: 23px !important;
             font-family: Inconsolata, simsun !important;
             font-size: 18px !important;
+        }
+
+        .labelChip{
+            margin: 4px !important;
+            height: 20px; 
+            align-items: center;
         }
     </style>
   </head>

@@ -6,6 +6,7 @@ import VisualizationComponent from './Component/VisualizationComponent'
 import CypherBarComponent from './Component/CypherBarComponent'
 import CircularProgress from 'material-ui/CircularProgress';
 import Dialog from 'material-ui/Dialog';
+import Snackbar from 'material-ui/Snackbar';
 
 class App extends React.Component {
     constructor(props) {
@@ -24,8 +25,12 @@ class App extends React.Component {
                         //{source:"0", target:"1"},
                     ],
                     count: {
-                        nodes: {},
-                        edges: {}
+                        nodes: {
+                            '*': 0
+                        },
+                        edges: {
+                            '*': 0
+                        }
                     }
                 },
                 table:{
@@ -36,6 +41,13 @@ class App extends React.Component {
         };
     }
 
+    handleClick = () => {
+		this.setState(function(prevState, props) {
+			prevState.snackOpen = true;
+			return prevState;
+		})
+    };
+    
     runCypher = function(statement) {
         let xmlhttp = new XMLHttpRequest()
         
@@ -48,8 +60,12 @@ class App extends React.Component {
                 let __rows = [];
                 let __columns = [];
                 let __count = {
-                    nodes: {},
-                    edges: {}
+                    nodes: {
+                        '*': 0
+                    },
+                    edges: {
+                        '*': 0
+                    }
                 };
                 let __isFirst = true;
                 __json.forEach(function (v, k) {
@@ -82,6 +98,8 @@ class App extends React.Component {
                                         __count.nodes[v[key].labels[i]]++;
                                     else
                                         __count.nodes[v[key].labels[i]] = 1;
+                                    
+                                    __count.nodes['*']++;
                                 }
                             }
                             
@@ -107,6 +125,8 @@ class App extends React.Component {
                                     __count.edges[v[key].type]++;
                                 else
                                     __count.edges[v[key].type] = 1;
+
+                                __count.edges['*']++;
                             }
 
                             __row.push(JSON.stringify(v[key].properties, null, 2));
@@ -166,6 +186,17 @@ class App extends React.Component {
                     <CypherBarComponent runCypher={this.runCypher} text={this.state.data.statement} />
                     <VisualizationComponent data={this.state.data} />
                 </div>
+                
+				<Snackbar
+					open={this.state.snackOpen}
+					message="Event added to your calendar"
+					autoHideDuration={4000}
+					onRequestClose={()=>{ 
+						this.setState(function(prevState, props) {
+							prevState.snackOpen = false;
+							return prevState;
+						})}}
+				/>
             </MuiThemeProvider>
         );
     }

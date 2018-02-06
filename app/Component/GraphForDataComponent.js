@@ -4,6 +4,7 @@ import CardComponent from './CardComponent';
 import Chip from 'material-ui/Chip';
 import FlatButton from 'material-ui/FlatButton';
 import {D3ForceSimulation} from './D3ForceSimulation';
+import EditorDialogsComponent from './EditorDialogsComponent';
 
 export default class GraphForDataComponent extends React.Component {
     constructor(props) {
@@ -72,9 +73,9 @@ export default class GraphForDataComponent extends React.Component {
         let __nodeChip = [];
         for (let key in this.props.data.count.nodes){
             __nodeChip.push(<Chip 
-                className="NodeLabelChip" 
+                className="labelChip" 
                 labelStyle={{fontSize: '12px'}}
-                style={{margin: 4, height:'20px', alignItems:'center'}}>
+                >
                     {key + '(' + this.props.data.count.nodes[key] + ')'}
                 </Chip>);
         }
@@ -82,21 +83,23 @@ export default class GraphForDataComponent extends React.Component {
         let __edgeChip = [];
         for (let key in this.props.data.count.edges){
             __edgeChip.push(<Chip 
-                className="NodeLabelChip" 
+                className="labelChip" 
                 labelStyle={{fontSize: '12px'}}
-                style={{borderRadius: '2px',margin: 4, height:'20px', alignItems:'center'}}>
+                >
                     {key + '(' + this.props.data.count.edges[key] + ')'}
                 </Chip>);
         }
 
         return (
             <div style={{display: 'flex', flexDirection: 'column', height: '100%', width:'100%'}}>
+                <EditorDialogsComponent />
                 <div id="displayContent" style={{backgroundColor: '#EEEEEE', width:'100%', flex:'1 1 auto'}}>
                     {__cardElements}
                 </div>
                 <div style={{display: 'flex', justifyContent: 'space-between', flexDirection: 'row', flex:'0 0 auto'}} >
                     {/* <FlatButton label={this.props.data.statement} labelPosition="before" containerElement="label" /> */}
                     <FlatButton label='AA' labelPosition="before" containerElement="label" style={{alignSelf: 'flex-end'}} onClick={D3ForceSimulation.showOrHideImage} />
+                    <FlatButton label='BB' labelPosition="before" containerElement="label" style={{alignSelf: 'flex-end'}} onClick={D3ForceSimulation.showOrHideImage} />
                 </div>
                 <div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
                     {__nodeChip}
