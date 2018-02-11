@@ -13,6 +13,8 @@ import IconMenu from 'material-ui/IconMenu';
 import MenuItem from 'material-ui/MenuItem';
 import IconButton from 'material-ui/IconButton';
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
+import Add from 'material-ui/svg-icons/content/add';
+import Clear from 'material-ui/svg-icons/content/clear';
 
 const styles = {
 	radioButton: {
@@ -57,11 +59,36 @@ export default class EditorDialogsComponent extends React.Component {
         });
 	};
 
-	handleAddLabel = () => {
-		console.log(this.refs.iconbtn.props.value);
+	setPropertiesByLabel = (labelName) => {
+		if (this.state.template.hasOwnProperty(labelName)){
+			this.setState(function(prevState, props) {
+				let __isHas = false;
+				for (let key in prevState.template){
+					__isHas = false;
+					for (let i = 0; i < prevState.properties.length; i++){
+						if (prevState.properties[i].key == key){
+							__isHas = true;
+							break;
+						}
+					}
+					
+					if (!__isHas)
+						prevState.properties.push({
+							key : key,
+							type : prevState.template[key],
+							value : prevState.template[key] == 'Boolean' ? true :
+								prevState.template[key] == 'List' ? [] : ''
+						});
+				}
+				
+				return prevState;
+			});
+		}
+	}
+
+	addLabel = () => {
         for (let i = 0; i < this.state.labels.length; i++){
 			if (this.state.labels[i] == this.state.searchText){
-				this.handleClick();
 				return;
 			}
 		}
@@ -133,6 +160,7 @@ export default class EditorDialogsComponent extends React.Component {
     //     xmlhttp.open("GET", "/template", true);
     //     xmlhttp.send();
 	// }.bind(this)
+
 	addProperty = function (){
         this.setState(function(prevState, props) {
             prevState.properties.push({key:'',type:'String', value:''});
@@ -143,7 +171,6 @@ export default class EditorDialogsComponent extends React.Component {
     delProperty = function (index) {
         this.setState(function(prevState, props) {
             prevState.properties.splice(index, 1);
-            this.PropertiesElement.splice(index, 4);
             return prevState;
         });
 	}
@@ -175,13 +202,16 @@ export default class EditorDialogsComponent extends React.Component {
         let __labelChip = [];
         for (let i = 0; i < this.state.labels.length; i++){
 			__labelChip.push(<Chip 
-				key={i}
-                className="labelChip" 
-				labelStyle={{fontSize: '12px'}}
-				onRequestDelete={() => this.delLabel(i)}
-                >
-                    {this.state.labels[i]}
-                </Chip>);
+					key={i}
+					className="labelChip" 
+					labelStyle={{fontSize: '12px'}}
+					onClick={this.state.template.hasOwnProperty(labelName) ? 
+						() => this.setPropertiesByLabel(this.state.labels[i]) :
+						null}
+					onRequestDelete={() => this.delLabel(i)}
+					>
+						{this.state.labels[i]}
+				</Chip>);
 		}
 		
 		let __propertiesElement = [];
@@ -200,26 +230,28 @@ export default class EditorDialogsComponent extends React.Component {
                         // maxSearchResults={6}
                     />
                     <strong style={{margin: '4px'}} >{':'}</strong>
-                    {this.state.properties[i].type == 'Number' ? 
-                        <TextField 
-                            ref={'value' + i}
-                            hintText="Number" 
-                            onChange={function (event, newValue) {
-                                //if (typeof newValue ==='number'&& isFinite(newValue))
-                            }}
-                        /> : 
-                        this.state.properties[i].type == 'Boolean' ?
-                            <Toggle
-								ref={'value' + i}
-								labelPosition="right"
-                                label=""
-                                onToggle={this.handleToggle}
-                                defaultToggled={true}
-                            /> :
-                            this.state.properties[i].type == 'List' ?
-                                <div /> :
-                                <TextField ref={'value' + i} hintText="String" value={this.state.properties[i].value} />}
-                    
+                    {this.state.properties[i].type == 'Boolean' ?
+						<Toggle
+							labelPosition="right"
+							label="Boolean"
+							onToggle={this.handleToggle}
+							defaultToggled={true}
+						/> :
+						this.state.properties[i].type == 'List' ?
+							<div /> :
+							<TextField 
+								id={'value' + i}
+								hintText={this.state.properties[i].type} 
+								onChange={function (event, newValue) {
+									this.setState(function(prevState, props) {
+										this.state.properties[i].value = newValue;
+										return prevState;
+									});
+								}.bind(this)}
+								errorText={this.state.properties[i].type == 'Number' ? isNaN(this.state.properties[i].value) ? "It's not number" : '' : ''}
+								value={this.state.properties[i].value}
+							/>
+					}
                     <IconMenu
                         ref={'iconbtn' + i}
                         iconButtonElement={<IconButton><MoreVertIcon /></IconButton>}
@@ -239,6 +271,7 @@ export default class EditorDialogsComponent extends React.Component {
                         <MenuItem value="Boolean" primaryText="Boolean" />
                         <MenuItem value="List" primaryText="List" />
                     </IconMenu>
+					<IconButton onClick={() => this.delProperty(i)}><Clear /></IconButton>
                 </div>
             );
         }
@@ -270,15 +303,29 @@ export default class EditorDialogsComponent extends React.Component {
 						openOnFocus={false}
 						maxSearchResults={6}
 					/>
+					<RaisedButton
+						onClick={this.addLabel}
+						label="Add Label"
+						style={{margin: 12}}
+						primary={true}
+					/>
 				</div>
 				<h3>Properties</h3>
 				<div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
 					{__propertiesElement}
-					<FlatButton
+					{/* <FlatButton
 						label="Cancel"
 						primary={true}
 						onClick={this.addProperty}
-					/>
+					/> */}
+					<div>
+						<RaisedButton
+							onClick={this.addProperty}
+							label="Add Property"
+							//style={{margin: 12}}
+							primary={true}
+						/>
+					</div>
 				</div>
 			</Dialog>
 		);
