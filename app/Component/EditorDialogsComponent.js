@@ -16,12 +16,6 @@ import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
 import Add from 'material-ui/svg-icons/content/add';
 import Clear from 'material-ui/svg-icons/content/clear';
 
-const styles = {
-	radioButton: {
-		marginTop: 16,
-	},
-};
-
 	/**
 	 * Dialog content can be scrollable.
 	 */
@@ -30,31 +24,45 @@ export default class EditorDialogsComponent extends React.Component {
         super(props);
 		this.state = {
 			template: {},
-			labelList: [],
 			open: true,
-			searchText: '',
-			snackOpen: false,
+			labelAutoComplete: '',
 			labels: [],
 			properties:[
                 //{key:1,type:'String',value:'1'}
-            ]
+			],
+		//======DataSource=======
+			labelList: [],
+			propertyList: [],
 		};
-    }
 
-	// handleOpen = () => {
-	//   this.setState({open: true});
-	// };
-
-	handleUpdateInput = (searchText) => {
+		this.getTemplate();
+	}
+	
+	updateInputForLabel = (searchText) => {
 		this.setState(function(prevState, props) {
-            prevState.searchText = searchText;
+            prevState.labelAutoComplete = searchText;
             return prevState;
         });
 	};
 
-	handleNewRequest = () => {
+	newRequestForLabel = (value) => {
 		this.setState(function(prevState, props) {
-            prevState.searchText = '';
+			console.log('newRequestForLabel');
+            prevState.labelAutoComplete = value;
+            return prevState;
+        });
+	};
+
+	updateInputForPropertyKey = (searchText, index) => {
+		this.setState(function(prevState, props) {
+            prevState.properties[index].key = searchText;
+            return prevState;
+        });
+	};
+
+	newRequestForPropertyKey = (index, value) => {
+		this.setState(function(prevState, props) {
+            prevState.properties[index].key = value;
             return prevState;
         });
 	};
@@ -63,7 +71,7 @@ export default class EditorDialogsComponent extends React.Component {
 		if (this.state.template.hasOwnProperty(labelName)){
 			this.setState(function(prevState, props) {
 				let __isHas = false;
-				for (let key in prevState.template){
+				for (let key in prevState.template[labelName]){
 					__isHas = false;
 					for (let i = 0; i < prevState.properties.length; i++){
 						if (prevState.properties[i].key == key){
@@ -75,9 +83,9 @@ export default class EditorDialogsComponent extends React.Component {
 					if (!__isHas)
 						prevState.properties.push({
 							key : key,
-							type : prevState.template[key],
-							value : prevState.template[key] == 'Boolean' ? true :
-								prevState.template[key] == 'List' ? [] : ''
+							type : prevState.template[labelName][key],
+							value : prevState.template[labelName][key] == 'Boolean' ? true :
+								prevState.template[labelName][key] == 'List' ? [] : ''
 						});
 				}
 				
@@ -88,13 +96,13 @@ export default class EditorDialogsComponent extends React.Component {
 
 	addLabel = () => {
         for (let i = 0; i < this.state.labels.length; i++){
-			if (this.state.labels[i] == this.state.searchText){
+			if (this.state.labels[i] == this.state.labelAutoComplete){
 				return;
 			}
 		}
 
 		this.setState(function(prevState, props) {
-            prevState.labels.push(prevState.searchText);
+            prevState.labels.push(prevState.labelAutoComplete);
             return prevState;
         });
 	};
@@ -112,29 +120,30 @@ export default class EditorDialogsComponent extends React.Component {
 		}
 	};
 
-	// getTemplate = function() {
-    //     let xmlhttp = new XMLHttpRequest()
+	getTemplate = function() {
+        let xmlhttp = new XMLHttpRequest()
         
-    //     xmlhttp.onreadystatechange = function(){
-    //         if (xmlhttp.readyState==4 && xmlhttp.status==200){
-    //             console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-	// 			let __template = JSON.parse(xmlhttp.responseText);
-	// 			let __labelList = [];
-	// 			for (let key in __template){
-	// 				__labelList.push(key);
-	// 			}
+        xmlhttp.onreadystatechange = function(){
+            if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+				let __json = JSON.parse(xmlhttp.responseText);
+				let __template = __json;
+				let __labelList = [];
+				for (let key in __json){
+					__labelList.push(key);
+				}
 
-    //             this.setState(function(prevState, props) {
-	// 				prevState.template = __template;
-	// 				prevState.labelList = __labelList;
-    //                 return prevState;
-	// 			});
-    //         }
-    //     }.bind(this)
+                this.setState(function(prevState, props) {
+					prevState.template = __template;
+					prevState.labelList = __labelList;
+                    return prevState;
+				});
+            }
+        }.bind(this)
 
-    //     xmlhttp.open("GET", "/template", true);
-    //     xmlhttp.send();
-	// }.bind(this)
+        xmlhttp.open("GET", "/template", true);
+        xmlhttp.send();
+	}.bind(this)
 	
 	
 	// setTemplate = function() {
@@ -174,14 +183,6 @@ export default class EditorDialogsComponent extends React.Component {
             return prevState;
         });
 	}
-	
-	handleOnRequestChange = (value, index) => {
-		console.log(value);
-		console.log(index);
-		// this.setState({
-		//   	openMenu: value,
-		// });
-	}
 
 	render() {
 		console.log('render');
@@ -203,9 +204,11 @@ export default class EditorDialogsComponent extends React.Component {
         for (let i = 0; i < this.state.labels.length; i++){
 			__labelChip.push(<Chip 
 					key={i}
-					className="labelChip" 
+					className="labelChip"
+					deleteIconStyle={{margin:'4px', height:'16px', width:'16px'}}
+					style={this.state.template.hasOwnProperty(this.state.labels[i]) ? {border:'2px solid #a1a1ff'} : {}}
 					labelStyle={{fontSize: '12px'}}
-					onClick={this.state.template.hasOwnProperty(labelName) ? 
+					onClick={this.state.template.hasOwnProperty(this.state.labels[i]) ? 
 						() => this.setPropertiesByLabel(this.state.labels[i]) :
 						null}
 					onRequestDelete={() => this.delLabel(i)}
@@ -218,16 +221,16 @@ export default class EditorDialogsComponent extends React.Component {
         for (let i = 0; i < this.state.properties.length; i++){
             console.log(i);
             __propertiesElement.push(
-                <div style={{display: 'flex', flexDirection: 'row'}} >
+                <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}} >
                     <AutoComplete
-                        ref={'key' + i}
+						hintText='Key'
                         searchText={this.state.properties[i].key}
-                        // onUpdateInput={this.handleUpdateInput}
-                        // onNewRequest={this.handleNewRequest}
+                        onUpdateInput={(searchText) => this.updateInputForPropertyKey(searchText, i)}
+                        onNewRequest={(chosenRequest) => this.newRequestForPropertyKey(chosenRequest, i)}
                         dataSource={[1,2,3,4,5]}
-                        // filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
+                        filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
                         // openOnFocus={false}
-                        // maxSearchResults={6}
+                        maxSearchResults={6}
                     />
                     <strong style={{margin: '4px'}} >{':'}</strong>
                     {this.state.properties[i].type == 'Boolean' ?
@@ -236,12 +239,13 @@ export default class EditorDialogsComponent extends React.Component {
 							label="Boolean"
 							onToggle={this.handleToggle}
 							defaultToggled={true}
+							style={{width:'256px', }}
 						/> :
 						this.state.properties[i].type == 'List' ?
 							<div /> :
 							<TextField 
 								id={'value' + i}
-								hintText={this.state.properties[i].type} 
+								hintText={'value[' + this.state.properties[i].type + ']'} 
 								onChange={function (event, newValue) {
 									this.setState(function(prevState, props) {
 										this.state.properties[i].value = newValue;
@@ -253,7 +257,6 @@ export default class EditorDialogsComponent extends React.Component {
 							/>
 					}
                     <IconMenu
-                        ref={'iconbtn' + i}
                         iconButtonElement={<IconButton><MoreVertIcon /></IconButton>}
                         onChange ={function(event, value) {
 								this.setState(function(prevState, props) {
@@ -264,7 +267,6 @@ export default class EditorDialogsComponent extends React.Component {
 								});
 							}.bind(this)
 						}
-                        //value={this.state.properties[i].type}
                     >
                         <MenuItem value="String" primaryText="String" />
                         <MenuItem value="Number" primaryText="Number" />
@@ -289,15 +291,15 @@ export default class EditorDialogsComponent extends React.Component {
 				}
 				autoScrollBodyContent={true}
 			>
-				<div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
+				<div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto'}} >
 					{__labelChip}
 				</div>
-				<div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto', borderTop:'1px solid #e8e8e8', alignItems: 'flex-end'}} >
+				<div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto', alignItems: 'flex-end'}} >
 					<AutoComplete
 						floatingLabelText="Label"
-						searchText={this.state.searchText}
-						onUpdateInput={this.handleUpdateInput}
-						onNewRequest={this.handleNewRequest}
+						searchText={this.state.labelAutoComplete}
+						onUpdateInput={this.updateInputForLabel}
+						onNewRequest={this.newRequestForLabel}
 						dataSource={this.state.labelList}
 						filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
 						openOnFocus={false}
@@ -310,14 +312,9 @@ export default class EditorDialogsComponent extends React.Component {
 						primary={true}
 					/>
 				</div>
-				<h3>Properties</h3>
 				<div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
+					<h3>Properties</h3>
 					{__propertiesElement}
-					{/* <FlatButton
-						label="Cancel"
-						primary={true}
-						onClick={this.addProperty}
-					/> */}
 					<div>
 						<RaisedButton
 							onClick={this.addProperty}
