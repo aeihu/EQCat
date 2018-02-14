@@ -24,7 +24,7 @@ export default class EditorDialogsComponent extends React.Component {
         super(props);
 		this.state = {
 			template: {},
-			open: true,
+			open: false,
 			labelAutoComplete: '',
 			labels: [],
 			properties:[
@@ -190,7 +190,10 @@ export default class EditorDialogsComponent extends React.Component {
 			<FlatButton
 				label="Cancel"
 				primary={true}
-				onClick={this.handleClose}
+				onClick={() => this.setState(function(prevState, props) {
+					prevState.open = false;
+					return prevState;
+				})}
 			/>,
 			<FlatButton
 				label="Submit"

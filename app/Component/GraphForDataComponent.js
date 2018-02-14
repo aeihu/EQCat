@@ -6,14 +6,69 @@ import FlatButton from 'material-ui/FlatButton';
 import {D3ForceSimulation} from './D3ForceSimulation';
 import EditorDialogsComponent from './EditorDialogsComponent';
 
+import Paper from 'material-ui/Paper';
+import Menu from 'material-ui/Menu';
+import MenuItem from 'material-ui/MenuItem';
+import RemoveRedEye from 'material-ui/svg-icons/image/remove-red-eye';
+import PersonAdd from 'material-ui/svg-icons/social/person-add';
+import ContentLink from 'material-ui/svg-icons/content/link';
+import Divider from 'material-ui/Divider';
+import ContentCopy from 'material-ui/svg-icons/content/content-copy';
+import Download from 'material-ui/svg-icons/file/file-download';
+import Delete from 'material-ui/svg-icons/action/delete';
+import FontIcon from 'material-ui/FontIcon';
+
+import Popover from 'material-ui/Popover/Popover';
+
+const style = {
+    paper: {
+      display: 'inline-block',
+      float: 'left',
+      margin: '16px 32px 16px 0',
+    },
+    rightIcon: {
+      textAlign: 'center',
+      lineHeight: '24px',
+    },
+  };
+
 export default class GraphForDataComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             cards:[],
-            showCard: this.showCard
+            showCard: this.showCard,
+            menu: {
+                open: false,
+                x: 0,
+                y: 0,
+            }
         };
     }
+
+    handleRequestClose = () => {
+        this.setState({
+            menu: {open: false},
+        });
+      };
+
+    handleClick = function(event) {
+        // This prevents ghost click.
+        event.preventDefault();
+        let __x = event.clientX;
+        let __y = event.clientY;
+        console.log('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz');
+        const __currentTarget = event.currentTarget;
+        this.setState(function(prevState, props) {
+            prevState.menu = {
+                open: true,
+                x: __x,
+                y: __y,
+            };
+            prevState.anchorEl = event.currentTarget;
+            return prevState;
+        });
+    }.bind(this);
 
     showCard = function(d) {
         for (let index in this.state.cards){
@@ -90,11 +145,28 @@ export default class GraphForDataComponent extends React.Component {
                 </Chip>);
         }
 
+        console.log(this.state.menu.x + 'px : ' + this.state.menu.y + 'px')
         return (
-            <div style={{display: 'flex', flexDirection: 'column', height: '100%', width:'100%'}}>
+            <div style={{display: 'flex', flexDirection: 'column', height: '100%', width:'100%'}} >
                 <EditorDialogsComponent />
-                <div id="displayContent" style={{backgroundColor: '#EEEEEE', width:'100%', flex:'1 1 auto'}}>
+                <div id="displayContent" style={{backgroundColor: '#EEEEEE', width:'100%', flex:'1 1 auto'}} onContextMenu={this.handleClick}>
                     {__cardElements}
+                    <Paper style={{
+                        left:this.state.menu.x + 'px', 
+                        top: this.state.menu.y + 'px', 
+                        width:'192px'}}
+                    >
+                        <Menu desktop={true}>
+                            <MenuItem primaryText="Preview" leftIcon={<RemoveRedEye />} />
+                            <MenuItem primaryText="Share" leftIcon={<PersonAdd />} />
+                            <MenuItem primaryText="Get links" leftIcon={<ContentLink />} />
+                            <Divider />
+                            <MenuItem primaryText="Make a copy" leftIcon={<ContentCopy />} />
+                            <MenuItem primaryText="Download" leftIcon={<Download />} />
+                            <Divider />
+                            <MenuItem primaryText="Remove" leftIcon={<Delete />} />
+                        </Menu>
+                    </Paper>
                 </div>
                 <div style={{display: 'flex', justifyContent: 'space-between', flexDirection: 'row', flex:'0 0 auto'}} >
                     {/* <FlatButton label={this.props.data.statement} labelPosition="before" containerElement="label" /> */}
