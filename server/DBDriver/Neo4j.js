@@ -3,10 +3,17 @@ const neo4j = require('neo4j-driver').v1;
 export default class Neo4j
 {
     _driver = null;
+    _labels = [];
+    _relationshipTypes = [];
+    _propertyKeys = [];
+
     constructor(bolt, username, password)
     {
         //console.log('error');
         this._driver = neo4j.driver(bolt, neo4j.auth.basic(username, password), {maxTransactionRetryTime: 30000});
+        this.getLabels();
+        this.getRelationshipTypes();
+        this.getPropertyKeys();
     }
 
     ifIntegerThenToNumberOrString(val)
@@ -48,6 +55,69 @@ export default class Neo4j
     {
         if (this._driver != null)
             this._driver.close();
+    }
+
+    getLabels()
+    {
+        if (this._driver == null){
+            res.send('error');
+        }
+        else{
+            let __session = this._driver.session();
+            __session.run('call db.labels()')
+                .then(function (result) {
+                    this._labels = [];
+                    result.records.forEach(function (value, key, record) {
+                        this._labels.push(value.get('label'));
+                    }.bind(this))
+                }.bind(this))
+                .catch(function (error) {
+                    console.log(error);
+                    __session.close();
+                });
+        }
+    }
+
+    getPropertyKeys()
+    {
+        if (this._driver == null){
+            res.send('error');
+        }
+        else{
+            let __session = this._driver.session();
+            __session.run('call db.propertyKeys()')
+                .then(function (result) {
+                    this._propertyKeys = [];
+                    result.records.forEach(function (value, key, record) {
+                        this._propertyKeys.push(value.get('propertyKey'));
+                    }.bind(this))
+                }.bind(this))
+                .catch(function (error) {
+                    console.log(error);
+                    __session.close();
+                });
+        }
+    }
+
+    getRelationshipTypes()
+    {
+        if (this._driver == null){
+            res.send('error');
+        }
+        else{
+            let __session = this._driver.session();
+            __session.run('call db.relationshipTypes()')
+                .then(function (result) {
+                    this._relationshipTypes = [];
+                    result.records.forEach(function (value, key, record) {
+                        this._relationshipTypes.push(value.get('relationshipType'));
+                    }.bind(this))
+                }.bind(this))
+                .catch(function (error) {
+                    console.log(error);
+                    __session.close();
+                });
+        }
     }
 
     runStatement(statement, res)
