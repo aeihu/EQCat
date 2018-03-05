@@ -35,6 +35,8 @@ const style = {
     },
 };
 
+const defaultIcon = 'icons/home.jpg';
+
 export default class GraphForDataComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -55,7 +57,7 @@ export default class GraphForDataComponent extends React.Component {
             }
         };
 
-        this.getStyles();
+        //this.getStyles();
     }
 
     NEStyles = {
@@ -77,7 +79,7 @@ export default class GraphForDataComponent extends React.Component {
     checkStyleOfNode = function (label){
         if (!this.NEStyles.nodes.hasOwnProperty(label)){
             this.NEStyles.nodes[label] = {
-                image: 'icons/ic_add_to_queue_24px.svg',
+                image: defaultIcon,
                 size: 50,
                 caption: 'name',
             }
@@ -101,7 +103,8 @@ export default class GraphForDataComponent extends React.Component {
     setSizeInBar = function (label, size){
         this.checkStyleOfNode(label);
         
-        this.NEStyles.nodes[label].size = size;
+        // if (typeof size )
+        //     this.NEStyles.nodes[label].size = size;
         this.updateFlag = {
             mode: 2, // 0: no update  1: data update  2: style update
             detail: 'size'
@@ -110,7 +113,7 @@ export default class GraphForDataComponent extends React.Component {
             prevState.barOfNE.size = size;
             return prevState;
         });
-    }
+    }.bind(this)
 
 
     getStyles = function() {
@@ -225,7 +228,7 @@ export default class GraphForDataComponent extends React.Component {
         for (let key in this.props.data.count.nodes){
             if (!this.NEStyles.nodes.hasOwnProperty(key)){
                 this.NEStyles.nodes[key] = {
-                    image: "icons/ic_add_to_queue_24px.svg",
+                    image: defaultIcon,
                     size: 50,
                     caption: this.props.data.count.nodes[key].propertiesList.length > 1 ? 
                         this.props.data.count.nodes[key].propertiesList[1] :
@@ -383,8 +386,8 @@ export default class GraphForDataComponent extends React.Component {
                         <span>Size:</span>
                         <TextField 
                             id={'value1'}
-                            onChange={() => this.setSizeInBar()}
-                            errorText={this.state.barOfNE.size == 'Number' ? isNaN(this.state.properties[i].value) ? "It's not number" : '' : ''}
+                            onChange={(event, newValue) => this.setSizeInBar(this.state.barOfNE.name, newValue)}
+                            errorText={isNaN(this.state.barOfNE.size) ? "It's not number" : ''}
                             value={this.state.barOfNE.size}
                         />
 
