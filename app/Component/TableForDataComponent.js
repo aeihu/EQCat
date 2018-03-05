@@ -26,9 +26,9 @@ export default class TableForDataComponent extends React.Component {
 
         return (
             <Table
-            style={{height:'85%'}}
-            fixedHeader={true}
-            fixedFooter={false}
+                style={{height:'85%'}}
+                fixedHeader={true}
+                fixedFooter={false}
             >
                 <TableHeader
                     displaySelectAll={false}

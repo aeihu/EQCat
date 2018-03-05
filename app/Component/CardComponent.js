@@ -34,8 +34,10 @@ export default class CardComponent extends React.Component {
     
         return (
             // <Draggable defaultPosition={{x: this.props.nodeData.x, y: this.props.nodeData.y}}>
-            <Draggable handle="strong" bounds="parent">
-                <Card style={{position:"absolute", width:"30%"}}>
+            <Draggable handle="strong" bounds="parent" defaultPosition={{x: this.props.nodeData.x, y: -this.props.nodeData.y}}>
+                <Card style={{
+                    position:"absolute", 
+                    width:"30%"}}>
                     <strong>
                         <AppBar 
                             iconElementLeft={<IconButton><NavigationClose /></IconButton>}

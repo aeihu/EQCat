@@ -27,7 +27,7 @@ styles = ReadCongfigFile(stylePath);
 var express = require('express');
 var app = express();
 
-const DBDriver = new Neo4j('bolt://localhost', 'neo4j', 'neo.yuukosan.4j');
+const DBDriver = new Neo4j('bolt://127.0.0.1', 'neo4j', 'neo.yuukosan.4j');
 
 app.use(express.static('public'));
 app.get('/', function (req, res) {
@@ -67,10 +67,9 @@ app.get('/template', function (req, res) {
 
 app.get('/style', function (req, res) {
 	let __result = {
-		templates: templates,
-		labels: DBDriver._labels,
-		propertyKeys: DBDriver._propertyKeys,
+		styles: styles,
 	}
+	
 	res.jsonp(__result);
 });
 

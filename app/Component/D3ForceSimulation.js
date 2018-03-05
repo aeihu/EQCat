@@ -68,13 +68,82 @@ D3ForceSimulation.dragended = function dragended(d) {
     d.fy = null;
 }
 
-D3ForceSimulation.update = function(el, props, state) {
+D3ForceSimulation.setStyle = function(el, props, state, styles, detail) {
+    switch (state.barOfNE.mode){
+        case 1:
+            //let __node = this.svg.selectAll(".node_"+state.barOfNE.name);
+            let __node = this.svg.selectAll(".nodes")
+                .filter(function(d, i){
+                    for (let i=0; i<d.labels.length; i++){
+                        if (d.labels[i] == state.barOfNE.name)
+                            return true;
+                    }    
+                    return false;
+                });
+            
+            if (!__node.empty()){
+                switch (detail){
+                    case 'caption':
+                        __node.select('text')
+                            .text((d) => this._setNodeText(d, styles));
+                        break;
+                    case 'size':
+                        __node.select('.node_icon')
+                            .attr("transform", (d) => this._setNodeOffset(d, styles))
+                            .attr("height", (d) => this._setNodeSize(d, styles))
+                            .attr("width", (d) => this._setNodeSize(d, styles));
+                        
+                        __node.select('text')
+                            .attr("dy", (d) => this._setNodeTextOffset(d, styles));
+                        break;
+                }
+            }
+            break;
+        case 2:
+            break;
+    }
+}
+
+D3ForceSimulation.update = function(el, props, state, styles) {
     // Re-compute the scales, and render the data points
     // var scales = this._scales(el, state.domain);
-    this._drawNodesAndEdges(el, props, state);
+    this._drawNodesAndEdges(el, props, state, styles);
 };
 
-D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
+D3ForceSimulation._setNodeText = function(d, styles) { 
+    if (d.labels.length > 0){
+        if (styles.nodes[d.labels[0]].caption != '<id>'){
+            return d.properties.hasOwnProperty(styles.nodes[d.labels[0]].caption) ? 
+                d.properties[styles.nodes[d.labels[0]].caption]
+                : '';
+        }
+    }
+
+    return d.id; 
+}
+
+D3ForceSimulation._setNodeOffset = function(d, styles) { 
+    if (d.labels.length > 0){
+        let __offset = -styles.nodes[d.labels[0]].size / 2;
+        return 'translate(' + __offset  + ',' + __offset + ')';
+    }
+
+    return -17.5;
+}
+
+D3ForceSimulation._setNodeSize = function(d, styles) { 
+    return d.labels.length > 0 ? styles.nodes[d.labels[0]].size : 35;
+}
+
+D3ForceSimulation._setNodeTextOffset = function(d, styles) { 
+    if (d.labels.length > 0){
+        return styles.nodes[d.labels[0]].size / 2 + 10;
+    }
+
+    return -27.5;
+}
+
+D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
     let __data = props.data
     console.log('/////////////////////////');
     console.log(__data);
@@ -100,7 +169,17 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .on("click", function(d){
             state.showCard(d);
         })
-        .attr("class", "nodes")
+        .attr("class", 'nodes')
+        // .attr("class", 
+        //     function(d){
+        //         let __result = 'nodes ';
+        //         for (let i=0; i<d.labels.length; i++){
+        //             __result += 'node_'+ d.labels[i] + ' ';
+        //         }
+
+        //         return __result;
+        //     }
+        // )
         .call(d3.drag()
                 .on("start", this.dragstarted)
                 .on("drag", this.dragged)
@@ -109,20 +188,34 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     __updataForNode.exit().remove();
  
     __node.append("image")
-        .attr("xlink:href", "https://mdn.mozillademos.org/files/6457/mdn_logo_only_color.png")
-        .attr("enabled", this.showedImage)
-        .attr("height", "100")
-        .attr("width", "100");
+        .attr("id", function(d){return 'node_image_id_' + d.id})
+        .attr("class", 'node_icon')
+        .attr("enabled", true)
+        .attr("xlink:href", 
+            function(d){ 
+                if (d.labels.length > 1){
+                    let __d = D3ForceSimulation.svg.select('#node_image_id_' + d.id);
+                    setInterval(
+                        ()=>{
+                            __d.attr("xlink:href", function(data){
+                                let __index = Math.floor((new Date()).valueOf() / 1000) % data.labels.length;
+                                return styles.nodes[data.labels[__index]].image;
+                            })
+                        }
+                    ,1000);
+                }
 
-    __node.append("circle")
-        .attr("r", 1)
-        //.attr("transform", "translate(-50 -50)");
+                return d.labels.length > 0 ? styles.nodes[d.labels[0]].image : ''; /////////////////////////////////////////
+            }
+        )
+        .attr("transform", (d) => this._setNodeOffset(d, styles))
+        .attr("height", (d) => this._setNodeSize(d, styles))
+        .attr("width", (d) => this._setNodeSize(d, styles));
             
     __node.append("text")
-        .attr("dy", "-0.050000000000000044em")
+        .attr("dy", (d) => this._setNodeTextOffset(d, styles))
         .attr("text-anchor", "middle")
-        .text(function(d) { 
-            return d.properties.name; });
+        .text((d) => this._setNodeText(d, styles));
 
     __node = __node.merge(__updataForNode);   
     __link = __link.merge(__updataForLink); 

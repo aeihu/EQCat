@@ -26,7 +26,10 @@ class App extends React.Component {
                     ],
                     count: {
                         nodes: {
-                            '*': 0
+                            '*': {
+                                total: 0,
+                                propertiesList: ['<id>']
+                            }
                         },
                         edges: {
                             '*': 0
@@ -61,7 +64,10 @@ class App extends React.Component {
                 let __columns = [];
                 let __count = {
                     nodes: {
-                        '*': 0
+                        '*': {
+                            total: 0,
+                            propertiesList: ['<id>']
+                        }
                     },
                     edges: {
                         '*': 0
@@ -94,12 +100,30 @@ class App extends React.Component {
                                 __nodes.push(v[key]);
 
                                 for (let i = 0; i < v[key].labels.length; i++){
-                                    if (__count.nodes.hasOwnProperty(v[key].labels[i]))
-                                        __count.nodes[v[key].labels[i]]++;
-                                    else
-                                        __count.nodes[v[key].labels[i]] = 1;
+                                    let __label = v[key].labels[i];
+                                    if (__count.nodes.hasOwnProperty(__label)){
+                                        __count.nodes[__label].total++;
+
+                                        let __isHas = false;
+                                        for (let propertyName in v[key].properties){
+                                            __isHas = false;
+                                            for (let j = 0; j < __count.nodes[__label].propertiesList.length; j++){
+                                                if (propertyName == __count.nodes[__label].propertiesList[j]){
+                                                    __isHas = true;
+                                                    break;
+                                                }
+                                            }
+
+                                            if (!__isHas)
+                                                __count.nodes[__label].propertiesList.push(propertyName);
+                                        }
+                                    }else
+                                        __count.nodes[__label] = {
+                                            total:1, 
+                                            propertiesList: ['<id>']
+                                        };
                                     
-                                    __count.nodes['*']++;
+                                    __count.nodes['*'].total++;
                                 }
                             }
                             

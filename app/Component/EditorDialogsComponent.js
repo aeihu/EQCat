@@ -23,7 +23,7 @@ export default class EditorDialogsComponent extends React.Component {
     constructor(props) {
         super(props);
 		this.state = {
-			template: {},
+			templates: {},
 			open: false,
 			labelAutoComplete: '',
 			labels: [],
@@ -60,7 +60,7 @@ export default class EditorDialogsComponent extends React.Component {
         });
 	};
 
-	newRequestForPropertyKey = (index, value) => {
+	newRequestForPropertyKey = (value, index) => {
 		this.setState(function(prevState, props) {
             prevState.properties[index].key = value;
             return prevState;
@@ -68,10 +68,10 @@ export default class EditorDialogsComponent extends React.Component {
 	};
 
 	setPropertiesByLabel = (labelName) => {
-		if (this.state.template.hasOwnProperty(labelName)){
+		if (this.state.templates.hasOwnProperty(labelName)){
 			this.setState(function(prevState, props) {
 				let __isHas = false;
-				for (let key in prevState.template[labelName]){
+				for (let key in prevState.templates[labelName]){
 					__isHas = false;
 					for (let i = 0; i < prevState.properties.length; i++){
 						if (prevState.properties[i].key == key){
@@ -83,9 +83,9 @@ export default class EditorDialogsComponent extends React.Component {
 					if (!__isHas)
 						prevState.properties.push({
 							key : key,
-							type : prevState.template[labelName][key],
-							value : prevState.template[labelName][key] == 'Boolean' ? true :
-								prevState.template[labelName][key] == 'List' ? [] : ''
+							type : prevState.templates[labelName][key],
+							value : prevState.templates[labelName][key] == 'Boolean' ? true :
+								prevState.templates[labelName][key] == 'List' ? [] : ''
 						});
 				}
 				
@@ -127,15 +127,11 @@ export default class EditorDialogsComponent extends React.Component {
             if (xmlhttp.readyState==4 && xmlhttp.status==200){
                 console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
 				let __json = JSON.parse(xmlhttp.responseText);
-				let __template = __json;
-				let __labelList = [];
-				for (let key in __json){
-					__labelList.push(key);
-				}
-
+				
                 this.setState(function(prevState, props) {
-					prevState.template = __template;
-					prevState.labelList = __labelList;
+					prevState.templates = __json.templates;
+					prevState.labelList = __json.labels;
+					prevState.propertyList = __json.propertyKeys;
                     return prevState;
 				});
             }
@@ -209,9 +205,9 @@ export default class EditorDialogsComponent extends React.Component {
 					key={i}
 					className="labelChip"
 					deleteIconStyle={{margin:'4px', height:'16px', width:'16px'}}
-					style={this.state.template.hasOwnProperty(this.state.labels[i]) ? {border:'2px solid #a1a1ff'} : {}}
+					style={this.state.templates.hasOwnProperty(this.state.labels[i]) ? {border:'2px solid #a1a1ff'} : {}}
 					labelStyle={{fontSize: '12px'}}
-					onClick={this.state.template.hasOwnProperty(this.state.labels[i]) ? 
+					onClick={this.state.templates.hasOwnProperty(this.state.labels[i]) ? 
 						() => this.setPropertiesByLabel(this.state.labels[i]) :
 						null}
 					onRequestDelete={() => this.delLabel(i)}
@@ -230,7 +226,7 @@ export default class EditorDialogsComponent extends React.Component {
                         searchText={this.state.properties[i].key}
                         onUpdateInput={(searchText) => this.updateInputForPropertyKey(searchText, i)}
                         onNewRequest={(chosenRequest) => this.newRequestForPropertyKey(chosenRequest, i)}
-                        dataSource={[1,2,3,4,5]}
+                        dataSource={this.state.propertyList}
                         filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
                         // openOnFocus={false}
                         maxSearchResults={6}

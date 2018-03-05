@@ -33,7 +33,7 @@ const style = {
       textAlign: 'center',
       lineHeight: '24px',
     },
-  };
+};
 
 export default class GraphForDataComponent extends React.Component {
     constructor(props) {
@@ -50,11 +50,8 @@ export default class GraphForDataComponent extends React.Component {
             barOfNE:{
                 mode: 1, // 0:empty 1:node 2:edge
                 name: '',
-                colorPicker: {
-                    open: false,
-                    color: '#ffffff',
-                    anchorEl: null
-                }
+                size: 50,
+                caption: 'name'
             }
         };
 
@@ -66,10 +63,55 @@ export default class GraphForDataComponent extends React.Component {
             //xx:{
             //  image:'a.png',
             //  size:'50',
+            //  caption:'name',
             //}
         },
         edge: {},
     }
+
+    updateFlag = {
+        mode: 1, // 0: no update  1: data update  2: style update
+        detail: ''
+    }
+
+    checkStyleOfNode = function (label){
+        if (!this.NEStyles.nodes.hasOwnProperty(label)){
+            this.NEStyles.nodes[label] = {
+                image: 'icons/ic_add_to_queue_24px.svg',
+                size: 50,
+                caption: 'name',
+            }
+        }
+    }
+
+    setCaptionInBar = function (label, propertyName){
+        this.checkStyleOfNode(label);
+
+        this.NEStyles.nodes[label].caption = propertyName;
+        this.updateFlag = {
+            mode: 2, // 0: no update  1: data update  2: style update
+            detail: 'caption'
+        };
+        this.setState(function(prevState, props) {
+            prevState.barOfNE.caption = propertyName;
+            return prevState;
+        });
+    }
+
+    setSizeInBar = function (label, size){
+        this.checkStyleOfNode(label);
+        
+        this.NEStyles.nodes[label].size = size;
+        this.updateFlag = {
+            mode: 2, // 0: no update  1: data update  2: style update
+            detail: 'size'
+        };
+        this.setState(function(prevState, props) {
+            prevState.barOfNE.size = size;
+            return prevState;
+        });
+    }
+
 
     getStyles = function() {
         let xmlhttp = new XMLHttpRequest()
@@ -95,6 +137,10 @@ export default class GraphForDataComponent extends React.Component {
         let __y = event.clientY;
 
         this.setState(function(prevState, props) {
+            this.updateFlag = {
+                mode: 0, // 0: no update  1: data update  2: style update
+                detail: ''
+            };
             prevState.menu = {
                 open: true,
                 x: __x,
@@ -112,6 +158,10 @@ export default class GraphForDataComponent extends React.Component {
             }
         }
 
+        this.updateFlag = {
+            mode: 0, // 0: no update  1: data update  2: style update
+            detail: ''
+        };
         this.setState(function(prevState, props) {
             console.log(d);
             prevState.cards.push(d);
@@ -122,6 +172,10 @@ export default class GraphForDataComponent extends React.Component {
     hideCard = function(id) {
         for (let index in this.state.cards){
             if (this.state.cards[index].id == id){
+                this.updateFlag = {
+                    mode: 0, // 0: no update  1: data update  2: style update
+                    detail: ''
+                };
                 this.setState(function(prevState, props) {
                     prevState.cards.splice(index, 1);
                     return prevState;
@@ -143,7 +197,15 @@ export default class GraphForDataComponent extends React.Component {
     {
         console.log('bb');
         let el = ReactDOM.findDOMNode();
-        D3ForceSimulation.update(el, this.props, this.state, this.NEStyles);
+
+        switch(this.updateFlag.mode){
+            case 1:
+                D3ForceSimulation.update(el, this.props, this.state, this.NEStyles);
+                break;
+            case 2:
+                D3ForceSimulation.setStyle(el, this.props, this.state, this.NEStyles, this.updateFlag.detail);
+                break;
+        }
     }
 
     componentWillUnmount()
@@ -161,11 +223,13 @@ export default class GraphForDataComponent extends React.Component {
 
         let __nodeChip = [];
         for (let key in this.props.data.count.nodes){
-            console.log(key);
             if (!this.NEStyles.nodes.hasOwnProperty(key)){
                 this.NEStyles.nodes[key] = {
                     image: "icons/ic_add_to_queue_24px.svg",
-                    size: 50
+                    size: 50,
+                    caption: this.props.data.count.nodes[key].propertiesList.length > 1 ? 
+                        this.props.data.count.nodes[key].propertiesList[1] :
+                        this.props.data.count.nodes[key].propertiesList[0]
                 };
             }
 
@@ -182,21 +246,17 @@ export default class GraphForDataComponent extends React.Component {
                                     {
                                         mode: 1, // 0:empty 1:node 2:edge
                                         name: key,
-                                        colorPicker: {
-                                            open: false,
-                                            color: this.NEStyles.nodes[key].color,
-                                            anchorEl: null
-                                    }}
+                                    }
                                 :
                                     {
                                         mode: 1, // 0:empty 1:node 2:edge
                                         name: key,
-                                        colorPicker: {
-                                            open: false,
-                                            color: '#ffffff',
-                                            anchorEl: null
-                                    }};
+                                    };
 
+                            this.updateFlag = {
+                                mode: 0, // 0: no update  1: data update  2: style update
+                                detail: ''
+                            };
                             this.setState(function(prevState, props) {
                                 //////////////////////////
                                 // if hasOwnProperty
@@ -210,7 +270,7 @@ export default class GraphForDataComponent extends React.Component {
                     :
                     null}
                 >
-                    {key + '(' + this.props.data.count.nodes[key] + ')'}
+                    {key + '(' + this.props.data.count.nodes[key].total + ')'}
                 </Chip>);
         }
 
@@ -224,7 +284,33 @@ export default class GraphForDataComponent extends React.Component {
                 </Chip>);
         }
 
-        console.log(this.state.menu.x + 'px : ' + this.state.menu.y + 'px')
+        let __captionChip = [];
+        if (this.state.barOfNE.mode == 1 && this.props.data.count.nodes.hasOwnProperty(this.state.barOfNE.name)){
+            let __captionInBar = this.NEStyles.nodes[this.state.barOfNE.name].caption;
+
+            for (let i = 0; i < this.props.data.count.nodes[this.state.barOfNE.name].propertiesList.length; i++){
+                let __propertyName = this.props.data.count.nodes[this.state.barOfNE.name].propertiesList[i];
+
+                __captionChip.push(<Chip 
+                    className="edgeChip" 
+                    style={{border:'1px solid #a1a1a1'}}
+                    backgroundColor={__captionInBar == __propertyName ? 
+                            '#a1a1a1' 
+                            : 
+                            '#a1a1a100'}
+                    labelStyle={{fontSize: '12px'}}
+                    onClick={__captionInBar == __propertyName ?
+                            null
+                            :
+                            () => this.setCaptionInBar(this.state.barOfNE.name, __propertyName)
+                        }
+                    >
+                        {this.props.data.count.nodes[this.state.barOfNE.name].propertiesList[i]}
+                    </Chip>
+                );
+            }
+        }
+
         return (
             <div style={{display: 'flex', flexDirection: 'column', height: '100%', width:'100%'}} >
                 <EditorDialogsComponent />
@@ -244,6 +330,10 @@ export default class GraphForDataComponent extends React.Component {
                         anchorOrigin={{horizontal:"left",vertical:"bottom"}}
                         targetOrigin={{horizontal:"left",vertical:"top"}}
                         onRequestClose={function () {
+                            this.updateFlag = {
+                                mode: 0, // 0: no update  1: data update  2: style update
+                                detail: ''
+                            };
                             this.setState(function(prevState, props) {
                                 prevState.menu.open = false;
                                 return prevState;
@@ -289,55 +379,17 @@ export default class GraphForDataComponent extends React.Component {
                             >
                                 {this.state.barOfNE.name}
                         </Chip>
-                        <span>Color:</span>
-						<RaisedButton
-							onClick={function(event) {
-                                event.preventDefault();
-                                const __target = event.currentTarget;
-                                this.setState(function(prevState, props) {
-                                    prevState.barOfNE.colorPicker.open = true;
-                                    prevState.barOfNE.colorPicker.anchorEl = __target;
-                                    return prevState;
-                                });
-                            }.bind(this)}
-                            //label="Add Property"
-                            backgroundColor={this.state.barOfNE.colorPicker.color}
-							style={{width:'15px', height: '20px', margin: '12px'}}
-							//primary={true}
-						/>
-                        
-                        <Popover
-                            open={this.state.barOfNE.colorPicker.open}
-                            anchorEl={this.state.barOfNE.colorPicker.anchorEl}
-                            anchorOrigin={{horizontal:"left", vertical:"top"}}
-                            targetOrigin={{horizontal:"left", vertical:"bottom"}}
-                            onRequestClose={function() {
-                                this.setState(function(prevState, props) {
-                                    prevState.barOfNE.colorPicker.open = false;
-                                    return prevState;
-                                });
-                            }.bind(this)}
-                            // animated={false}
-                        >
-                            <SketchPicker
-                                color={this.state.barOfNE.colorPicker.color}
-                                onChange={function({hex}){
-                                    this.setState(function(prevState, props) {
-                                        this.NEStyles.nodes[prevState.barOfNE.name].color = hex;
-                                        prevState.barOfNE.colorPicker.color = hex;
-                                        return prevState;
-                                    }.bind(this));
-                                }.bind(this)}
-                            />
-                        </Popover>
                         
                         <span>Size:</span>
                         <TextField 
                             id={'value1'}
-                            //onChange={}
-                            //errorText={this.state.properties[i].type == 'Number' ? isNaN(this.state.properties[i].value) ? "It's not number" : '' : ''}
-                            //value={this.state.properties[i].value}
+                            onChange={() => this.setSizeInBar()}
+                            errorText={this.state.barOfNE.size == 'Number' ? isNaN(this.state.properties[i].value) ? "It's not number" : '' : ''}
+                            value={this.state.barOfNE.size}
                         />
+
+                        <span>Caption:</span>
+                        {__captionChip}
                     </div>
                 : <div></div>}
                 
