@@ -81,13 +81,13 @@ function setNodeText(d, styles) {
 }
 
 function setNodeSize(d, styles) { 
-    let __size = d.labels.length > 0 ? styles.nodes[d.labels[0]].size : 35;
-    let __offset = -__size / 2;
+    d.size = d.labels.length > 0 ? styles.nodes[d.labels[0]].size : 35;
+    let __offset = -d.size / 2;
 
     D3ForceSimulation.svg.select('#node_image_id_'+d.id)
         .attr("transform", 'translate(' + __offset  + ',' + __offset + ')')
-        .attr('height', __size)
-        .attr('width', __size);
+        .attr('height', d.size)
+        .attr('width', d.size);
 }
 
 function setNodeTextOffset(d, styles) { 
@@ -98,10 +98,30 @@ function setNodeTextOffset(d, styles) {
     return -27.5;
 }
 
+function drawLine(d)
+{
+    let __x = d.source.x-d.target.x;
+    let __y = d.source.y-d.target.y;
+    let __sOffset = d.source.size / 2;
+    let __tOffset = d.target.size / 2;
+    let __jdDushu = Math.abs(Math.atan(__x/__y));
+    let __sin = Math.sin(__jdDushu);
+    let __cos = Math.cos(__jdDushu);
+
+    let __sx = __jdDushu > 0.775 ? __sOffset : __sOffset * __sin;
+    let __sy = __jdDushu <= 0.775 ? __sOffset : __sOffset * __cos;
+
+    let __tx = __jdDushu > 0.775 ? __tOffset : __tOffset * __sin;
+    let __ty = __jdDushu <= 0.775 ? __tOffset : __tOffset * __cos;
+
+    d3.select(this)
+        .attr("d", 'M' + (d.source.x + (__x > 0 ? -__sx : __sx)) + ',' + (d.source.y + (__y > 0 ? -__sy : __sy))
+            +' L' + (d.target.x + (__x > 0 ? __tx : -__tx)) + ',' + (d.target.y + (__y > 0 ? __ty : -__ty)));
+}
+
 D3ForceSimulation.setStyle = function(el, props, state, styles, detail) {
     switch (state.barOfNE.mode){
         case 1:
-            //let __node = this.svg.selectAll(".node_"+state.barOfNE.name);
             let __node = this.svg.selectAll(".nodes")
                 .filter(function(d, i){
                     for (let i=0; i<d.labels.length; i++){
@@ -149,7 +169,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
     
     let __link = __updataForLink
         .enter()
-        .append("line")
+        .append("path")
         .attr("class", "links");
 
     __updataForLink.exit().remove();
@@ -205,29 +225,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
     
     function ticked() {
         __link
-            .attr("x1", function(d) { return d.source.x; })
-            .attr("y1", function(d) { return d.source.y; })
-            // .each(function(d) {
-    
-            //     var x    = d.target.x,
-            //         y    = d.target.y,
-            //         line = new geo.LineSegment(d.source.x, d.source.y, x, y);
-    
-            //     for (var e in d.target.edge) {
-            //         var ix = line.intersect(d.target.edge[e].offset(x, y));
-            //         if (ix.in1 && ix.in2) {
-            //             x = ix.x;
-            //             y = ix.y;
-            //             break;
-            //         }
-            //     }
-    
-            //     d3.select(this)
-            //         .attr('x2', x)
-            //         .attr('y2', y);
-            // });
-            .attr("x2", function(d) { return d.target.x; })
-            .attr("y2", function(d) { return d.target.y; });
+            .each(drawLine);
 
         __node
             .attr("transform", function(d) {
