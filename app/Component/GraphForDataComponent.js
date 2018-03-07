@@ -35,7 +35,7 @@ const style = {
     },
 };
 
-const defaultIcon = 'icons/home.jpg';
+const defaultIcon = 'icons/ic_add_to_queue_24px.svg';
 
 export default class GraphForDataComponent extends React.Component {
     constructor(props) {
@@ -103,8 +103,7 @@ export default class GraphForDataComponent extends React.Component {
     setSizeInBar = function (label, size){
         this.checkStyleOfNode(label);
         
-        // if (typeof size )
-        //     this.NEStyles.nodes[label].size = size;
+        this.NEStyles.nodes[label].size = size;
         this.updateFlag = {
             mode: 2, // 0: no update  1: data update  2: style update
             detail: 'size'

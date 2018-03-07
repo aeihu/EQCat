@@ -68,6 +68,36 @@ D3ForceSimulation.dragended = function dragended(d) {
     d.fy = null;
 }
 
+function setNodeText(d, styles) { 
+    if (d.labels.length > 0){
+        if (styles.nodes[d.labels[0]].caption != '<id>'){
+            return d.properties.hasOwnProperty(styles.nodes[d.labels[0]].caption) ? 
+                d.properties[styles.nodes[d.labels[0]].caption]
+                : '';
+        }
+    }
+
+    return d.id; 
+}
+
+function setNodeSize(d, styles) { 
+    let __size = d.labels.length > 0 ? styles.nodes[d.labels[0]].size : 35;
+    let __offset = -__size / 2;
+
+    D3ForceSimulation.svg.select('#node_image_id_'+d.id)
+        .attr("transform", 'translate(' + __offset  + ',' + __offset + ')')
+        .attr('height', __size)
+        .attr('width', __size);
+}
+
+function setNodeTextOffset(d, styles) { 
+    if (d.labels.length > 0){
+        return styles.nodes[d.labels[0]].size / 2 + 10;
+    }
+
+    return -27.5;
+}
+
 D3ForceSimulation.setStyle = function(el, props, state, styles, detail) {
     switch (state.barOfNE.mode){
         case 1:
@@ -85,16 +115,14 @@ D3ForceSimulation.setStyle = function(el, props, state, styles, detail) {
                 switch (detail){
                     case 'caption':
                         __node.select('text')
-                            .text((d) => this._setNodeText(d, styles));
+                            .text((d) => setNodeText(d, styles));
                         break;
                     case 'size':
                         __node.select('.node_icon')
-                            .attr("transform", (d) => this._setNodeOffset(d, styles))
-                            .attr("height", (d) => this._setNodeSize(d, styles))
-                            .attr("width", (d) => this._setNodeSize(d, styles));
+                            .each((d) => setNodeSize(d, styles));
                         
                         __node.select('text')
-                            .attr("dy", (d) => this._setNodeTextOffset(d, styles));
+                            .attr("dy", (d) => setNodeTextOffset(d, styles));
                         break;
                 }
             }
@@ -109,39 +137,6 @@ D3ForceSimulation.update = function(el, props, state, styles) {
     // var scales = this._scales(el, state.domain);
     this._drawNodesAndEdges(el, props, state, styles);
 };
-
-D3ForceSimulation._setNodeText = function(d, styles) { 
-    if (d.labels.length > 0){
-        if (styles.nodes[d.labels[0]].caption != '<id>'){
-            return d.properties.hasOwnProperty(styles.nodes[d.labels[0]].caption) ? 
-                d.properties[styles.nodes[d.labels[0]].caption]
-                : '';
-        }
-    }
-
-    return d.id; 
-}
-
-D3ForceSimulation._setNodeOffset = function(d, styles) { 
-    if (d.labels.length > 0){
-        let __offset = -styles.nodes[d.labels[0]].size / 2;
-        return 'translate(' + __offset  + ',' + __offset + ')';
-    }
-
-    return -17.5;
-}
-
-D3ForceSimulation._setNodeSize = function(d, styles) { 
-    return d.labels.length > 0 ? styles.nodes[d.labels[0]].size : 35;
-}
-
-D3ForceSimulation._setNodeTextOffset = function(d, styles) { 
-    if (d.labels.length > 0){
-        return styles.nodes[d.labels[0]].size / 2 + 10;
-    }
-
-    return -27.5;
-}
 
 D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
     let __data = props.data
@@ -170,16 +165,6 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
             state.showCard(d);
         })
         .attr("class", 'nodes')
-        // .attr("class", 
-        //     function(d){
-        //         let __result = 'nodes ';
-        //         for (let i=0; i<d.labels.length; i++){
-        //             __result += 'node_'+ d.labels[i] + ' ';
-        //         }
-
-        //         return __result;
-        //     }
-        // )
         .call(d3.drag()
                 .on("start", this.dragstarted)
                 .on("drag", this.dragged)
@@ -208,14 +193,12 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
                 return d.labels.length > 0 ? styles.nodes[d.labels[0]].image : ''; /////////////////////////////////////////
             }
         )
-        .attr("transform", (d) => this._setNodeOffset(d, styles))
-        .attr("height", (d) => this._setNodeSize(d, styles))
-        .attr("width", (d) => this._setNodeSize(d, styles));
+        .each((d)=>setNodeSize(d, styles));
             
     __node.append("text")
-        .attr("dy", (d) => this._setNodeTextOffset(d, styles))
+        .attr("dy", (d) => setNodeTextOffset(d, styles))
         .attr("text-anchor", "middle")
-        .text((d) => this._setNodeText(d, styles));
+        .text((d) => setNodeText(d, styles));
 
     __node = __node.merge(__updataForNode);   
     __link = __link.merge(__updataForLink); 
@@ -224,6 +207,25 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
         __link
             .attr("x1", function(d) { return d.source.x; })
             .attr("y1", function(d) { return d.source.y; })
+            // .each(function(d) {
+    
+            //     var x    = d.target.x,
+            //         y    = d.target.y,
+            //         line = new geo.LineSegment(d.source.x, d.source.y, x, y);
+    
+            //     for (var e in d.target.edge) {
+            //         var ix = line.intersect(d.target.edge[e].offset(x, y));
+            //         if (ix.in1 && ix.in2) {
+            //             x = ix.x;
+            //             y = ix.y;
+            //             break;
+            //         }
+            //     }
+    
+            //     d3.select(this)
+            //         .attr('x2', x)
+            //         .attr('y2', y);
+            // });
             .attr("x2", function(d) { return d.target.x; })
             .attr("y2", function(d) { return d.target.y; });
 
