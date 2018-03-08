@@ -102,29 +102,33 @@ function drawLine(d)
 {
     let __x = d.source.x-d.target.x;
     let __y = d.source.y-d.target.y;
-    let __sOffset = d.source.size / 2;
-    let __tOffset = d.target.size / 2;
+    let __sOffset = d.source.size * 0.5;
+    let __tOffset = d.target.size * 0.5;
     let __jdDushu = Math.abs(Math.atan(__x/__y));
     let __sin = Math.sin(__jdDushu);
     let __cos = Math.cos(__jdDushu);
 
     let __sx = __jdDushu > 0.755 ? __sOffset : __sOffset * __sin;
     let __sy = __jdDushu <= 0.755 ? __sOffset : __sOffset * __cos;
-
     let __tx = __jdDushu > 0.755 ? __tOffset : __tOffset * __sin;
     let __ty = __jdDushu <= 0.755 ? __tOffset : __tOffset * __cos;
+
+    __sx = d.source.x + (__x > 0 ? -__sx : __sx);
+    __sy = d.source.y + (__y > 0 ? -__sy : __sy);
+    __tx = d.target.x + (__x > 0 ? __tx : -__tx);
+    __ty = d.target.y + (__y > 0 ? __ty : -__ty);
 
     let __dom = d3.select(this);
     
     __dom.select('#link_id_'+ d.id)
-        .attr("d", 'M' + (d.source.x + (__x > 0 ? -__sx : __sx)) + ',' + (d.source.y + (__y > 0 ? -__sy : __sy))
-            +' L' + (d.target.x + (__x > 0 ? __tx : -__tx)) + ',' + (d.target.y + (__y > 0 ? __ty : -__ty)));
+        .attr("d", 'M' + __sx + ',' + __sy
+            +' L' + __tx + ',' + __ty);
     
     __dom.select('defs')
         .select('path')
         .attr('id', 'defs_path_id_'+ d.id)
-        .attr("d", 'M' + ((d.source.x + d.target.x) / 2) + ',' + ((d.source.y + d.target.y) / 2)
-            +' L' + (d.target.x + (__x > 0 ? __tx : -__tx)) + ',' + (d.target.y + (__y > 0 ? __ty : -__ty)));
+        .attr("d", 'M' + (__x < 0 ? (d.source.x - __x * 0.333) + ',' + (d.source.y - __y * 0.333) : (d.target.x + __x * 0.333) + ',' + (d.target.y + __y * 0.333))
+            +' L' + (__x < 0 ? __tx + ',' +__ty : __sx + ',' + __sy));
     
     __dom.select('text')
         .attr('x', d.source.x - __x / 2)
@@ -194,7 +198,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
         .attr('id', (d)=> {return 'link_id_'+ d.id});
     
     __link.append("text")
-        .attr("text-dy", 5)
+        .style('font-size', '14px')
         //.attr('pointer-events', 'none')
         .append('textPath')
         .text((d) => {return d.type;});
