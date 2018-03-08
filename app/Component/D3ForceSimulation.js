@@ -108,15 +108,30 @@ function drawLine(d)
     let __sin = Math.sin(__jdDushu);
     let __cos = Math.cos(__jdDushu);
 
-    let __sx = __jdDushu > 0.775 ? __sOffset : __sOffset * __sin;
-    let __sy = __jdDushu <= 0.775 ? __sOffset : __sOffset * __cos;
+    let __sx = __jdDushu > 0.755 ? __sOffset : __sOffset * __sin;
+    let __sy = __jdDushu <= 0.755 ? __sOffset : __sOffset * __cos;
 
-    let __tx = __jdDushu > 0.775 ? __tOffset : __tOffset * __sin;
-    let __ty = __jdDushu <= 0.775 ? __tOffset : __tOffset * __cos;
+    let __tx = __jdDushu > 0.755 ? __tOffset : __tOffset * __sin;
+    let __ty = __jdDushu <= 0.755 ? __tOffset : __tOffset * __cos;
 
-    d3.select(this)
+    let __dom = d3.select(this);
+    
+    __dom.select('#link_id_'+ d.id)
         .attr("d", 'M' + (d.source.x + (__x > 0 ? -__sx : __sx)) + ',' + (d.source.y + (__y > 0 ? -__sy : __sy))
             +' L' + (d.target.x + (__x > 0 ? __tx : -__tx)) + ',' + (d.target.y + (__y > 0 ? __ty : -__ty)));
+    
+    __dom.select('defs')
+        .select('path')
+        .attr('id', 'defs_path_id_'+ d.id)
+        .attr("d", 'M' + ((d.source.x + d.target.x) / 2) + ',' + ((d.source.y + d.target.y) / 2)
+            +' L' + (d.target.x + (__x > 0 ? __tx : -__tx)) + ',' + (d.target.y + (__y > 0 ? __ty : -__ty)));
+    
+    __dom.select('text')
+        .attr('x', d.source.x - __x / 2)
+        .attr('y', d.source.y - __y / 2)
+        .select('textPath')
+        .attr('xlink:href', '#defs_path_id_'+ d.id);
+        //.attr('transform', 'rotate(180 104.2219948643676 0)');
 }
 
 D3ForceSimulation.setStyle = function(el, props, state, styles, detail) {
@@ -164,13 +179,25 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
     console.log(__data);
 
     let __updataForLink = this.svg
-        .selectAll("line")
+        .selectAll(".links")
         .data(__data.edges)
     
     let __link = __updataForLink
         .enter()
-        .append("path")
+        .append("g")
         .attr("class", "links");
+    
+    __link.append("defs")
+        .append("path");
+
+    __link.append("path")
+        .attr('id', (d)=> {return 'link_id_'+ d.id});
+    
+    __link.append("text")
+        .attr("text-dy", 5)
+        //.attr('pointer-events', 'none')
+        .append('textPath')
+        .text((d) => {return d.type;});
 
     __updataForLink.exit().remove();
 
