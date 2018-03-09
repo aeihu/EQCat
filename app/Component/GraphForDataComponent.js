@@ -68,7 +68,11 @@ export default class GraphForDataComponent extends React.Component {
             //  caption:'name',
             //}
         },
-        edge: {},
+        edges: {
+            //xx:{
+            //  color:'50',
+            //}
+        },
     }
 
     updateFlag = {
@@ -101,8 +105,12 @@ export default class GraphForDataComponent extends React.Component {
     }
 
     setSizeInBar = function (label, size){
+        size = Number(size);
+        if (isNaN(size))
+            return;
+
         this.checkStyleOfNode(label);
-        
+
         this.NEStyles.nodes[label].size = size;
         this.updateFlag = {
             mode: 2, // 0: no update  1: data update  2: style update
@@ -244,7 +252,7 @@ export default class GraphForDataComponent extends React.Component {
                         if (this.state.barOfNE.mode != 1
                             || this.state.barOfNE.name != key){
 
-                            let __val = this.NEStyles.nodes.hasOwnProperty(key) ? 
+                            let __val = this.NEStyles.edges.hasOwnProperty(key) ? 
                                     {
                                         mode: 1, // 0:empty 1:node 2:edge
                                         name: key,
@@ -281,6 +289,38 @@ export default class GraphForDataComponent extends React.Component {
             __edgeChip.push(<Chip 
                 className="edgeChip" 
                 labelStyle={{fontSize: '12px'}}
+                onClick={key != '*' ? 
+                    function(){
+                        if (this.state.barOfNE.mode != 2
+                            || this.state.barOfNE.name != key){
+
+                            let __val = this.NEStyles.nodes.hasOwnProperty(key) ? 
+                                    {
+                                        mode: 2, // 0:empty 1:node 2:edge
+                                        name: key,
+                                    }
+                                :
+                                    {
+                                        mode: 2, // 0:empty 1:node 2:edge
+                                        name: key,
+                                    };
+
+                            this.updateFlag = {
+                                mode: 0, // 0: no update  1: data update  2: style update
+                                detail: ''
+                            };
+                            this.setState(function(prevState, props) {
+                                //////////////////////////
+                                // if hasOwnProperty
+                                //////////////////////////
+                                prevState.barOfNE = __val;
+                                
+                                return prevState;
+                            });
+                        }
+                    }.bind(this) 
+                    :
+                    null}
                 >
                     {key + '(' + this.props.data.count.edges[key] + ')'}
                 </Chip>);
@@ -368,8 +408,7 @@ export default class GraphForDataComponent extends React.Component {
                     {__edgeChip}
                 </div>
                 {this.state.barOfNE.mode == 1 ? ///////////////////  editMode  /////////////////////////
-                    <div id="footer" 
-                        style={{
+                    <div style={{
                             display: 'flex', 
                             flexDirection: 'row', 
                             flex:'0 0 auto',
@@ -385,16 +424,40 @@ export default class GraphForDataComponent extends React.Component {
                         <span>Size:</span>
                         <TextField 
                             id={'value1'}
+                            style={{width:'85px'}}
                             onChange={(event, newValue) => this.setSizeInBar(this.state.barOfNE.name, newValue)}
-                            errorText={isNaN(this.state.barOfNE.size) ? "It's not number" : ''}
+                            errorText={isNaN(Number(this.state.barOfNE.size)) ? "It's not number" : ''}
                             value={this.state.barOfNE.size}
                         />
 
                         <span>Caption:</span>
                         {__captionChip}
                     </div>
-                : <div></div>}
-                
+                : this.state.barOfNE.mode == 2 ?
+                    <div style={{
+                            display: 'flex', 
+                            flexDirection: 'row', 
+                            flex:'0 0 auto',
+                            alignItems:'center',
+                            borderTop:'1px solid #e8e8e8'}}>
+                        <Chip 
+                            className="edgeChip" 
+                            labelStyle={{fontSize: '12px'}}
+                            >
+                                {this.state.barOfNE.name}
+                        </Chip>
+                        
+                        <span>Size:</span>
+                        <TextField 
+                            id={'value1'}
+                            style={{width:'85px'}}
+                            onChange={(event, newValue) => this.setSizeInBar(this.state.barOfNE.name, newValue)}
+                            errorText={isNaN(Number(this.state.barOfNE.size)) ? "It's not number" : ''}
+                            value={this.state.barOfNE.size}
+                        />
+                    </div>
+                :
+                    <div></div>}
             </div>
         )
     }

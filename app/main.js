@@ -158,9 +158,39 @@ class App extends React.Component {
                             __row.push(v[key]);
                         }
                     }
-                    console.log(__row);
+
                     __rows.push(__row);
                 }.bind(this));
+
+                for (let i = 0; i < __edges.length; i++){
+                    let __isSource = false;
+                    let __isTarget = false;
+                    for (let j = 0; j < __nodes.length; j++){
+                        if (!__isSource){
+                            if (__edges[i].source == __nodes[j].id){
+                                __isSource = true;
+                                if (!__nodes[j].hasOwnProperty('edges'))
+                                    __nodes[j]['edges'] = [];
+
+                                __nodes[j].edges.push(__edges[i]);
+                            }
+                        } 
+                        
+                        if (!__isTarget){
+                            if (__edges[i].target == __nodes[j].id){
+                                __isTarget = true;
+                                if (!__nodes[j].hasOwnProperty('edges'))
+                                    __nodes[j]['edges'] = [];
+
+                                __nodes[j].edges.push(__edges[i]);
+                            }
+                        }
+
+                        if (__isSource && __isTarget){
+                            break;
+                        }
+                    }
+                }
 
                 this.setState(function(prevState, props) {
                     return {

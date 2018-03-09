@@ -54,8 +54,29 @@
             opacity: 0.9;
         }
 
+        .node_icon {
+            filter: drop-shadow(rgba(0, 0, 0, 0) 0px 0px);
+        }
+
+        .node_icon[shadowed='selected'] {
+            filter: drop-shadow(OrangeRed 3px 3px);
+        }
+
+        .node_icon[shadowed='adjacent'] {
+            filter: drop-shadow(Magenta 3px 3px);
+        }
+
 		.links{
+            font-family: simsun;
 			stroke:steelblue;
+        }
+
+		.link{
+            filter: drop-shadow(rgba(0, 0, 0, 0) 0px 0px);
+        }
+
+        .link[shadowed='true'] {
+            filter: drop-shadow(0px 0px 1px red);
         }
 
         .tooltip{
