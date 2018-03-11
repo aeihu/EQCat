@@ -54,29 +54,26 @@
             opacity: 0.9;
         }
 
-        .node_icon {
+        .nodes {
             filter: drop-shadow(rgba(0, 0, 0, 0) 0px 0px);
         }
 
-        .node_icon[shadowed='selected'] {
-            filter: drop-shadow(OrangeRed 3px 3px);
+        .nodes[shadowed='selected'] {
+            filter: drop-shadow(0px 0px 2px OrangeRed);
         }
 
-        .node_icon[shadowed='adjacent'] {
-            filter: drop-shadow(Magenta 3px 3px);
+        .nodes[shadowed='adjacent'] {
+            filter: drop-shadow(0px 0px 2px Magenta);
         }
 
 		.links{
             font-family: simsun;
 			stroke:steelblue;
-        }
-
-		.link{
             filter: drop-shadow(rgba(0, 0, 0, 0) 0px 0px);
         }
 
-        .link[shadowed='true'] {
-            filter: drop-shadow(0px 0px 1px red);
+        .links[shadowed='true'] {
+            filter: drop-shadow(0px 0px 2px red);
         }
 
         .tooltip{
