@@ -439,6 +439,14 @@ export default class GraphForDataComponent extends React.Component {
                 <EditorDialogsComponent />
                 <div id="displayContent" 
                     style={{backgroundColor: '#EEEEEE', width:'100%', flex:'1 1 auto'}} 
+                    onClick={() => {
+                        if (this.state.barOfNE.mode !=0){
+                            this.setState(function(prevState, props) {
+                                prevState.barOfNE.mode = 0;
+                                return prevState;
+                            });
+                        }
+                    }}
                     onContextMenu={this.handleClick}>
                     {/* {__menu} */}
                     <div id='menuInDisplayContent' 
