@@ -111,6 +111,13 @@ function setEdgeColor(d, styles) {
     return styles.edges[d.type].color;
 }
 
+function setEdgeSize(d, styles) { 
+    d.size = styles.edges[d.type].size;
+    
+    D3ForceSimulation.svg.select('#link_path_id_'+d.id)
+        .style('stroke-width', d.size);
+}
+
 function drawLine(d)
 {
     let __x = d.source.x-d.target.x;
@@ -126,30 +133,36 @@ function drawLine(d)
     let __tx = __jdDushu > 0.755 ? __tOffset + 5 : __tOffset * __sin;
     let __ty = __jdDushu <= 0.755 ? __tOffset : __tOffset * __cos;
 
-    __sx = d.source.x + (__x > 0 ? -__sx : __sx);
-    __sy = d.source.y + (__y > 0 ? -__sy : __sy);
-    __tx = d.target.x + (__x > 0 ? __tx : -__tx);
-    __ty = d.target.y + (__y > 0 ? __ty : -__ty);
+    d.sx = d.source.x + (__x > 0 ? -__sx : __sx);
+    d.sy = d.source.y + (__y > 0 ? -__sy : __sy);
+    d.tx = d.target.x + (__x > 0 ? __tx : -__tx);
+    d.ty = d.target.y + (__y > 0 ? __ty : -__ty);
 
-    let __dom = d3.select(this);
+    d.psx = __x < 0 ? (d.source.x - __x * 0.333333) : (d.target.x + __x * 0.333333);
+    d.psy = __x < 0 ? (d.source.y - __y * 0.333333) : (d.target.y + __y * 0.333333);
+    d.ptx = __x < 0 ? d.tx : d.sx;
+    d.pty = __x < 0 ? d.ty : d.sy;
+
+    // let __dom = D3ForceSimulation.svg.select('#link_id_' + d.id)
+    // //let __dom = d3.select(this);
     
-    __dom.select('#link_path_id_'+ d.id)
-        .attr("d", 'M' + __sx + ',' + __sy
-            +' L' + __tx + ',' + __ty);
+    // __dom.select('#link_path_id_'+ d.id)
+    //     .attr("d", 'M' + __sx + ',' + __sy
+    //         +' L' + __tx + ',' + __ty);
     
-    __dom.select('defs')
-        .select('path')
-        .attr('id', 'defs_path_id_'+ d.id)
-        .attr("d", 'M' + (__x < 0 ? (d.source.x - __x * 0.333333) + ',' + (d.source.y - __y * 0.333333) 
-            : 
-            (d.target.x + __x * 0.333333) + ',' + (d.target.y + __y * 0.333333))
-            +' L' + (__x < 0 ? __tx + ',' +__ty : __sx + ',' + __sy));
+    // __dom.select('defs')
+    //     .select('path')
+    //     .attr('id', 'defs_path_id_'+ d.id)
+    //     .attr("d", 'M' + (__x < 0 ? (d.source.x - __x * 0.333333) + ',' + (d.source.y - __y * 0.333333) 
+    //         : 
+    //         (d.target.x + __x * 0.333333) + ',' + (d.target.y + __y * 0.333333))
+    //         +' L' + (__x < 0 ? __tx + ',' +__ty : __sx + ',' + __sy));
     
-    __dom.select('text')
-        .attr('x', d.source.x - __x / 2)
-        .attr('y', d.source.y - __y / 2)
-        .select('textPath')
-        .attr('xlink:href', '#defs_path_id_'+ d.id);
+    // __dom.select('text')
+    //     .attr('x', d.source.x - __x / 2)
+    //     .attr('y', d.source.y - __y / 2)
+    //     .select('textPath')
+    //     .attr('xlink:href', '#defs_path_id_'+ d.id);
 }
 
 D3ForceSimulation.setStyle = function(el, props, state, styles, detail) {
@@ -192,6 +205,7 @@ D3ForceSimulation.setStyle = function(el, props, state, styles, detail) {
                         __link.style('stroke', (d) => setEdgeColor(d, styles))
                         break;
                     case 'size':
+                        __link.attr('stroke-width', (d) => setEdgeSize(d, styles))
                         break;
                 }
             }
@@ -218,7 +232,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
         .enter()
         .append("g")
         .attr("class", "links")
-        .attr('id', function(d){ return 'link_id_' + d.id})
+        .attr('id', function(d){ return 'link_id_' + d.id})     
         .style('stroke', (d) => setEdgeColor(d, styles))
         .on("mouseover", function(d){
             D3ForceSimulation.svg.select('#link_id_' + d.id)
@@ -229,17 +243,19 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
                 .attr('shadowed', false);
         });
     
-    __link.append("defs")
-        .append("path");
+    let __defsInLink = __link.append("defs")
+        .append("path")
+        .attr('id', (d) => {return 'defs_path_id_'+ d.id});
 
-    __link.append("path")
+    let __pathInLink = __link.append("path")
+        .attr('id', (d)=> {return 'link_path_id_'+ d.id})
         .style('marker-end', 'url(#marker_arrow)')
-        .attr('id', (d)=> {return 'link_path_id_'+ d.id});
+        .style('stroke-width', (d) => setEdgeSize(d, styles)); 
     
-    __link.append("text")
+    let __textpathInLink = __link.append("text")
         .style('font-size', '14px')
-        //.attr('pointer-events', 'none')
         .append('textPath')
+        .attr('xlink:href', (d) => {return '#defs_path_id_'+ d.id})
         .text((d) => {return d.type;});
 
     __updataForLink.exit().remove();
@@ -319,13 +335,20 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
     __link = __link.merge(__updataForLink); 
     
     function ticked() {
-        __link
-            .each(drawLine);
-
         __node
             .attr("transform", function(d) {
                 return 'translate(' + d.x + ',' + d.y + ')';
             });
+
+        __link.each(drawLine);
+
+        __pathInLink.attr("d", function(d) {return 'M' + d.sx + ',' + d.sy
+                    +' L' + d.tx + ',' + d.ty});
+        
+        __defsInLink.attr("d", 
+            (d) => {
+                return 'M' + d.psx + ',' + d.psy
+                    +' L' + d.ptx + ',' + d.pty});
     }
     
     this.simulation
