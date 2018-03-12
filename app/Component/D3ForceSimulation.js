@@ -107,6 +107,10 @@ function setNodeTextOffset(d, styles) {
     return -27.5;
 }
 
+function setEdgeColor(d, styles) { 
+    return styles.edges[d.type].color;
+}
+
 function drawLine(d)
 {
     let __x = d.source.x-d.target.x;
@@ -129,7 +133,7 @@ function drawLine(d)
 
     let __dom = d3.select(this);
     
-    __dom.select('#link_id_'+ d.id)
+    __dom.select('#link_path_id_'+ d.id)
         .attr("d", 'M' + __sx + ',' + __sy
             +' L' + __tx + ',' + __ty);
     
@@ -146,7 +150,6 @@ function drawLine(d)
         .attr('y', d.source.y - __y / 2)
         .select('textPath')
         .attr('xlink:href', '#defs_path_id_'+ d.id);
-        //.attr('transform', 'rotate(180 104.2219948643676 0)');
 }
 
 D3ForceSimulation.setStyle = function(el, props, state, styles, detail) {
@@ -178,6 +181,20 @@ D3ForceSimulation.setStyle = function(el, props, state, styles, detail) {
             }
             break;
         case 2:
+            let __link = this.svg.selectAll(".links")
+                .filter(function(d, i){
+                    return d.type == state.barOfNE.name;
+                });
+            
+            if (!__link.empty()){
+                switch (detail){
+                    case 'color':
+                        __link.style('stroke', (d) => setEdgeColor(d, styles))
+                        break;
+                    case 'size':
+                        break;
+                }
+            }
             break;
     }
 }
@@ -200,15 +217,24 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
     let __link = __updataForLink
         .enter()
         .append("g")
-        .attr("class", "links");
+        .attr("class", "links")
+        .attr('id', function(d){ return 'link_id_' + d.id})
+        .style('stroke', (d) => setEdgeColor(d, styles))
+        .on("mouseover", function(d){
+            D3ForceSimulation.svg.select('#link_id_' + d.id)
+                .attr('shadowed', true);
+        })
+        .on("mouseout", function(d){
+            D3ForceSimulation.svg.select('#link_id_' + d.id)
+                .attr('shadowed', false);
+        });
     
     __link.append("defs")
         .append("path");
 
     __link.append("path")
         .style('marker-end', 'url(#marker_arrow)')
-        .attr('class', 'link')
-        .attr('id', (d)=> {return 'link_id_'+ d.id});
+        .attr('id', (d)=> {return 'link_path_id_'+ d.id});
     
     __link.append("text")
         .style('font-size', '14px')
@@ -229,11 +255,11 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
             state.showCard(d);
         })
         .on("mouseover", function(d){
-            D3ForceSimulation.svg.select('#node_image_id_' + d.id)
+            d3.select(this)
                 .attr('shadowed', 'selected');
             
             for (let i = 0; i < d.edges.length; i++){
-                D3ForceSimulation.svg.select('#node_image_id_' + (d.edges[i].target.id == d.id ? d.edges[i].source.id : d.edges[i].target.id))
+                D3ForceSimulation.svg.select('#node_id_' + (d.edges[i].target.id == d.id ? d.edges[i].source.id : d.edges[i].target.id))
                     .attr('shadowed', 'adjacent');
                 
                 D3ForceSimulation.svg.select('#link_id_' + d.edges[i].id)
@@ -241,11 +267,11 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
             }
         })
         .on("mouseout", function(d){
-            D3ForceSimulation.svg.select('#node_image_id_' + d.id)
+            d3.select(this)
                 .attr('shadowed', '');
 
             for (let i = 0; i < d.edges.length; i++){
-                D3ForceSimulation.svg.select('#node_image_id_' + (d.edges[i].target.id == d.id ? d.edges[i].source.id : d.edges[i].target.id))
+                D3ForceSimulation.svg.select('#node_id_' + (d.edges[i].target.id == d.id ? d.edges[i].source.id : d.edges[i].target.id))
                     .attr('shadowed', '');
 
                 D3ForceSimulation.svg.select('#link_id_' + d.edges[i].id)
@@ -253,6 +279,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
             }
         })
         .attr("class", 'nodes')
+        .attr("id", function(d){return 'node_id_' + d.id})
         .call(d3.drag()
                 .on("start", this.dragstarted)
                 .on("drag", this.dragged)
