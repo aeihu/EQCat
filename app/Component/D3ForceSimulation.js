@@ -111,13 +111,6 @@ function setEdgeColor(d, styles) {
     return styles.edges[d.type].color;
 }
 
-function setEdgeSize(d, styles) { 
-    d.size = styles.edges[d.type].size;
-    
-    D3ForceSimulation.svg.select('#link_path_id_'+d.id)
-        .style('stroke-width', d.size);
-}
-
 function drawLine(d)
 {
     let __x = d.source.x-d.target.x;
@@ -205,7 +198,6 @@ D3ForceSimulation.setStyle = function(el, props, state, styles, detail) {
                         __link.style('stroke', (d) => setEdgeColor(d, styles))
                         break;
                     case 'size':
-                        __link.attr('stroke-width', (d) => setEdgeSize(d, styles))
                         break;
                 }
             }
@@ -249,8 +241,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
 
     let __pathInLink = __link.append("path")
         .attr('id', (d)=> {return 'link_path_id_'+ d.id})
-        .style('marker-end', 'url(#marker_arrow)')
-        .style('stroke-width', (d) => setEdgeSize(d, styles)); 
+        .style('marker-end', 'url(#marker_arrow)'); 
     
     let __textpathInLink = __link.append("text")
         .style('font-size', '14px')

@@ -60,7 +60,6 @@ export default class GraphForDataComponent extends React.Component {
                     image: defaultIcon
                 },
                 edge:{
-                    size: 5,
                     colorPicker: {
                         open: false,
                         color: '#000000',
@@ -83,7 +82,6 @@ export default class GraphForDataComponent extends React.Component {
         },
         edges: {
             //xx:{
-            //  size: 5,
             //  color:'#000000',
             //}
         },
@@ -107,7 +105,6 @@ export default class GraphForDataComponent extends React.Component {
     checkStyleOfEdge = function (label){
         if (!this.NEStyles.edges.hasOwnProperty(label)){
             this.NEStyles.edges[label] = {
-                size: 5,
                 color: '#000000'
             }
         }
@@ -149,18 +146,9 @@ export default class GraphForDataComponent extends React.Component {
                 detail: 'size'
             };
         }else{
-    
             size = Number(size);
-            switch(this.state.barOfNE.mode){
-                case 1:
-                    this.checkStyleOfNode(label);
-                    this.NEStyles.nodes[label].size = size;
-                    break;
-                case 2:
-                    this.checkStyleOfEdge(label);
-                    this.NEStyles.edges[label].size = size;
-                    break;
-            }
+            this.checkStyleOfNode(label);
+            this.NEStyles.nodes[label].size = size;
 
             this.updateFlag = {
                 mode: 2, // 0: no update  1: data update  2: style update
@@ -169,15 +157,7 @@ export default class GraphForDataComponent extends React.Component {
         }
 
         this.setState(function(prevState, props) {
-            switch(prevState.barOfNE.mode){
-                case 1:
-                    prevState.barOfNE.node.size = size;
-                break;
-                case 2:
-                    prevState.barOfNE.edge.size = size;
-                break;
-            }
-
+            prevState.barOfNE.node.size = size;
             return prevState;
         });
     }.bind(this)
@@ -543,15 +523,6 @@ export default class GraphForDataComponent extends React.Component {
                             >
                                 {this.state.barOfNE.name}
                         </Chip>
-                        
-                        <span>Size:</span>
-                        <TextField 
-                            id={'value1'}
-                            style={{width:'85px'}}
-                            onChange={(event, newValue) => this.setSizeInBar(this.state.barOfNE.name, newValue)}
-                            errorText={isNaN(Number(this.state.barOfNE.edge.size)) ? "It's not number" : ''}
-                            value={this.state.barOfNE.edge.size}
-                        />
                         
                         <span>Color:</span>
 						<RaisedButton
