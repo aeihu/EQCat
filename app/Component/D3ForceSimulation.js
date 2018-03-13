@@ -135,30 +135,9 @@ function drawLine(d)
     d.psy = __x < 0 ? (d.source.y - __y * 0.333333) : (d.target.y + __y * 0.333333);
     d.ptx = __x < 0 ? d.tx : d.sx;
     d.pty = __x < 0 ? d.ty : d.sy;
-
-    // let __dom = D3ForceSimulation.svg.select('#link_id_' + d.id)
-    // //let __dom = d3.select(this);
-    
-    // __dom.select('#link_path_id_'+ d.id)
-    //     .attr("d", 'M' + __sx + ',' + __sy
-    //         +' L' + __tx + ',' + __ty);
-    
-    // __dom.select('defs')
-    //     .select('path')
-    //     .attr('id', 'defs_path_id_'+ d.id)
-    //     .attr("d", 'M' + (__x < 0 ? (d.source.x - __x * 0.333333) + ',' + (d.source.y - __y * 0.333333) 
-    //         : 
-    //         (d.target.x + __x * 0.333333) + ',' + (d.target.y + __y * 0.333333))
-    //         +' L' + (__x < 0 ? __tx + ',' +__ty : __sx + ',' + __sy));
-    
-    // __dom.select('text')
-    //     .attr('x', d.source.x - __x / 2)
-    //     .attr('y', d.source.y - __y / 2)
-    //     .select('textPath')
-    //     .attr('xlink:href', '#defs_path_id_'+ d.id);
 }
 
-D3ForceSimulation.setStyle = function(el, props, state, styles, detail) {
+D3ForceSimulation.setStyle = function(props, state, styles, detail) {
     switch (state.barOfNE.mode){
         case 1:
             let __node = this.svg.selectAll(".nodes")
@@ -172,6 +151,10 @@ D3ForceSimulation.setStyle = function(el, props, state, styles, detail) {
             
             if (!__node.empty()){
                 switch (detail){
+                    case 'icon':
+                        // __node.select('image')
+                        //     .attr("xlink:href", (d) => setNodeTextOffset(d, styles));
+                        break;
                     case 'caption':
                         __node.select('text')
                             .text((d) => setNodeText(d, styles));
@@ -306,13 +289,13 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
                         ()=>{
                             __d.attr("xlink:href", function(data){
                                 let __index = Math.floor((new Date()).valueOf() / 1000) % data.labels.length;
-                                return styles.nodes[data.labels[__index]].image;
+                                return styles.nodes[data.labels[__index]].icon;
                             })
                         }
                     ,1000);
                 }
 
-                return d.labels.length > 0 ? styles.nodes[d.labels[0]].image : ''; /////////////////////////////////////////
+                return d.labels.length > 0 ? styles.nodes[d.labels[0]].icon : ''; /////////////////////////////////////////
             }
         )
         .each((d)=>setNodeSize(d, styles));
