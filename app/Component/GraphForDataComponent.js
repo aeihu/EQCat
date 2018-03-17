@@ -85,6 +85,12 @@ export default class GraphForDataComponent extends React.Component {
         }
     }
 
+    setIconInBar = function (label, icon){
+        this.checkStyleOfEdge(label);
+        this.NEStyles.nodes[label].icon = icon;
+        D3ForceSimulation.setStyle(this.props, this.state, this.NEStyles, 'icon');
+    }.bind(this)
+
     setColorInBar = function (label, hex){
         this.checkStyleOfEdge(label);
         this.NEStyles.edges[label].color = hex;
@@ -105,12 +111,6 @@ export default class GraphForDataComponent extends React.Component {
 
             D3ForceSimulation.setStyle(this.props, this.state, this.NEStyles, 'size');
         }
-    }.bind(this)
-
-    setIconInBar = function (label, size){
-        this.checkStyleOfNode(label);
-        this.NEStyles.nodes[label].caption = propertyName;
-        D3ForceSimulation.setStyle(this.props, this.state, this.NEStyles, 'icon');
     }.bind(this)
 
     getStyles = function() {
@@ -347,7 +347,7 @@ export default class GraphForDataComponent extends React.Component {
                         icon={this.NEStyles.nodes[this.state.barOfNE.name].icon}
                         data={this.props.data.count.nodes} 
                         chipName={this.state.barOfNE.name} 
-                        onIconChange={this.setCaptionInBar}
+                        onIconChange={this.setIconInBar}
                         onCaptionChange={this.setCaptionInBar}
                         onSizeChange={this.setSizeInBar} />
                 : this.state.barOfNE.mode == 2 ?

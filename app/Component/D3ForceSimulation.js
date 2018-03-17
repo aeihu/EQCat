@@ -77,6 +77,14 @@ D3ForceSimulation.dragended = function dragended(d) {
     d.fy = null;
 }
 
+function setIcon(d, styles) { 
+    if (d.labels.length > 0){
+            return styles.nodes[d.labels[0]].icon ;
+    }
+
+    return defaultIcon; 
+}
+
 function setNodeText(d, styles) { 
     if (d.labels.length > 0){
         if (styles.nodes[d.labels[0]].caption != '<id>'){
@@ -152,8 +160,8 @@ D3ForceSimulation.setStyle = function(props, state, styles, detail) {
             if (!__node.empty()){
                 switch (detail){
                     case 'icon':
-                        // __node.select('image')
-                        //     .attr("xlink:href", (d) => setNodeTextOffset(d, styles));
+                        __node.select('image')
+                            .attr("xlink:href", (d) => setIcon(d, styles));
                         break;
                     case 'caption':
                         __node.select('text')

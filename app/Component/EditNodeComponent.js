@@ -3,6 +3,7 @@ import Chip from 'material-ui/Chip';
 import IconButton from 'material-ui/IconButton';
 import TextField from 'material-ui/TextField';
 import Popover from 'material-ui/Popover/Popover';
+import IconSelectorComponent from './IconSelectorComponent';
 
 export default class EditEdgeComponent extends React.Component {
     
@@ -20,6 +21,14 @@ export default class EditEdgeComponent extends React.Component {
     size = 50;
     icon = '';
     caption = '';
+
+    setIcon = function (label, icon){
+        this.icon = icon;
+        this.props.onIconChange(label, icon);
+        this.setState(function(prevState, props) {
+            return prevState;
+        });
+    }.bind(this)
 
     componentWillMount()
     {
@@ -99,7 +108,7 @@ export default class EditEdgeComponent extends React.Component {
                         });
                     }.bind(this)}>
 
-                    <img src={this.icon} />
+                    <img src={this.icon} width='24px' height='24px' />
                 </IconButton>
 
                 <span>Size:</span>
@@ -137,17 +146,10 @@ export default class EditEdgeComponent extends React.Component {
                         });
                     }.bind(this)}
                 >
-                    <div style={{
-                        display: 'flex', 
-                        flexDirection: 'row', 
-                        flexWrap: 'wrap',
-                        flex:'0 0 auto',
-                        width:'390px',
-                        alignItems:'center'}}>
-                        <IconButton>
-                            <img src={this.icon} />
-                        </IconButton>
-                    </div>
+                    <IconSelectorComponent
+                        icon={this.icon}
+                        onChange={(icon) => this.setIcon(__name, icon)}
+                    />
                 </Popover>
             </div>
         )
