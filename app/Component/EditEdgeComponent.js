@@ -77,10 +77,9 @@ export default class EditEdgeComponent extends React.Component {
                         onChange={({hex}) => 
                             {
                                 this.color = hex;
-                                console.log(__name+': '+hex);
                                 
                                 typeof this.props.onChange === 'function' ?
-                                    this.props.onChange(__name, hex)
+                                    this.props.onChange(hex)
                                     :
                                     {}
 

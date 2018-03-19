@@ -4,6 +4,7 @@ import IconButton from 'material-ui/IconButton';
 import TextField from 'material-ui/TextField';
 import Popover from 'material-ui/Popover/Popover';
 import IconSelectorComponent from './IconSelectorComponent';
+import Avatar from 'material-ui/Avatar';
 
 export default class EditEdgeComponent extends React.Component {
     
@@ -15,19 +16,17 @@ export default class EditEdgeComponent extends React.Component {
                 anchorEl: null
             },
         }
-
     }
 
     size = 50;
     icon = '';
     caption = '';
 
-    setIcon = function (label, icon){
-        this.icon = icon;
-        this.props.onIconChange(label, icon);
-        this.setState(function(prevState, props) {
-            return prevState;
-        });
+    setIcon = function (icon){
+        if (typeof this.props.onCaptionChange === 'function'){
+            this.icon = icon;
+            this.props.onIconChange(icon);
+        }
     }.bind(this)
 
     componentWillMount()
@@ -65,8 +64,8 @@ export default class EditEdgeComponent extends React.Component {
                             :
                             () => {
                                 this.caption = __propertyName;
-                                typeof this.props.onSizeChange === 'function' ?
-                                    this.props.onCaptionChange(__name, __propertyName)
+                                typeof this.props.onCaptionChange === 'function' ?
+                                    this.props.onCaptionChange(__propertyName)
                                     :
                                     {}
 
@@ -93,6 +92,14 @@ export default class EditEdgeComponent extends React.Component {
                     className="labelChip" 
                     labelStyle={{fontSize: '12px'}}
                 >
+                    <Avatar src={this.icon} 
+                        style={
+                            {
+                                width:'23px', 
+                                height:'23px', 
+                                marginLeft:'6px', 
+                                borderRadius:'0%', 
+                                backgroundColor:'#00000000'}} />
                     {__name}
                 </Chip>
                 
@@ -119,7 +126,7 @@ export default class EditEdgeComponent extends React.Component {
                         {
                             this.size = newValue;
                             typeof this.props.onSizeChange === 'function' ?
-                                this.props.onSizeChange(__name, newValue)
+                                this.props.onSizeChange(newValue)
                                 :
                                 {}
 
@@ -148,7 +155,7 @@ export default class EditEdgeComponent extends React.Component {
                 >
                     <IconSelectorComponent
                         icon={this.icon}
-                        onChange={(icon) => this.setIcon(__name, icon)}
+                        onChange={this.setIcon}
                     />
                 </Popover>
             </div>

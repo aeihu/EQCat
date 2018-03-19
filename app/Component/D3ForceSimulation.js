@@ -9,6 +9,20 @@ D3ForceSimulation.y = 0;
 D3ForceSimulation.tx = 1920;
 D3ForceSimulation.ty = 1080;
 D3ForceSimulation.showedImage = false;
+D3ForceSimulation.NEStyles = {
+    nodes: {
+        //xx:{
+        //  icon:'a.png',
+        //  size:'50',
+        //  caption:'name',
+        //}
+    },
+    edges: {
+        //xx:{
+        //  color:'#000000',
+        //}
+    },
+};
 
 D3ForceSimulation.create = function(el, props, state) {
     this.svg = d3.select("#displayContent")
@@ -77,19 +91,32 @@ D3ForceSimulation.dragended = function dragended(d) {
     d.fy = null;
 }
 
-function setIcon(d, styles) { 
+function setIcon(d) { 
     if (d.labels.length > 0){
-            return styles.nodes[d.labels[0]].icon ;
+            return D3ForceSimulation.NEStyles.nodes[d.labels[0]].icon ;
     }
 
     return defaultIcon; 
+    // if (d.labels.length > 1){
+    //     let __d = D3ForceSimulation.svg.select('#node_image_id_' + d.id);
+    //     setInterval(
+    //         ()=>{
+    //             __d.attr("xlink:href", function(data){
+    //                 let __index = Math.floor((new Date()).valueOf() / 1000) % data.labels.length;
+    //                 return styles.nodes[data.labels[__index]].icon;
+    //             })
+    //         }
+    //     ,1000);
+    // }
+
+    // return d.labels.length > 0 ? styles.nodes[d.labels[0]].icon : ''; /////////////////////////////////////////
 }
 
-function setNodeText(d, styles) { 
+function setNodeText(d) { 
     if (d.labels.length > 0){
-        if (styles.nodes[d.labels[0]].caption != '<id>'){
-            return d.properties.hasOwnProperty(styles.nodes[d.labels[0]].caption) ? 
-                d.properties[styles.nodes[d.labels[0]].caption]
+        if (D3ForceSimulation.NEStyles.nodes[d.labels[0]].caption != '<id>'){
+            return d.properties.hasOwnProperty(D3ForceSimulation.NEStyles.nodes[d.labels[0]].caption) ? 
+                d.properties[D3ForceSimulation.NEStyles.nodes[d.labels[0]].caption]
                 : '';
         }
     }
@@ -97,8 +124,8 @@ function setNodeText(d, styles) {
     return d.id; 
 }
 
-function setNodeSize(d, styles) { 
-    d.size = d.labels.length > 0 ? styles.nodes[d.labels[0]].size : 35;
+function setNodeSize(d) { 
+    d.size = d.labels.length > 0 ? D3ForceSimulation.NEStyles.nodes[d.labels[0]].size : 35;
     let __offset = -d.size / 2;
 
     D3ForceSimulation.svg.select('#node_image_id_'+d.id)
@@ -107,16 +134,16 @@ function setNodeSize(d, styles) {
         .attr('width', d.size);
 }
 
-function setNodeTextOffset(d, styles) { 
+function setNodeTextOffset(d) { 
     if (d.labels.length > 0){
-        return styles.nodes[d.labels[0]].size / 2 + 10;
+        return D3ForceSimulation.NEStyles.nodes[d.labels[0]].size / 2 + 10;
     }
 
     return -27.5;
 }
 
-function setEdgeColor(d, styles) { 
-    return styles.edges[d.type].color;
+function setEdgeColor(d) { 
+    return D3ForceSimulation.NEStyles.edges[d.type].color;
 }
 
 function drawLine(d)
@@ -145,48 +172,66 @@ function drawLine(d)
     d.pty = __x < 0 ? d.ty : d.sy;
 }
 
-D3ForceSimulation.setStyle = function(props, state, styles, detail) {
-    switch (state.barOfNE.mode){
+D3ForceSimulation.setStyle = function(state, type, val) {
+    switch (state.mode){
         case 1:
+            if (!this.NEStyles.nodes.hasOwnProperty(state.name)){
+                this.NEStyles.nodes[state.name] = {
+                    icon: defaultIcon,
+                    size: 50,
+                    caption: 'name',
+                }
+            }
+
             let __node = this.svg.selectAll(".nodes")
                 .filter(function(d, i){
                     for (let i=0; i<d.labels.length; i++){
-                        if (d.labels[i] == state.barOfNE.name)
+                        if (d.labels[i] == state.name)
                             return true;
                     }    
                     return false;
                 });
             
             if (!__node.empty()){
-                switch (detail){
+                switch (type){
                     case 'icon':
+                        this.NEStyles.nodes[state.name].icon = val;
                         __node.select('image')
-                            .attr("xlink:href", (d) => setIcon(d, styles));
+                            .attr("xlink:href", setIcon);
                         break;
                     case 'caption':
+                        this.NEStyles.nodes[state.name].caption = val;
                         __node.select('text')
-                            .text((d) => setNodeText(d, styles));
+                            .text(setNodeText);
                         break;
                     case 'size':
+                        this.NEStyles.nodes[state.name].size = val;
                         __node.select('.node_icon')
-                            .each((d) => setNodeSize(d, styles));
+                            .each(setNodeSize);
                         
                         __node.select('text')
-                            .attr("dy", (d) => setNodeTextOffset(d, styles));
+                            .attr("dy", setNodeTextOffset);
                         break;
                 }
             }
             break;
         case 2:
+            if (!this.NEStyles.edges.hasOwnProperty(state.name)){
+                this.NEStyles.edges[state.name] = {
+                    color: '#000000'
+                }
+            }
+            
             let __link = this.svg.selectAll(".links")
                 .filter(function(d, i){
-                    return d.type == state.barOfNE.name;
+                    return d.type == state.name;
                 });
             
             if (!__link.empty()){
-                switch (detail){
+                switch (type){
                     case 'color':
-                        __link.style('stroke', (d) => setEdgeColor(d, styles))
+                        this.NEStyles.edges[state.name].color = val;
+                        __link.style('stroke', setEdgeColor)
                         break;
                     case 'size':
                         break;
@@ -196,13 +241,13 @@ D3ForceSimulation.setStyle = function(props, state, styles, detail) {
     }
 }
 
-D3ForceSimulation.update = function(el, props, state, styles) {
+D3ForceSimulation.update = function(el, props, state) {
     // Re-compute the scales, and render the data points
     // var scales = this._scales(el, state.domain);
-    this._drawNodesAndEdges(el, props, state, styles);
+    this._drawNodesAndEdges(el, props, state);
 };
 
-D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
+D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     let __data = props.data
     console.log('/////////////////////////');
     console.log(__data);
@@ -216,7 +261,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
         .append("g")
         .attr("class", "links")
         .attr('id', function(d){ return 'link_id_' + d.id})     
-        .style('stroke', (d) => setEdgeColor(d, styles))
+        .style('stroke', setEdgeColor)
         .on("mouseover", function(d){
             D3ForceSimulation.svg.select('#link_id_' + d.id)
                 .attr('shadowed', true);
@@ -289,29 +334,13 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state, styles){
         .attr("id", function(d){return 'node_image_id_' + d.id})
         .attr("class", 'node_icon')
         .attr("enabled", true)
-        .attr("xlink:href", 
-            function(d){ 
-                if (d.labels.length > 1){
-                    let __d = D3ForceSimulation.svg.select('#node_image_id_' + d.id);
-                    setInterval(
-                        ()=>{
-                            __d.attr("xlink:href", function(data){
-                                let __index = Math.floor((new Date()).valueOf() / 1000) % data.labels.length;
-                                return styles.nodes[data.labels[__index]].icon;
-                            })
-                        }
-                    ,1000);
-                }
-
-                return d.labels.length > 0 ? styles.nodes[d.labels[0]].icon : ''; /////////////////////////////////////////
-            }
-        )
-        .each((d)=>setNodeSize(d, styles));
+        .attr("xlink:href", setIcon)
+        .each(setNodeSize);
             
     __node.append("text")
-        .attr("dy", (d) => setNodeTextOffset(d, styles))
+        .attr("dy", setNodeTextOffset)
         .attr("text-anchor", "middle")
-        .text((d) => setNodeText(d, styles));
+        .text(setNodeText);
 
     __node = __node.merge(__updataForNode);   
     __link = __link.merge(__updataForLink); 

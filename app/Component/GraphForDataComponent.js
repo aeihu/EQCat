@@ -1,14 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import CardComponent from './CardComponent';
-import Chip from 'material-ui/Chip';
-import FlatButton from 'material-ui/FlatButton';
 import {D3ForceSimulation} from './D3ForceSimulation';
 import EditorDialogsComponent from './EditorDialogsComponent';
-import EditEdgeComponent from './EditEdgeComponent';
-import EditNodeComponent from './EditNodeComponent';
+import EditStyleComponent from './EditStyleComponent';
 
-import Paper from 'material-ui/Paper';
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import RemoveRedEye from 'material-ui/svg-icons/image/remove-red-eye';
@@ -18,16 +14,9 @@ import Divider from 'material-ui/Divider';
 import ContentCopy from 'material-ui/svg-icons/content/content-copy';
 import Download from 'material-ui/svg-icons/file/file-download';
 import Delete from 'material-ui/svg-icons/action/delete';
-import FontIcon from 'material-ui/FontIcon';
 
 import Popover from 'material-ui/Popover/Popover';
 import { SketchPicker } from 'react-color';
-import TextField from 'material-ui/TextField';
-import RaisedButton from 'material-ui/RaisedButton';
-import IconButton from 'material-ui/IconButton';
-import Avatar from 'material-ui/Avatar';
-
-const defaultIcon = 'icons/default/ic_add_to_queue_24px.svg';
 
 export default class GraphForDataComponent extends React.Component {
     constructor(props) {
@@ -40,94 +29,11 @@ export default class GraphForDataComponent extends React.Component {
                 x: 0,
                 y: 0,
                 anchorEl: null
-            },
-            barOfNE:{
-                mode: 0, // 0:empty 1:node 2:edge
-                name: '',
             }
         };
-
-        //this.getStyles();
-    }
-
-    NEStyles = {
-        nodes: {
-            //xx:{
-            //  icon:'a.png',
-            //  size:'50',
-            //  caption:'name',
-            //}
-        },
-        edges: {
-            //xx:{
-            //  color:'#000000',
-            //}
-        },
     }
 
     updateFlag = true;
-
-    checkStyleOfNode = function (label){
-        if (!this.NEStyles.nodes.hasOwnProperty(label)){
-            this.NEStyles.nodes[label] = {
-                icon: defaultIcon,
-                size: 50,
-                caption: 'name',
-            }
-        }
-    }
-
-    checkStyleOfEdge = function (label){
-        if (!this.NEStyles.edges.hasOwnProperty(label)){
-            this.NEStyles.edges[label] = {
-                color: '#000000'
-            }
-        }
-    }
-
-    setIconInBar = function (label, icon){
-        this.checkStyleOfEdge(label);
-        this.NEStyles.nodes[label].icon = icon;
-        D3ForceSimulation.setStyle(this.props, this.state, this.NEStyles, 'icon');
-    }.bind(this)
-
-    setColorInBar = function (label, hex){
-        this.checkStyleOfEdge(label);
-        this.NEStyles.edges[label].color = hex;
-        D3ForceSimulation.setStyle(this.props, this.state, this.NEStyles, 'color');
-    }.bind(this)
-
-    setCaptionInBar = function (label, propertyName){
-        this.checkStyleOfNode(label);
-        this.NEStyles.nodes[label].caption = propertyName;
-        D3ForceSimulation.setStyle(this.props, this.state, this.NEStyles, 'caption');
-    }.bind(this)
-
-    setSizeInBar = function (label, size){
-        if (!isNaN(Number(size))){
-            size = Number(size);
-            this.checkStyleOfNode(label);
-            this.NEStyles.nodes[label].size = size;
-
-            D3ForceSimulation.setStyle(this.props, this.state, this.NEStyles, 'size');
-        }
-    }.bind(this)
-
-    getStyles = function() {
-        let xmlhttp = new XMLHttpRequest()
-        
-        xmlhttp.onreadystatechange = function(){
-            if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-				let __json = JSON.parse(xmlhttp.responseText);
-				
-                this.NEStyles = __json.styles;
-            }
-        }.bind(this)
-
-        xmlhttp.open("GET", "/style", true);
-        xmlhttp.send();
-	}.bind(this)
 
     handleClick = function(event) {
         // This prevents ghost click.
@@ -183,6 +89,14 @@ export default class GraphForDataComponent extends React.Component {
             this.state);
     }
 
+    componentWillReceiveProps(newProps)
+    {
+        // if(this.updateFlag){
+        //     let el = ReactDOM.findDOMNode();
+        //     D3ForceSimulation.update(el, this.props, this.state, this.NEStyles);
+        // }
+    }
+
     componentDidUpdate()
     {
         console.log('bb');
@@ -205,95 +119,12 @@ export default class GraphForDataComponent extends React.Component {
         for (let i = 0; i < this.state.cards.length; i++){
             __cardElements.push(<CardComponent nodeData={this.state.cards[i]} closeCard={this.hideCard} />);
         }
-
-        let __nodeChip = [];
-        for (let key in this.props.data.count.nodes){
-            if (!this.NEStyles.nodes.hasOwnProperty(key) && key!='*'){
-                this.NEStyles.nodes[key] = {
-                    icon: defaultIcon,
-                    size: 50,
-                    caption: this.props.data.count.nodes[key].propertiesList.length > 1 ? 
-                        this.props.data.count.nodes[key].propertiesList[1] :
-                        this.props.data.count.nodes[key].propertiesList[0]
-                };
-            }
-
-            //////////////////////////////////////////////
-            __nodeChip.push(<Chip 
-                className="labelChip" 
-                labelStyle={{fontSize: '12px'}}
-                onClick={key != '*' ? 
-                    function(){
-                        if (this.state.barOfNE.mode != 1
-                            || this.state.barOfNE.name != key){
-
-                            this.updateFlag = false;
-                            this.setState(function(prevState, props) {
-                                prevState.barOfNE.mode = 1; // 0:empty 1:node 2:edge
-                                prevState.barOfNE.name = key;
-                                
-                                return prevState;
-                            });
-                        }
-                    }.bind(this) 
-                    :
-                    null}
-                >
-                    {key != '*' ?
-                        <Avatar src={defaultIcon} style={{width:'25px', height:'25px', marginLeft:'6px', borderRadius:'0%', backgroundColor:'#00000000'}} />
-                        : ''
-                    }
-                    {key + '(' + this.props.data.count.nodes[key].total + ')'}
-                </Chip>);
-        }
-
-        let __edgeChip = [];
-        for (let key in this.props.data.count.edges){
-            if (!this.NEStyles.edges.hasOwnProperty(key) && key!='*'){
-                this.NEStyles.edges[key] = {
-                    color: '#000000'
-                };
-            }
-            //////////////////////////////////////////////
-
-            __edgeChip.push(<Chip 
-                className="edgeChip" 
-                labelStyle={{fontSize: '12px'}}
-                onClick={key != '*' ? 
-                    function(){
-                        if (this.state.barOfNE.mode != 2
-                            || this.state.barOfNE.name != key){
-
-                            this.updateFlag = false;
-                            this.setState(function(prevState, props) {
-                                prevState.barOfNE.mode = 2; // 0:empty 1:node 2:edge
-                                prevState.barOfNE.name = key;
-                                
-                                return prevState;
-                            });
-                        }
-                    }.bind(this) 
-                    :
-                    null}
-                >
-                    {key + '(' + this.props.data.count.edges[key] + ')'}
-                </Chip>);
-        }
         
         return (
             <div style={{display: 'flex', flexDirection: 'column', height: '100%', width:'100%'}} >
                 <EditorDialogsComponent />
                 <div id="displayContent" 
                     style={{backgroundColor: '#EEEEEE', width:'100%', flex:'1 1 auto'}} 
-                    onClick={() => {
-                        if (this.state.barOfNE.mode !=0){
-                            this.updateFlag = false;
-                            this.setState(function(prevState, props) {
-                                prevState.barOfNE.mode = 0;
-                                return prevState;
-                            });
-                        }
-                    }}
                     onContextMenu={this.handleClick}>
                     {/* {__menu} */}
                     <div id='menuInDisplayContent' 
@@ -329,35 +160,13 @@ export default class GraphForDataComponent extends React.Component {
                     </Popover>
                     {__cardElements}
                 </div>
-                <div style={{display: 'flex', justifyContent: 'space-between', flexDirection: 'row', flex:'0 0 auto'}} >
-                    {/* <FlatButton label={this.props.data.statement} labelPosition="before" containerElement="label" /> */}
-                    <FlatButton label='AA' labelPosition="before" containerElement="label" style={{alignSelf: 'flex-end'}} onClick={D3ForceSimulation.showOrHideImage} />
-                    <FlatButton label='BB' labelPosition="before" containerElement="label" style={{alignSelf: 'flex-end'}} onClick={D3ForceSimulation.showOrHideImage} />
-                </div>
-                <div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
-                    {__nodeChip}
-                </div>
-                <div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
-                    {__edgeChip}
-                </div>
-                {this.state.barOfNE.mode == 1 ? ///////////////////  editMode  /////////////////////////
-                    <EditNodeComponent 
-                        size={this.NEStyles.nodes[this.state.barOfNE.name].size}
-                        caption={this.NEStyles.nodes[this.state.barOfNE.name].caption}
-                        icon={this.NEStyles.nodes[this.state.barOfNE.name].icon}
-                        data={this.props.data.count.nodes} 
-                        chipName={this.state.barOfNE.name} 
-                        onIconChange={this.setIconInBar}
-                        onCaptionChange={this.setCaptionInBar}
-                        onSizeChange={this.setSizeInBar} />
-                : this.state.barOfNE.mode == 2 ?
-                    <EditEdgeComponent 
-                        color={this.NEStyles.edges[this.state.barOfNE.name].color}
-                        data={this.props.data.count.edges} 
-                        chipName={this.state.barOfNE.name} 
-                        onChange={this.setColorInBar} />
-                :
-                    <div></div>}
+                <EditStyleComponent 
+                    data={this.props.data.count}
+                    onIconChange={this.setIconInBar}
+                    onCaptionChange={this.setCaptionInBar}
+                    onSizeChange={this.setSizeInBar}
+                    onChange={this.setColorInBar}
+                />
             </div>
         )
     }

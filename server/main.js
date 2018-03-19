@@ -1,16 +1,20 @@
 import Neo4j from './DBDriver/Neo4j';
 import fs from 'fs';
+import muilter from'./Util/Multer';
+import path from'path';
 
 var templates = {};
 var styles = {};
+var icons = [];
 const templatePath = './server/Config/templates.json';
 const stylePath = './server/Config/styles.json';
+const iconPath = './public/icons';
 
-function ReadCongfigFile (path)
+function ReadCongfigFile (filename)
 {
-	if (fs.existsSync(path)){
+	if (fs.existsSync(filename)){
 		  try{
-			let __data = fs.readFileSync(path, 'utf8');
+			let __data = fs.readFileSync(filename, 'utf8');
 			return JSON.parse(__data);
 		}	
 		catch (err){
@@ -21,15 +25,41 @@ function ReadCongfigFile (path)
 	return {};
 }
 
+function GetIconList(dir)
+{
+	let __root = path.join(dir)  
+	let __pa = fs.readdirSync(__root);
+	let __result = [];
+
+	__pa.forEach(function(ele,index){  
+		let __info = fs.statSync(__root+"/"+ele)      
+		if(__info.isDirectory()){  
+			console.log("dir: "+ele)  
+		}else{
+			__result.push('icons/' + ele);
+			console.log("file: "+ele)  
+		}     
+	}) 
+
+	return __result;
+}
+
 templates = ReadCongfigFile(templatePath);
 styles = ReadCongfigFile(stylePath);
+icons = GetIconList(iconPath);
+
+console.log(icons);
 
 var express = require('express');
 var app = express();
+var upload=muilter.single('file');
 
 const DBDriver = new Neo4j('bolt://127.0.0.1', 'neo4j', 'neo.yuukosan.4j');
 
-app.use(express.static('public'));
+var staticDir = express.static('public', {lastModified: false, etag:false});
+app.use(staticDir);
+console.log(staticDir)
+
 app.get('/', function (req, res) {
 	console.log('11111');
 	res.sendfile("index.html");
@@ -73,6 +103,14 @@ app.get('/style', function (req, res) {
 	res.jsonp(__result);
 });
 
+app.get('/icon', function (req, res) {
+	let __result = {
+		icons: icons,
+	}
+	
+	res.jsonp(__result);
+});
+
 app.get('/template/save?:template', function (req, res) {
 	console.log(req.query.template);
 	
@@ -102,9 +140,30 @@ app.get('/template/save?:template', function (req, res) {
 	}
 });
 
-var server = app.listen(3000, function () {
-  var host = server.address().address;
-  var port = server.address().port;
+app.post('/upload_icon',  function (req, res) {
+	//console.log(req)
+	upload(req, res, function (err) {
+        //添加错误处理
+		if (err) {
+			res.send('err');
+			return  console.log(err);
+		} 
+        //文件信息在req.file或者req.files中显示。
+		res.send('文件上传成功');
+		
+		console.log('==============================================')
+		console.log(path.join('public', 'icon/'+req.file.filename))
+		// icons.push('icon/'+req.file.filename);
+		// app.use(express.static('public'));
+		
+		icons = GetIconList(iconPath);
+		console.log('==============================================')
+	})
+});
 
-  console.log('Example app listening at http://%s:%s', host, port);
+var server = app.listen(3000, function () {
+	var host = server.address().address;
+	var port = server.address().port;
+
+	console.log('Example app listening at http://%s:%s', host, port);
 });
