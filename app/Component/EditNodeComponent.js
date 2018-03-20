@@ -7,7 +7,6 @@ import IconSelectorComponent from './IconSelectorComponent';
 import Avatar from 'material-ui/Avatar';
 
 export default class EditEdgeComponent extends React.Component {
-    
     constructor(props) {
         super(props);
         this.state = {

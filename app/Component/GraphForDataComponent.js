@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import CardComponent from './CardComponent';
 import {D3ForceSimulation} from './D3ForceSimulation';
-import EditorDialogsComponent from './EditorDialogsComponent';
 import EditStyleComponent from './EditStyleComponent';
 
 import Menu from 'material-ui/Menu';
@@ -117,12 +116,11 @@ export default class GraphForDataComponent extends React.Component {
     render() {
         let __cardElements=[];
         for (let i = 0; i < this.state.cards.length; i++){
-            __cardElements.push(<CardComponent nodeData={this.state.cards[i]} closeCard={this.hideCard} />);
+            __cardElements.push(<CardComponent data={this.state.cards[i]} closeCard={this.hideCard} />);
         }
         
         return (
             <div style={{display: 'flex', flexDirection: 'column', height: '100%', width:'100%'}} >
-                <EditorDialogsComponent />
                 <div id="displayContent" 
                     style={{backgroundColor: '#EEEEEE', width:'100%', flex:'1 1 auto'}} 
                     onContextMenu={this.handleClick}>
