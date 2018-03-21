@@ -15,65 +15,146 @@ import Divider from 'material-ui/Divider';
 import AppBar from 'material-ui/AppBar';
 import IconButton from 'material-ui/IconButton';
 import NavigationClose from 'material-ui/svg-icons/navigation/close';
+import Paper from 'material-ui/Paper';
+import {D3ForceSimulation} from './D3ForceSimulation';
+import Avatar from 'material-ui/Avatar';
+import EditorDialogsComponent from './EditorDialogsComponent';
 
 export default class CardComponent extends React.Component {
     constructor(props) {
         super(props);
+		this.state = {
+			open: false
+		};
     }
 
     render() {
         let __cardTitle = [];
-        for (let key in this.props.nodeData.properties){
-            __cardTitle.push(<TextField disabled={true} floatingLabelText={key} defaultValue={this.props.nodeData.properties[key]} />);
+        for (let key in this.props.data.properties){
+            if (key != 'memo' && key != 'images'){
+                __cardTitle.push(
+                    <div style={{
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        width:'220px',
+                        borderBottom: '1px solid LightSlateGray',
+                        borderBottomStyle: 'dotted',
+                        margin: '6px 6px 6px 16px'
+                        }}>
+                        <span style={{fontSize: '14px', color:'LightSlateGray'}}>{key + ' :'}</span>
+                        <span style={{fontSize: '16px', color:'Black'}}>{this.props.data.properties[key]}</span>
+                    </div>
+                )
+            }
         }
 
         let __cardChip = [];
-        for (let i = 0; i <  this.props.nodeData.labels.length; i++){
-            __cardChip.push(<Chip className="NodeLabelChip" style={{margin: 4}} >{this.props.nodeData.labels[i]}</Chip>);
+        for (let i = 0; i <  this.props.data.labels.length; i++){
+            __cardChip.push(
+                <Chip 
+                    className="labelChip"
+                    labelStyle={{fontSize: '12px'}}
+                >
+                    <Avatar src={D3ForceSimulation.NEStyles.nodes[this.props.data.labels[i]].icon} 
+                        style={
+                            {
+                                width:'23px', 
+                                height:'23px', 
+                                marginLeft:'6px', 
+                                borderRadius:'0%', 
+                                backgroundColor:'#00000000'}} 
+                    />
+                    {this.props.data.labels[i]}
+                </Chip>);
         }
     
         return (
-            // <Draggable defaultPosition={{x: this.props.nodeData.x, y: this.props.nodeData.y}}>
-            <Draggable handle="strong" bounds="parent" defaultPosition={{x: this.props.nodeData.x, y: -this.props.nodeData.y}}>
-                <Card style={{
+            <Draggable handle="strong" bounds="parent" defaultPosition={{x: this.props.data.x, y: -this.props.data.y}}>
+                <Paper style={{
                     position:"absolute", 
-                    width:"30%"}}>
+                    width:"30%"}} 
+                    zDepth={1}
+                >
+                    <EditorDialogsComponent
+                        data={this.props.data}
+                        open={this.state.open}
+                        onRequestClose={()=> {this.setState(function(prevState, props) {
+                            prevState.open = false;
+                            return prevState;
+                        })}}
+                    />
                     <strong>
                         <AppBar 
-                            iconElementLeft={<IconButton><NavigationClose /></IconButton>}
-                            onLeftIconButtonClick={function(event){this.props.closeCard(this.props.nodeData.id)}.bind(this)}
+                            title={this.props.data.id != null ? 'Node: ID' + this.props.data.id : ''}
+                            titleStyle={{lineHeight:'24px', height:'26px'}}
+                            iconElementLeft={
+                                <IconButton 
+                                    style={{
+                                        padding:'0px',
+                                        height: '24px',
+                                        width: '24px',}}
+                                >
+                                    <NavigationClose style={{
+                                        height: '24px',
+                                        width: '24px',}}
+                                    />
+                                </IconButton>}
+                            onLeftIconButtonClick={function(event){this.props.closeCard(this.props.data.id)}.bind(this)}
+                            style={{height:'26px'}}
+                            iconStyleLeft={{
+                                marginTop: '0px',
+                                height: '24px',
+                                width: '24px',
+                            }}
                         />
                     </strong>
-                    <CardHeader
-                        title={this.props.nodeData.name}
-                        subtitle={this.props.nodeData.id != null ? 'ID: ' + this.props.nodeData.id : null}
-                        avatar={this.props.nodeData.avatar}
-                        actAsExpander={true}
-                    >               
-                        <div style={{display: 'flex', flexWrap: 'wrap'}}>        
-                            {__cardChip}
-                        </div>
-                    </CardHeader>
-                {/* <CardMedia
-                    overlay={<CardTitle title="Overlay title" subtitle="Overlay subtitle" />}
-                >
-                    <img src="images/nature-600-337.jpg" alt="" />
-                </CardMedia>  */}
-                    <CardTitle title="Card title">
-                        {__cardTitle}
-                    </CardTitle>
+                    <div style={{
+                        display: 'flex', 
+                        flexWrap: 'wrap',
+                        flexDirection: 'row'}}>        
+                        {__cardChip}
+                    </div>
+
                     <Divider />
-                    <CardText>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                        Donec mattis pretium massa. Aliquam erat volutpat. Nulla facilisi.
-                        Donec vulputate interdum sollicitudin. Nunc lacinia auctor quam sed pellentesque.
-                        Aliquam dui mauris, mattis quis lacus id, pellentesque lobortis odio.
-                    </CardText>
-                    <CardActions>
-                        <FlatButton label="Action1" />
-                        <FlatButton label="Action2" />
-                    </CardActions>
-                </Card>
+                    <div style={{
+                        display: 'flex', 
+                        //alignItems: 'flex-start',
+                        flexWrap: 'wrap',
+                        flexDirection: 'row'}}
+                    >  
+                        {__cardTitle}
+                    </div>
+                    {this.props.data.properties.hasOwnProperty('images') ?
+                        <div style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            justifyContent: 'space-around',
+                        }}>
+                            <GridList style={{
+                                display: 'flex',
+                                flexWrap: 'nowrap',
+                                overflowX: 'auto',}} 
+                                cols={2.2}
+                            >
+                                {this.props.data.properties['images'].forEach((value)=>(
+                                    <GridTile key={value}>
+                                        <img src={value} />
+                                    </GridTile>
+                                ))}
+                            </GridList>
+                        </div>
+                        :
+                        ''
+                     }
+                    <Divider />
+                        <RaisedButton
+                            onClick={()=> {this.setState(function(prevState, props) {
+                                prevState.open = true;
+                                return prevState;
+                            })}}
+                            label="Github Link"
+                        />
+                </Paper>
             </Draggable>
         )
     }
