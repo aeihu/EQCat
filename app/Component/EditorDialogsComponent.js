@@ -155,29 +155,54 @@ export default class EditorDialogsComponent extends React.Component {
 	}.bind(this)
 	
 	
-	// setTemplate = function() {
-    //     let xmlhttp = new XMLHttpRequest()
+	mergeNode = function() {
+        let xmlhttp = new XMLHttpRequest()
         
-    //     xmlhttp.onreadystatechange = function(){
-    //         if (xmlhttp.readyState==4 && xmlhttp.status==200){
-    //             console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-	// 			let __template = JSON.parse(xmlhttp.responseText);
-	// 			let __labelList = [];
-	// 			for (let key in __template){
-	// 				__labelList.push(key);
-	// 			}
+        xmlhttp.onreadystatechange = function(){
+            if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+				// let __template = JSON.parse(xmlhttp.responseText);
+				// let __labelList = [];
+				// for (let key in this.state.properties){
+				// 	__labelList.push(key);
+				// }
+                // this.setState(function(prevState, props) {
+				// 	prevState.template = __template;
+				// 	prevState.labelList = __labelList;
+                //     return prevState;
+				// });
+            }
+		}.bind(this)
+		
+		let __node = {
+			id: this.props.data.id,
+			merge:{},
+			remove:[],
+		};
 
-    //             this.setState(function(prevState, props) {
-	// 				prevState.template = __template;
-	// 				prevState.labelList = __labelList;
-    //                 return prevState;
-	// 			});
-    //         }
-    //     }.bind(this)
+		let __prevData = this.props.data.properties;
+		for (let i=0; i<this.state.properties.length; i++){
+			let __key = this.state.properties[i].key;
+			let __val = this.state.properties[i].value;
 
-    //     xmlhttp.open("GET", "/template", true);
-    //     xmlhttp.send();
-	// }.bind(this)
+			if (__prevData.hasOwnProperty(__key)){
+				if (__prevData[__key] != __val){
+					__node.merge[__key] = __val;
+				}
+				
+				delete __prevData[__key];
+			}else{
+				__node.merge[__key] = __val;
+			}
+		}
+
+		for (let key in __prevData){
+			node.remove.push(key);
+		}
+
+        xmlhttp.open("GET", "/mergeNode?node=" + JSON.stringify(__node), true);
+        xmlhttp.send();
+	}.bind(this)
 
 	addProperty = function (){
         this.setState(function(prevState, props) {
@@ -225,7 +250,7 @@ export default class EditorDialogsComponent extends React.Component {
 				label="Submit"
 				primary={true}
 				keyboardFocused={true}
-				onClick={this.handleClose}
+				onClick={this.mergeNode}
 			/>,
 		];
 
@@ -284,9 +309,14 @@ export default class EditorDialogsComponent extends React.Component {
                     {this.state.properties[i].type == 'boolean' ?
 						<Toggle
 							labelPosition="right"
-							label="Boolean"
-							onToggle={this.handleToggle}
-							defaultToggled={true}
+							label=""
+							onToggle={function(event, isInputChecked){
+								this.setState(function(prevState, props) {
+									this.state.properties[i].value = isInputChecked;
+									return prevState;
+								})
+							}.bind(this)}
+							toggled={this.state.properties[i].value}
 							style={{width:'256px', }}
 						/> :
 						this.state.properties[i].type == 'listString' || 
@@ -323,8 +353,13 @@ export default class EditorDialogsComponent extends React.Component {
 											<Toggle
 												labelPosition="right"
 												label=""
-												onToggle={this.handleToggle}
-												defaultToggled={true}
+												onToggle={function(event, isInputChecked){
+													this.setState(function(prevState, props) {
+														this.state.properties[i].value[index] = isInputChecked;
+														return prevState;
+													})
+												}.bind(this)}
+												toggled={this.state.properties[i].value[index]}
 												style={{width:'45px', }}
 											/>
 											:
@@ -332,8 +367,8 @@ export default class EditorDialogsComponent extends React.Component {
 												id={this.state.properties[i].key + index}
 												underlineStyle={{borderColor:'Gainsboro'}}
 												inputStyle={{fontSize: '12px'}}
-												hintStyle={{fontSize: '12px'}}
-												// hintText={'Value[' + this.state.properties[i].type + ']'} 
+												hintStyle={{fontSize: '12px', lineHeight: '10px'}}
+												hintText={this.state.properties[i].type == 'listString' ? 'String' : 'Number'} 
 												floatingLabelStyle={{fontSize: '12px'}}
 												floatingLabelShrinkStyle={{fontSize: '12px'}}
 												floatingLabelFocusStyle={{fontSize: '12px'}}
@@ -382,7 +417,9 @@ export default class EditorDialogsComponent extends React.Component {
 									}}
 									onClick={function(event) {
 										this.setState(function(prevState, props) {
-											prevState.properties[i].value.push('');
+											prevState.properties[i].value.push(
+												prevState.properties[i].type == 'listBoolean' ? 
+												true : '');
 											return prevState;
 										});
 										console.log(this.state.properties[i].value)
