@@ -259,31 +259,19 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     let __link = __updataForLink
         .enter()
         .append("g")
-        .attr("class", "links")
-        .attr('id', function(d){ return 'link_id_' + d.id})     
-        .style('stroke', setEdgeColor)
-        .on("mouseover", function(d){
-            D3ForceSimulation.svg.select('#link_id_' + d.id)
-                .attr('shadowed', true);
-        })
-        .on("mouseout", function(d){
-            D3ForceSimulation.svg.select('#link_id_' + d.id)
-                .attr('shadowed', false);
-        });
+        .attr("class", "links");
     
-    let __defsInLink = __link.append("defs")
+    __link.append("defs")
         .append("path")
-        .attr('id', (d) => {return 'defs_path_id_'+ d.id});
+        .attr("class", 'defs_path');
 
-    let __pathInLink = __link.append("path")
-        .attr('id', (d)=> {return 'link_path_id_'+ d.id})
+    __link.append("path")
+        .attr("class", 'link_path')
         .style('marker-end', 'url(#marker_arrow)'); 
     
-    let __textpathInLink = __link.append("text")
+    __link.append("text")
         .style('font-size', '14px')
-        .append('textPath')
-        .attr('xlink:href', (d) => {return '#defs_path_id_'+ d.id})
-        .text((d) => {return d.type;});
+        .append('textPath');
 
     __updataForLink.exit().remove();
 
@@ -294,6 +282,23 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     let __node = __updataForNode
         .enter()
         .append("g")
+        .attr("class", 'nodes');
+        
+    __updataForNode.exit().remove();
+ 
+    __node.append("image")
+        .attr("class", 'node_icon')
+        .attr("enabled", true);
+            
+    __node.append("text")
+        .attr("text-anchor", "middle");
+
+////////////////////// setStyle //////////////////////////////////
+
+    __node = __node.merge(__updataForNode);   
+    __link = __link.merge(__updataForLink); 
+
+    __node
         .on("click", function(d){
             state.showCard(d);
         })
@@ -321,29 +326,43 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                     .attr('shadowed', false);
             }
         })
-        .attr("class", 'nodes')
         .attr("id", function(d){return 'node_id_' + d.id})
         .call(d3.drag()
                 .on("start", this.dragstarted)
                 .on("drag", this.dragged)
                 .on("end", this.dragended));
-        
-    __updataForNode.exit().remove();
- 
-    __node.append("image")
+
+    let __imageInNode = __node.select(".node_icon")
         .attr("id", function(d){return 'node_image_id_' + d.id})
-        .attr("class", 'node_icon')
-        .attr("enabled", true)
         .attr("xlink:href", setIcon)
         .each(setNodeSize);
-            
-    __node.append("text")
+
+    let __textInNode = __node.select("text")
         .attr("dy", setNodeTextOffset)
-        .attr("text-anchor", "middle")
         .text(setNodeText);
 
-    __node = __node.merge(__updataForNode);   
-    __link = __link.merge(__updataForLink); 
+    __link
+        .style('stroke', setEdgeColor)
+        .attr('id', function(d){ return 'link_id_' + d.id})
+        .on("mouseover", function(d){
+            D3ForceSimulation.svg.select('#link_id_' + d.id)
+                .attr('shadowed', true);
+        })
+        .on("mouseout", function(d){
+            D3ForceSimulation.svg.select('#link_id_' + d.id)
+                .attr('shadowed', false);
+        });
+
+
+    let __defsInLink = __link.select('.defs_path')
+        .attr('id', (d) => {return 'defs_path_id_'+ d.id});
+
+    let __pathInLink = __link.select('.link_path')
+        .attr('id', (d)=> {return 'link_path_id_'+ d.id});
+    
+    let __textpathInLink = __link.select('textPath')
+        .attr('xlink:href', (d) => {return '#defs_path_id_'+ d.id})
+        .text((d) => {return d.type;});
     
     function ticked() {
         __node
