@@ -59,12 +59,11 @@ export default class EditStyleComponent extends React.Component {
         let __nodeChip = [];
         for (let key in this.props.data.nodes){
             if (!D3ForceSimulation.NEStyles.nodes.hasOwnProperty(key) && key!='*'){
+                let __keys = Object.keys(this.props.data.nodes[key].propertiesList);
                 D3ForceSimulation.NEStyles.nodes[key] = {
                     icon: defaultIcon,
                     size: 50,
-                    caption: this.props.data.nodes[key].propertiesList.length > 1 ? 
-                        this.props.data.nodes[key].propertiesList[1] :
-                        this.props.data.nodes[key].propertiesList[0]
+                    caption: __keys.length > 1 ? __keys[1] : __keys[0]
                 };
             }
 
