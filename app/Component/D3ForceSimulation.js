@@ -344,6 +344,9 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     __link
         .style('stroke', setEdgeColor)
         .attr('id', function(d){ return 'link_id_' + d.id})
+        .on("click", function(d){
+            state.showCard(d);
+        })
         .on("mouseover", function(d){
             D3ForceSimulation.svg.select('#link_id_' + d.id)
                 .attr('shadowed', true);
