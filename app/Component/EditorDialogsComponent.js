@@ -19,13 +19,26 @@ import {D3ForceSimulation} from './D3ForceSimulation';
 import Avatar from 'material-ui/Avatar';
 import AddBox from 'material-ui/svg-icons/content/add-box';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
+import {GridList, GridTile} from 'material-ui/GridList';
+import StarBorder from 'material-ui/svg-icons/toggle/star-border';
+import Checkbox from 'material-ui/Checkbox';
+import Upload from 'rc-upload';
+import CircularProgress from 'material-ui/CircularProgress';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import GlobalConstant from '../Common/GlobalConstant';
+import GlobalFunction from '../Common/GlobalFunction';
 
 export default class EditorDialogsComponent extends React.Component {
     constructor(props) {
         super(props);
 		this.state = {
+			progress: false,
 			templates: {},
 			labelAutoComplete: '',
+
+			memo: {},
+			images: [],
 			labels: [],
 			properties:[
                 //{key:1,type:'String',value:'1'}
@@ -37,6 +50,7 @@ export default class EditorDialogsComponent extends React.Component {
 
 		this.getTemplate();
 	}
+
 	
 	updateInputForLabel = (searchText) => {
 		this.setState(function(prevState, props) {
@@ -156,52 +170,115 @@ export default class EditorDialogsComponent extends React.Component {
 	
 	
 	mergeNode = function() {
-        let xmlhttp = new XMLHttpRequest()
-        
-        xmlhttp.onreadystatechange = function(){
-            if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-				// let __template = JSON.parse(xmlhttp.responseText);
-				// let __labelList = [];
-				// for (let key in this.state.properties){
-				// 	__labelList.push(key);
-				// }
-                // this.setState(function(prevState, props) {
-				// 	prevState.template = __template;
-				// 	prevState.labelList = __labelList;
-                //     return prevState;
-				// });
-            }
-		}.bind(this)
-		
 		let __node = {
 			id: this.props.data.id,
-			merge:{},
-			remove:[],
+			labels:{
+				merge: [...this.state.labels],
+				remove:[],
+			},
+			properties:{
+				merge:{},
+				remove:[],
+			}
 		};
 
-		let __prevData = this.props.data.properties;
+		let __prevData = {...this.props.data.properties};
+		console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq')
+		console.log(this.props.data.properties)
+		console.log('rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr')
+		console.log(__prevData)
+		
+		/////////////////////////////////////////////
+		//			merge properties
+		/////////////////////////////////////////////
+
 		for (let i=0; i<this.state.properties.length; i++){
 			let __key = this.state.properties[i].key;
 			let __val = this.state.properties[i].value;
 
+			switch (this.state.properties[i].type){
+				case 'number':
+					__val = Number(__val);
+					break;
+				case 'listNumber':{
+					let __listNumber = [];
+					for (let i=0; i<__val.length; i++){
+						__listNumber.push(Number(__val[i]));
+					}
+					__val = __listNumber;
+					break;
+				}
+			}
+
 			if (__prevData.hasOwnProperty(__key)){
-				if (__prevData[__key] != __val){
-					__node.merge[__key] = __val;
+				switch (this.state.properties[i].type){
+					case 'listString':
+					case 'listNumber':
+					case 'listBoolean':
+						if(!GlobalFunction.ArrayEquals(__val, __prevData[__key])){
+							__node.properties.merge[__key] = __val;
+						}
+						break;
+					default:
+						if (__prevData[__key] != __val){
+							__node.properties.merge[__key] = __val;
+						}
+						break;
 				}
 				
 				delete __prevData[__key];
 			}else{
-				__node.merge[__key] = __val;
+				__node.properties.merge[__key] = __val;
 			}
 		}
 
 		for (let key in __prevData){
-			node.remove.push(key);
+			__node.properties.remove.push(key);
 		}
 
-        xmlhttp.open("GET", "/mergeNode?node=" + JSON.stringify(__node), true);
-        xmlhttp.send();
+		/////////////////////////////////////////////
+		//			merge labels
+		/////////////////////////////////////////////
+
+		__prevData = [...this.props.data.labels];
+		let __isRemove = true;
+		for (let i=0; i<__prevData.length; i++){
+			__isRemove = true;
+			for (let j=0; j<__node.labels.merge.length; j++){
+				if (__node.labels.merge[j] == __prevData[i]){
+					__node.labels.merge.splice(j, 1);
+					__isRemove = false;
+					break;
+				}
+			}
+
+			if (__isRemove){
+				__node.labels.remove.push(__prevData[i]);
+			}
+		}
+		console.log(__node.labels.merge)
+		console.log(__node.labels.remove)
+
+		if (__node.labels.merge.length > 0 ||
+			__node.labels.remove.length > 0 ||
+			Object.keys(__node.properties.merge).length > 0 ||
+			__node.properties.remove.length > 0)
+		{
+			let xmlhttp = new XMLHttpRequest()
+			
+			xmlhttp.onreadystatechange = function(){
+				if (xmlhttp.readyState==4 && xmlhttp.status==200){
+					console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+					let __node = JSON.parse(xmlhttp.responseText);
+					console.log('ssssssssssssssssssssssssssssssssssssssss')
+					console.log(__node)
+					this.props.onMergeNode(__node);
+				}
+			}.bind(this)
+
+			xmlhttp.open("GET", "/mergeNode?node=" + JSON.stringify(__node), true);
+			xmlhttp.send();
+		}
 	}.bind(this)
 
 	addProperty = function (){
@@ -222,17 +299,64 @@ export default class EditorDialogsComponent extends React.Component {
     {
 		if (newProps.data != null){
 			this.setState(function(prevState, props) {
-				prevState.labels = newProps.data.labels;
+				prevState.labels = [...newProps.data.labels];
 				
 				//{key:1,type:'String',value:'1'}
 				prevState.properties=[];
+				prevState.images = [];
+				prevState.memo = {
+					key: GlobalConstant.memoOfProperty,
+					value: '',
+					type: 'string'
+				};
+
 				for (let key in newProps.data.properties){
-					prevState.properties.push({
-						key: key,
-						value: newProps.data.properties[key],
-						type: typeof newProps.data.properties[key]
-					});
+					switch (key){
+						case GlobalConstant.imagesOfProperty:
+							prevState.images = [...newProps.data.properties[key]];
+							break;
+						case GlobalConstant.memoOfProperty:
+							prevState.memo.value = newProps.data.properties[key];
+							console.log('prevState.memo.value');
+							console.log(newProps.data.properties[key]);
+							break;
+						default:{
+							let __type = typeof newProps.data.properties[key];
+							if (__type == 'object'){
+								__type = "listString";
+								if (newProps.data.properties[key].length > 0){
+									switch (typeof newProps.data.properties[key][0]){
+										case 'string':
+											__type = "listString";
+											break;
+										case 'number':
+											__type = "listNumber";
+											break;
+										case 'boolean':
+											__type = "listBoolean";
+											break;
+									}
+								}
+							}
+
+							prevState.properties.push({
+								key: key,
+								value: typeof newProps.data.properties[key] == 'object' ? 
+									[...newProps.data.properties[key]]
+									:
+									newProps.data.properties[key],
+								type: __type
+							});
+						}
+					}
 				}
+
+				prevState.properties.push(prevState.memo);
+				prevState.properties.push({
+					key: GlobalConstant.imagesOfProperty,
+					value: prevState.images,
+					type: 'listString'
+				});
 				
 				return prevState;
 			});
@@ -286,7 +410,10 @@ export default class EditorDialogsComponent extends React.Component {
 		
 		let __propertiesElement = [];
         for (let i = 0; i < this.state.properties.length; i++){
-            console.log(i);
+			if (this.state.properties[i].key == GlobalConstant.imagesOfProperty || 
+				this.state.properties[i].key == GlobalConstant.memoOfProperty)
+				continue;
+
             __propertiesElement.push(
 				<div style={{
 					display: 'flex', 
@@ -307,18 +434,18 @@ export default class EditorDialogsComponent extends React.Component {
 						<strong style={{margin: '4px'}} >{':'}</strong>
 					</div>
                     {this.state.properties[i].type == 'boolean' ?
-						<Toggle
-							labelPosition="right"
+						<Checkbox
 							label=""
-							onToggle={function(event, isInputChecked){
+							style={{width:'256px', }}
+							  checked={this.state.properties[i].value}
+							  onCheck={function(event, isInputChecked){
 								this.setState(function(prevState, props) {
 									this.state.properties[i].value = isInputChecked;
 									return prevState;
 								})
 							}.bind(this)}
-							toggled={this.state.properties[i].value}
-							style={{width:'256px', }}
-						/> :
+						/>
+						:
 						this.state.properties[i].type == 'listString' || 
 						this.state.properties[i].type == 'listNumber' || 
 						this.state.properties[i].type == 'listBoolean' ?
@@ -350,17 +477,16 @@ export default class EditorDialogsComponent extends React.Component {
 											{index}
 										</Avatar>
 										{this.state.properties[i].type == 'listBoolean' ?
-											<Toggle
-												labelPosition="right"
+											<Checkbox
 												label=""
-												onToggle={function(event, isInputChecked){
+												style={{width:'40px', }}
+          										checked={this.state.properties[i].value[index]}
+          										onCheck={function(event, isInputChecked){
 													this.setState(function(prevState, props) {
 														this.state.properties[i].value[index] = isInputChecked;
 														return prevState;
 													})
 												}.bind(this)}
-												toggled={this.state.properties[i].value[index]}
-												style={{width:'45px', }}
 											/>
 											:
 											<TextField 
@@ -535,17 +661,18 @@ export default class EditorDialogsComponent extends React.Component {
 					<IconButton onClick={() => this.delProperty(i)}><Clear /></IconButton>
                 </div>
             );
-        }
-
+		}
+		
 		return (
 			<Dialog
-				title="Scrollable Dialog"
+				title="Edit Node"
 				actions={__actions}
 				modal={false}
 				open={this.props.open}
 				onRequestClose={this.props.onRequestClose}
 				autoScrollBodyContent={true}
 			>
+				<h2>Labels</h2>
 				<div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto'}} >
 					{__labelChip}
 				</div>
@@ -568,16 +695,116 @@ export default class EditorDialogsComponent extends React.Component {
 					/>
 				</div>
 				<div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
-					<h3>Properties</h3>
+					<h2>Images</h2>
+					<GridList 
+						style={{
+							display: 'flex',
+							flexWrap: 'nowrap',
+							overflowX: 'auto',
+							marginBottom: 12
+						}}
+						cols={2.2}
+					>
+						{this.state.images.map((tile, index) => (
+							<GridTile
+								key={tile}
+								title={(index + 1) + ' / ' + this.state.images.length}
+								style={{width: '280px'}}
+								actionIcon={
+									<IconButton 
+										onClick={function(event) {
+											this.setState(function(prevState, props) {
+												prevState.images.splice(index, 1);
+												return prevState;
+											});
+										}.bind(this)}
+									>
+										<Clear color="rgb(0, 188, 212)" />
+									</IconButton>}
+								titleStyle={{color: 'rgb(0, 188, 212)',}}
+								titleBackground="linear-gradient(to top, rgba(0,0,0,0.7) 0%,rgba(0,0,0,0.3) 70%,rgba(0,0,0,0) 100%)"
+							>
+								<img src={tile} />
+							</GridTile>
+						))}
+						<GridTile
+							key='tile'
+							title='tile.title'
+							actionIcon={<IconButton><Clear color="rgb(0, 188, 212)"/></IconButton>}
+							titleStyle={{color: 'rgb(0, 188, 212)',}}
+							titleBackground="linear-gradient(to top, rgba(0,0,0,0.7) 0%,rgba(0,0,0,0.3) 70%,rgba(0,0,0,0) 100%)"
+						>
+							<Upload
+								action='/upload_image'
+								accept="image/*"
+								beforeUpload={(file) => {
+									console.log('beforeUpload', file.name);
+									this.setState(function(prevState, props) {
+										prevState.progress = true;
+										return prevState;
+									})
+								}}
+								onStart={(file) => {
+								console.log('onStart', file.name);
+								// this.refs.inner.abort(file);
+								}}
+								onSuccess={(file) => {
+									console.log('onSuccess', file);
+									this.setState(function(prevState, props) {
+										prevState.images.push('/images/'+file);
+									    prevState.progress = false;
+     									return prevState;
+									})
+								}}
+								onProgress={(step, file) => {
+									console.log('onProgress', Math.round(step.percent), file.name);
+								}}
+								onError={(err) => {
+									console.log('onError', err);
+									this.setState(function(prevState, props) {
+										prevState.progress = false;
+										return prevState;
+									})
+								}}
+							>
+								{this.state.progress ? 
+									<CircularProgress/>
+									:
+									<IconButton
+										onClick={()=>{console.log('upload')}}
+										//tooltip="Add Icon"
+									>
+										<AddBox/>
+									</IconButton>
+								}
+							</Upload>
+						</GridTile>
+					</GridList>
+				</div>
+				<div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
+					<h2>Properties</h2>
 					{__propertiesElement}
 					<div>
 						<RaisedButton
 							onClick={this.addProperty}
 							label="Add Property"
-							//style={{margin: 12}}
+							style={{margin: 12}}
 							primary={true}
 						/>
 					</div>
+				</div>
+				<div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
+					<h2>Memo</h2>
+					<ReactQuill 
+						style={{marginBottom: 12}}
+						value={this.state.memo.value}
+                  		onChange={(value)=>{
+							this.setState(function(prevState, props) {
+								prevState.memo.value = value;
+								return prevState;
+							})
+						  }}
+					/>
 				</div>
 			</Dialog>
 		);

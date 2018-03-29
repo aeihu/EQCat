@@ -47,24 +47,25 @@ export default class EditEdgeComponent extends React.Component {
 
         let __captionChip = [];
         if (this.props.data.hasOwnProperty(__name)){
-            for (let i = 0; i < this.props.data[__name].propertiesList.length; i++){
-                let __propertyName = this.props.data[__name].propertiesList[i];
+            for (let key in this.props.data[__name].propertiesList){
+            //for (let i = 0; i < this.props.data[__name].propertiesList.length; i++){
+                //let __propertyName = this.props.data[__name].propertiesList[i];
 
                 __captionChip.push(<Chip 
                     className="edgeChip" 
                     style={{border:'1px solid #a1a1a1'}}
-                    backgroundColor={this.caption == __propertyName ? 
+                    backgroundColor={this.caption == key ? 
                             '#a1a1a1' 
                             : 
                             '#a1a1a100'}
                     labelStyle={{fontSize: '12px'}}
-                    onClick={this.caption == __propertyName ?
+                    onClick={this.caption == key ?
                             null
                             :
                             () => {
-                                this.caption = __propertyName;
+                                this.caption = key;
                                 typeof this.props.onCaptionChange === 'function' ?
-                                    this.props.onCaptionChange(__propertyName)
+                                    this.props.onCaptionChange(key)
                                     :
                                     {}
 
@@ -74,7 +75,7 @@ export default class EditEdgeComponent extends React.Component {
                             }
                         }
                     >
-                        {this.props.data[__name].propertiesList[i]}
+                        {key}
                     </Chip>
                 );
             }

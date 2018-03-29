@@ -9,6 +9,7 @@ var icons = [];
 const templatePath = './server/Config/templates.json';
 const stylePath = './server/Config/styles.json';
 const iconPath = './public/icons';
+const imagePath = './public/images';
 
 function ReadCongfigFile (filename)
 {
@@ -52,7 +53,8 @@ console.log(icons);
 
 var express = require('express');
 var app = express();
-var upload=muilter.single('file');
+var uploadIcon = muilter(iconPath).single('file');
+var uploadImage = muilter(imagePath).single('file');
 
 const DBDriver = new Neo4j('bolt://127.0.0.1', 'neo4j', 'neo.yuukosan.4j');
 
@@ -83,7 +85,7 @@ app.get('/example/c', [cb0, cb1, cb2]);
 
 app.get('/example?:cypher', function (req, res) {
   console.log(req.query.cypher);
-  DBDriver.runStatement(req.query.cypher, res);
+  DBDriver.runStatement(req.query.cypher, {}, res);
 });
 
 app.get('/template', function (req, res) {
@@ -112,27 +114,15 @@ app.get('/icon', function (req, res) {
 });
 
 app.get('/template/save?:template', function (req, res) {
-	console.log(req.query.template);
+
+});
+
+app.get('/mergeNode?:node', function (req, res) {
+	console.log(req.query.node);
 	
 	try{
-		let __json = JSON.parse(req.query.template);
-
-		for (let key in __json){
-			templates[key] = __json[key]; 
-		}
-
-		let __data = fs.writeFile(templatePath, 'utf8');
-		
-		fs.writeFile(templatePath, 'Hello Node.js', (err) => {
-			if (err) {
-				console.log(err);
-				res.send('error');
-			}
-			else{
-				res.send('OK');
-				console.log('The file has been saved!');
-			}
-		  });
+		let __json = JSON.parse(req.query.node);
+		DBDriver.mergeSingleNode(__json, res);
 	}	
 	catch (err){
 		console.log(err);
@@ -142,7 +132,7 @@ app.get('/template/save?:template', function (req, res) {
 
 app.post('/upload_icon',  function (req, res) {
 	//console.log(req)
-	upload(req, res, function (err) {
+	uploadIcon(req, res, function (err) {
         //添加错误处理
 		if (err) {
 			res.send('err');
@@ -158,6 +148,19 @@ app.post('/upload_icon',  function (req, res) {
 		
 		icons = GetIconList(iconPath);
 		console.log('==============================================')
+	})
+});
+
+app.post('/upload_image',  function (req, res) {
+	//console.log(req)
+	uploadImage(req, res, function (err) {
+        //添加错误处理
+		if (err) {
+			res.send('err');
+			return  console.log(err);
+		} 
+        //文件信息在req.file或者req.files中显示。
+		res.send(req.file.filename);
 	})
 });
 

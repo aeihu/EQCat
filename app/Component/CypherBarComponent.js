@@ -18,7 +18,6 @@ export default class CypherBarComponent extends React.Component {
             text: '',
             height: 57
         }
-        //width:"98%", 
     }
 
     render() {

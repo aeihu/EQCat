@@ -14,7 +14,9 @@
     "react-codemirror2": "^3.0.7",
     "react-color": "^2.13.8",
     "react-dom": "^16.2.0",
-    "react-draggable": "^3.0.5"
+    "react-draggable": "^3.0.5",
+    "react-quill": "^1.2.6",
+    "react-responsive-carousel": "^3.1.33"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",

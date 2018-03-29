@@ -27,7 +27,10 @@ export default class VisualizationComponent extends React.Component {
                     buttonStyle={{height: '100%'}}
                     label="Graph"
                 >
-                    <GraphForDataComponent data={this.props.data.graph} />
+                    <GraphForDataComponent 
+                        data={this.props.data.graph} 
+                        onMergeNode={this.props.onMergeNode}
+                    />
                 </Tab>
                 <Tab
                     // icon={<FontIcon className="material-icons">favorite</FontIcon>}

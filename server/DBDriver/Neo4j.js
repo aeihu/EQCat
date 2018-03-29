@@ -120,7 +120,46 @@ export default class Neo4j
         }
     }
 
-    runStatement(statement, res)
+    mergeSingleNode(node, res)
+    {
+        //MATCH (n)  WHERE id(n) = 1 set n.bor=1986  return n
+        let __statement = 'Match (n) where id(n)=' + node.id;
+        let __index = 0;
+        for (let key in node.properties.merge){
+            __statement += __index == 0 ? ' set ' : ', ';
+            __statement += 'n.' + key + '={' + key + '}';
+            __index++;
+        }
+
+        for (let i=0; i<node.labels.merge.length; i++){
+            if (i == 0){
+                __statement += __index == 0 ? ' set n' : ', n';
+            }
+            __statement += ':' + node.labels.merge[i];
+            __index++;
+        }
+
+        __index = 0;
+        for (let i=0; i<node.properties.remove.length; i++){
+            __statement += __index == 0 ? ' remove ' : ', '
+            __statement += 'n.' + node.properties.remove[i];
+            __index++;
+        }
+
+        for (let i=0; i<node.labels.remove.length; i++){
+            if (i == 0){
+                __statement += __index == 0 ? ' remove n' : ', n';
+            }
+            __statement += ':' + node.labels.remove[i];
+            __index++;
+        }
+
+        __statement += ' return n';
+        console.log(__statement);
+        this.runStatement(__statement, node.properties.merge, res)
+    }
+
+    runStatement(statement, param, res)
     {
         if (this._driver == null){
             res.send('error');
@@ -129,7 +168,7 @@ export default class Neo4j
             let __session = this._driver.session();
 
             __session
-                .run(statement)
+                .run(statement, param)
                 .then(function (result) {
                     let __result = [];
                     result.records.forEach(function (value, key, record) {
@@ -157,6 +196,10 @@ export default class Neo4j
                                         if (value.get(value.keys[i]).length > 0){
                                             if (neo4j.isInt(value.get(value.keys[i])[0])){
                                                 // /__record[value.keys[i]] = this.arrayToJson(value.get(value.keys[i]));
+                                                ////////
+
+
+                                                
                                                 continue;
                                             }
                                         }

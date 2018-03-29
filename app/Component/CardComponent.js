@@ -19,6 +19,9 @@ import Paper from 'material-ui/Paper';
 import {D3ForceSimulation} from './D3ForceSimulation';
 import Avatar from 'material-ui/Avatar';
 import EditorDialogsComponent from './EditorDialogsComponent';
+import { Carousel } from 'react-responsive-carousel';
+import styles from 'react-responsive-carousel/lib/styles/carousel.min.css';
+import GlobalConstant from '../Common/GlobalConstant';
 
 export default class CardComponent extends React.Component {
     constructor(props) {
@@ -29,20 +32,63 @@ export default class CardComponent extends React.Component {
     }
 
     render() {
-        let __cardTitle = [];
+        let __properties = [];
         for (let key in this.props.data.properties){
-            if (key != 'memo' && key != 'images'){
-                __cardTitle.push(
+            if (key != GlobalConstant.memoOfProperty && key != GlobalConstant.imagesOfProperty){
+                __properties.push(
                     <div style={{
+                        float: 'inline-start',
                         display: 'flex', 
                         flexDirection: 'column', 
-                        width:'220px',
+                        width:'242px',
                         borderBottom: '1px solid LightSlateGray',
                         borderBottomStyle: 'dotted',
                         margin: '6px 6px 6px 16px'
                         }}>
                         <span style={{fontSize: '14px', color:'LightSlateGray'}}>{key + ' :'}</span>
-                        <span style={{fontSize: '16px', color:'Black'}}>{this.props.data.properties[key]}</span>
+                        {typeof this.props.data.properties[key] == 'object' ?
+                            <div style={{
+                                width:'242px',
+                                display: 'flex', 
+                                flexWrap: 'wrap',
+                                flexDirection: 'row', 
+                                alignItems: 'center'}}
+                            >
+                                {this.props.data.properties[key].map((value, index) => (
+                                    <div
+                                        style={{
+                                            fontSize: '12px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            paddingRight: '8px',
+                                            borderRadius: '10px',
+                                            backgroundColor: 'Gainsboro',
+                                            margin: '3px 3px 1px 3px',
+                                            height: '16px'
+                                    }}>
+                                        <Avatar
+                                            backgroundColor='Tomato'
+                                            size={16}
+                                            style={{marginRight:'2px'}}
+                                        >
+                                            {index}
+                                        </Avatar>
+                                        {typeof this.props.data.properties[key][index] == 'boolean' ? 
+                                            this.props.data.properties[key][index] ? '√' : '×'
+                                            :
+                                            this.props.data.properties[key][index]}
+                                    </div>
+                                ))}
+                            </div>
+                            :
+                            <span style={{fontSize: '16px', color:'Black'}}>
+                                {typeof this.props.data.properties[key] == 'boolean' ? 
+                                    this.props.data.properties[key] ? '√' : '×'
+                                    :
+                                    this.props.data.properties[key]
+                                }
+                            </span>
+                        }
                     </div>
                 )
             }
@@ -69,15 +115,16 @@ export default class CardComponent extends React.Component {
         }
     
         return (
-            <Draggable handle="strong" bounds="parent" defaultPosition={{x: this.props.data.x, y: -this.props.data.y}}>
+            <Draggable handle="strong" bounds="parent">
                 <Paper style={{
                     position:"absolute", 
-                    width:"30%"}} 
+                    width:"543px"}} 
                     zDepth={1}
                 >
                     <EditorDialogsComponent
                         data={this.props.data}
                         open={this.state.open}
+                        onMergeNode={this.props.onMergeNode}
                         onRequestClose={()=> {this.setState(function(prevState, props) {
                             prevState.open = false;
                             return prevState;
@@ -108,52 +155,79 @@ export default class CardComponent extends React.Component {
                             }}
                         />
                     </strong>
+                    
                     <div style={{
                         display: 'flex', 
-                        flexWrap: 'wrap',
-                        flexDirection: 'row'}}>        
-                        {__cardChip}
-                    </div>
-
-                    <Divider />
-                    <div style={{
-                        display: 'flex', 
-                        //alignItems: 'flex-start',
-                        flexWrap: 'wrap',
-                        flexDirection: 'row'}}
+                        //flexWrap: 'wrap',
+                        flexDirection: 'column'}}
                     >  
-                        {__cardTitle}
-                    </div>
-                    {this.props.data.properties.hasOwnProperty('images') ?
                         <div style={{
-                            display: 'flex',
+                            display: 'flex', 
                             flexWrap: 'wrap',
-                            justifyContent: 'space-around',
-                        }}>
-                            <GridList style={{
-                                display: 'flex',
-                                flexWrap: 'nowrap',
-                                overflowX: 'auto',}} 
-                                cols={2.2}
-                            >
-                                {this.props.data.properties['images'].forEach((value)=>(
-                                    <GridTile key={value}>
-                                        <img src={value} />
-                                    </GridTile>
-                                ))}
-                            </GridList>
+                            flexDirection: 'row'}}>   
+                            {__cardChip}
                         </div>
-                        :
-                        ''
-                     }
-                    <Divider />
-                        <RaisedButton
-                            onClick={()=> {this.setState(function(prevState, props) {
-                                prevState.open = true;
-                                return prevState;
-                            })}}
-                            label="Github Link"
-                        />
+
+                        <Divider />
+                        <div>  
+                            {this.props.data.properties.hasOwnProperty(GlobalConstant.imagesOfProperty) ?
+                                <div 
+                                    style={{
+                                        width:'230px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '4px',
+                                        padding: '5px',
+                                        margin: '6px 6px 6px 16px',
+                                        float: 'inline-start'
+                                    }}
+                                >
+                                    <Carousel 
+                                        showThumbs={false}
+                                        //centerMode={true}
+                                    >
+                                        {this.props.data.properties[GlobalConstant.imagesOfProperty].map((img, index)=>(
+                                            <div>
+                                            <img src={img}  />
+                                            </div>
+                                        ))}
+                                    </Carousel>
+                                </div>
+                                :
+                                ''
+                            }     
+                            {__properties}
+                        </div>
+                        
+                        {this.props.data.properties.hasOwnProperty(GlobalConstant.memoOfProperty) ?
+                            <div 
+                                dangerouslySetInnerHTML={{
+                                    __html: this.props.data.properties[GlobalConstant.memoOfProperty]
+                                }}
+                                style={{
+                                    border: '1px solid #ddd',
+                                    borderRadius: '4px',
+                                    padding: '5px',
+                                    margin: '6px',
+                                }}
+                            >  
+                            </div>
+                            :
+                            ''
+                        }
+                        <Divider />
+                        <div style={{
+                            display: 'flex', 
+                            flexWrap: 'wrap',
+                            flexDirection: 'row'}}>   
+                            <RaisedButton
+                                onClick={()=> {this.setState(function(prevState, props) {
+                                    prevState.open = true;
+                                    return prevState;
+                                })}}
+                                label="Github Link"
+                            />
+                        </div>
+                    </div>
                 </Paper>
             </Draggable>
         )

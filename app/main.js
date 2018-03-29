@@ -7,6 +7,7 @@ import CypherBarComponent from './Component/CypherBarComponent'
 import CircularProgress from 'material-ui/CircularProgress';
 import Dialog from 'material-ui/Dialog';
 import Snackbar from 'material-ui/Snackbar';
+import GlobalConstant from './Common/GlobalConstant';
 
 class App extends React.Component {
     constructor(props) {
@@ -28,7 +29,9 @@ class App extends React.Component {
                         nodes: {
                             '*': {
                                 total: 0,
-                                propertiesList: ['<id>']
+                                propertiesList: {
+                                    '<id>':1
+                                }
                             }
                         },
                         edges: {
@@ -66,7 +69,9 @@ class App extends React.Component {
                     nodes: {
                         '*': {
                             total: 0,
-                            propertiesList: ['<id>']
+                            propertiesList: {
+                                '<id>': 1
+                            }
                         }
                     },
                     edges: {
@@ -104,23 +109,22 @@ class App extends React.Component {
                                     if (__count.nodes.hasOwnProperty(__label)){
                                         __count.nodes[__label].total++;
 
-                                        let __isHas = false;
                                         for (let propertyName in v[key].properties){
-                                            __isHas = false;
-                                            for (let j = 0; j < __count.nodes[__label].propertiesList.length; j++){
-                                                if (propertyName == __count.nodes[__label].propertiesList[j]){
-                                                    __isHas = true;
-                                                    break;
-                                                }
+                                            if (propertyName != GlobalConstant.imagesOfProperty &&
+                                                propertyName != GlobalConstant.memoOfProperty){
+                                                __count.nodes[__label].propertiesList[propertyName] = 
+                                                    __count.nodes[__label].propertiesList.hasOwnProperty(propertyName) ?
+                                                        __count.nodes[__label].propertiesList[propertyName] + 1
+                                                        :
+                                                        1;
                                             }
-
-                                            if (!__isHas)
-                                                __count.nodes[__label].propertiesList.push(propertyName);
                                         }
                                     }else
                                         __count.nodes[__label] = {
                                             total:1, 
-                                            propertiesList: ['<id>']
+                                            propertiesList: {
+                                                '<id>':1
+                                            }
                                         };
                                     
                                     __count.nodes['*'].total++;
@@ -224,6 +228,71 @@ class App extends React.Component {
         });
     }.bind(this)
 
+    mergeNode = function(node){
+        if (node.length > 0){
+            for (let keyName in node[0]){
+                for (let i=0; i<this.state.data.graph.nodes.length; i++){
+                    if (this.state.data.graph.nodes[i].id == node[0][keyName].id){
+                        this.setState(function(prevState, props) {
+                            let __countNode = prevState.data.graph.count.nodes;
+                            let __label;
+                            for (let j=0; j<prevState.data.graph.nodes[i].labels.length; j++){
+                                __label = prevState.data.graph.nodes[i].labels[j];
+                                __countNode[__label].total--;
+                                __countNode['*'].total--;
+                                
+                                for (let key in prevState.data.graph.nodes[i].properties){
+                                    if (key != GlobalConstant.imagesOfProperty &&
+                                        key != GlobalConstant.memoOfProperty){
+                                        if (__countNode[__label].propertiesList[key] == 1){
+                                            delete __countNode[__label].propertiesList[key];
+                                        }else{
+                                            __countNode[__label].propertiesList[key]--;
+                                        }
+                                    }
+                                }
+                            }
+
+                            for (let j=0; j<node[0][keyName].labels.length; j++){
+                                __label = node[0][keyName].labels[j];
+                                
+                                if (__countNode.hasOwnProperty(__label)){
+                                    __countNode[__label].total++;
+                                }
+                                else{
+                                    __countNode[__label] = {
+                                        total: 1, 
+                                        propertiesList: {
+                                            '<id>': 1
+                                        }
+                                    }
+                                }
+                                __countNode['*'].total++;
+
+                                for (let key in node[0][keyName].properties){
+                                    if (key != GlobalConstant.imagesOfProperty &&
+                                        key != GlobalConstant.memoOfProperty){
+                                        __countNode[__label].propertiesList[key] = 
+                                            __countNode[__label].propertiesList.hasOwnProperty(key) ?
+                                            __countNode[__label].propertiesList[key] + 1
+                                            :
+                                            1;
+                                    }
+                                }
+                            }
+
+                            prevState.data.graph.count.nodes = __countNode;
+                            prevState.data.graph.nodes[i].labels = node[0][keyName].labels;
+                            prevState.data.graph.nodes[i].properties = node[0][keyName].properties;
+                            return prevState;
+                        });
+                        break;
+                    }
+                }
+            }
+        }
+    }.bind(this)
+
     render() {
         return (
             <MuiThemeProvider>
@@ -238,7 +307,10 @@ class App extends React.Component {
                 </div>
                 <div id='mainpanel'>
                     <CypherBarComponent runCypher={this.runCypher} text={this.state.data.statement} />
-                    <VisualizationComponent data={this.state.data} />
+                    <VisualizationComponent 
+                        data={this.state.data} 
+                        onMergeNode={this.mergeNode}
+                    />
                 </div>
                 
 				<Snackbar

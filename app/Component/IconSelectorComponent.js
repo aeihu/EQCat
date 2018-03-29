@@ -19,7 +19,6 @@ export default class IconSelectorComponent extends React.Component {
 
     componentDidMount()
     {
-        console.log('eses');
         this.getIconList();
     }
 

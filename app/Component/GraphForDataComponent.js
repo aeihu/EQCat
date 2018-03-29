@@ -90,6 +90,11 @@ export default class GraphForDataComponent extends React.Component {
 
     componentWillReceiveProps(newProps)
     {
+        this.updateFlag = true;
+        this.setState(function(prevState, props) {
+            prevState.cards = [];
+            return prevState;
+        });
         // if(this.updateFlag){
         //     let el = ReactDOM.findDOMNode();
         //     D3ForceSimulation.update(el, this.props, this.state, this.NEStyles);
@@ -102,7 +107,7 @@ export default class GraphForDataComponent extends React.Component {
 
         if(this.updateFlag){
             let el = ReactDOM.findDOMNode();
-            D3ForceSimulation.update(el, this.props, this.state, this.NEStyles);
+            D3ForceSimulation.update(el, this.props, this.state);
         }
     }
 
@@ -116,7 +121,12 @@ export default class GraphForDataComponent extends React.Component {
     render() {
         let __cardElements=[];
         for (let i = 0; i < this.state.cards.length; i++){
-            __cardElements.push(<CardComponent data={this.state.cards[i]} closeCard={this.hideCard} />);
+            __cardElements.push(
+                <CardComponent 
+                    data={this.state.cards[i]} 
+                    closeCard={this.hideCard} 
+                    onMergeNode={this.props.onMergeNode}
+                />);
         }
         
         return (
@@ -129,8 +139,8 @@ export default class GraphForDataComponent extends React.Component {
                         style={{
                             left:this.state.menu.x + 'px', 
                             top: this.state.menu.y + 'px', 
-                            position: 'fixed'}} />
-                    
+                            position: 'fixed'}} 
+                    />
                     <Popover
                         open={this.state.menu.open}
                         anchorEl={this.state.menu.anchorEl}
