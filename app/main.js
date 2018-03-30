@@ -228,6 +228,52 @@ class App extends React.Component {
         });
     }.bind(this)
 
+    addNode = function(node){
+        if (node.length > 0){
+            for (let keyName in node[0]){
+                this.setState(function(prevState, props) {
+                    let __countNode = prevState.data.graph.count.nodes;
+                    let __label;
+
+                    for (let j=0; j<node[0][keyName].labels.length; j++){
+                        __label = node[0][keyName].labels[j];
+                        
+                        if (__countNode.hasOwnProperty(__label)){
+                            __countNode[__label].total++;
+                        }
+                        else{
+                            __countNode[__label] = {
+                                total: 1, 
+                                propertiesList: {
+                                    '<id>': 1
+                                }
+                            }
+                        }
+                        __countNode['*'].total++;
+
+                        for (let key in node[0][keyName].properties){
+                            if (key != GlobalConstant.imagesOfProperty &&
+                                key != GlobalConstant.memoOfProperty){
+                                __countNode[__label].propertiesList[key] = 
+                                    __countNode[__label].propertiesList.hasOwnProperty(key) ?
+                                    __countNode[__label].propertiesList[key] + 1
+                                    :
+                                    1;
+                            }
+                        }
+                    }
+
+                    prevState.data.graph.count.nodes = __countNode;
+                    prevState.data.graph.nodes.push({
+                        labels: node[0][keyName].labels,
+                        properties: node[0][keyName].properties
+                    });
+                    return prevState;
+                });
+            }
+        }
+    }.bind(this)
+
     mergeNode = function(node){
         if (node.length > 0){
             for (let keyName in node[0]){
@@ -309,6 +355,7 @@ class App extends React.Component {
                     <CypherBarComponent runCypher={this.runCypher} text={this.state.data.statement} />
                     <VisualizationComponent 
                         data={this.state.data} 
+                        onAddNode={this.addNode}
                         onMergeNode={this.mergeNode}
                     />
                 </div>

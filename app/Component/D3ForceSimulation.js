@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import GlobalConstant from '../Common/GlobalConstant';
 
 export const D3ForceSimulation = {};
 
@@ -89,6 +90,15 @@ D3ForceSimulation.dragended = function dragended(d) {
 
     d.fx = null;
     d.fy = null;
+}
+
+function isPreviewImageInNode(d){
+    return d.properties.hasOwnProperty(GlobalConstant.imagesOfProperty) ?
+        d.properties[GlobalConstant.imagesOfProperty].length > 0 ?
+            true
+            :
+            false
+        :false;
 }
 
 function setIcon(d) { 
@@ -185,8 +195,8 @@ D3ForceSimulation.setStyle = function(state, type, val) {
 
             let __node = this.svg.selectAll(".nodes")
                 .filter(function(d, i){
-                    for (let i=0; i<d.labels.length; i++){
-                        if (d.labels[i] == state.name)
+                    for (let index=0; index<d.labels.length; index++){
+                        if (d.labels[index] == state.name)
                             return true;
                     }    
                     return false;
@@ -285,11 +295,16 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .attr("class", 'nodes');
         
     __updataForNode.exit().remove();
- 
+
+    __node.append("image")
+        .attr("class", 'node_previewImage')
+        .attr("xlink:href", (d)=>{ return isPreviewImageInNode(d) ? d.properties[GlobalConstant.imagesOfProperty][0] : ''})
+        .attr("height", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 200 : 0} : 0)
+        .attr("width", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 150 : 0} : 0);
+        
     __node.append("image")
         .attr("class", 'node_icon')
-        .attr("enabled", true);
-            
+        
     __node.append("text")
         .attr("text-anchor", "middle");
 
@@ -398,8 +413,9 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
 D3ForceSimulation.showOrHideImage = function(){
     D3ForceSimulation.showedImage = !D3ForceSimulation.showedImage;
     D3ForceSimulation.svg
-        .selectAll("image")
-        .attr("enabled", D3ForceSimulation.showedImage);
+        .selectAll(".node_previewImage")
+        .attr("height", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 200 : 0} : 0)
+        .attr("width", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 150 : 0} : 0);
 }
 
   

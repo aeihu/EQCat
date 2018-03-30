@@ -134,7 +134,7 @@ export default class GraphForDataComponent extends React.Component {
                 <div id="displayContent" 
                     style={{backgroundColor: '#EEEEEE', width:'100%', flex:'1 1 auto'}} 
                     onContextMenu={this.handleClick}>
-                    {/* {__menu} */}
+                    {__cardElements}
                     <div id='menuInDisplayContent' 
                         style={{
                             left:this.state.menu.x + 'px', 
@@ -152,7 +152,7 @@ export default class GraphForDataComponent extends React.Component {
                                 prevState.menu.open = false;
                                 return prevState;
                             });
-                        }}
+                        }.bind(this)}
                         // animated={false}
                     >
                         <Menu desktop={true}>
@@ -166,7 +166,6 @@ export default class GraphForDataComponent extends React.Component {
                             <MenuItem primaryText="Remove" leftIcon={<Delete />} />
                         </Menu>
                     </Popover>
-                    {__cardElements}
                 </div>
                 <EditStyleComponent 
                     data={this.props.data.count}

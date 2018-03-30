@@ -168,6 +168,57 @@ export default class EditorDialogsComponent extends React.Component {
         xmlhttp.send();
 	}.bind(this)
 	
+	addNode = function() {
+		let __node = {
+			labels:[],
+			properties:{}
+		};
+		
+		/////////////////////////////////////////////
+		//			add properties
+		/////////////////////////////////////////////
+
+		for (let i=0; i<this.state.properties.length; i++){
+			let __key = this.state.properties[i].key;
+			let __val = this.state.properties[i].value;
+
+			switch (this.state.properties[i].type){
+				case 'number':
+					__val = Number(__val);
+					break;
+				case 'listNumber':{
+					let __listNumber = [];
+					for (let i=0; i<__val.length; i++){
+						__listNumber.push(Number(__val[i]));
+					}
+					__val = __listNumber;
+					break;
+				}
+			}
+			__node.properties[__key] = __val;
+		}
+
+		/////////////////////////////////////////////
+		//			add labels
+		/////////////////////////////////////////////
+
+		__node.labels = [...this.state.labels];
+
+		let xmlhttp = new XMLHttpRequest()
+		
+		xmlhttp.onreadystatechange = function(){
+			if (xmlhttp.readyState==4 && xmlhttp.status==200){
+				console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+				let __node = JSON.parse(xmlhttp.responseText);
+				console.log('ssssssssssssssssssssssssssssssssssssssss')
+				console.log(__node)
+				this.props.onAddNode(__node);
+			}
+		}.bind(this)
+
+		xmlhttp.open("GET", "/addNode?node=" + JSON.stringify(__node), true);
+		xmlhttp.send();
+	}.bind(this)
 	
 	mergeNode = function() {
 		let __node = {
