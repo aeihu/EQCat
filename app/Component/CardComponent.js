@@ -67,16 +67,24 @@ export default class CardComponent extends React.Component {
                                             height: '16px'
                                     }}>
                                         <Avatar
-                                            backgroundColor='Tomato'
+											backgroundColor={
+												typeof value == 'boolean' ?
+													'SeaGreen'
+													:
+													typeof value == 'string' ?
+														'Tomato'
+														:
+														'MediumVioletRed'
+											}
                                             size={16}
                                             style={{marginRight:'2px'}}
                                         >
                                             {index}
                                         </Avatar>
-                                        {typeof this.props.data.properties[key][index] == 'boolean' ? 
-                                            this.props.data.properties[key][index] ? '√' : '×'
+                                        {typeof value == 'boolean' ? 
+                                            value ? '√' : '×'
                                             :
-                                            this.props.data.properties[key][index]}
+                                            value}
                                     </div>
                                 ))}
                             </div>
@@ -118,7 +126,7 @@ export default class CardComponent extends React.Component {
             <Draggable handle="strong" bounds="parent">
                 <Paper style={{
                     position:"absolute", 
-                    width:"543px"}} 
+                    width:"553px"}} 
                     zDepth={1}
                 >
                     <EditorDialogsComponent
@@ -158,7 +166,6 @@ export default class CardComponent extends React.Component {
                     
                     <div style={{
                         display: 'flex', 
-                        //flexWrap: 'wrap',
                         flexDirection: 'column'}}
                     >  
                         <div style={{
@@ -169,51 +176,59 @@ export default class CardComponent extends React.Component {
                         </div>
 
                         <Divider />
-                        <div>  
-                            {this.props.data.properties.hasOwnProperty(GlobalConstant.imagesOfProperty) ?
+                        <div style={{
+                            display: 'flex', 
+                            flexDirection: 'column',
+                            overflowY: 'auto',
+                            maxHeight: '450px',}}
+                        >  
+                            <div>
+                                {this.props.data.properties.hasOwnProperty(GlobalConstant.imagesOfProperty) ?
+                                    <div 
+                                        style={{
+                                            width:'230px',
+                                            border: '1px solid #ddd',
+                                            borderRadius: '4px',
+                                            padding: '5px',
+                                            margin: '6px 6px 6px 16px',
+                                            float: 'inline-start'
+                                        }}
+                                    >
+                                        <Carousel 
+                                            showThumbs={false}
+                                            //centerMode={true}
+                                        >
+                                            {this.props.data.properties[GlobalConstant.imagesOfProperty].map((img, index)=>(
+                                                <div>
+                                                <img src={img}  />
+                                                </div>
+                                            ))}
+                                        </Carousel>
+                                    </div>
+                                    :
+                                    ''
+                                }     
+                                {__properties}
+                            </div>
+                            
+                            {this.props.data.properties.hasOwnProperty(GlobalConstant.memoOfProperty) ?
                                 <div 
+                                    dangerouslySetInnerHTML={{
+                                        __html: this.props.data.properties[GlobalConstant.memoOfProperty]
+                                    }}
                                     style={{
-                                        width:'230px',
                                         border: '1px solid #ddd',
                                         borderRadius: '4px',
                                         padding: '5px',
-                                        margin: '6px 6px 6px 16px',
-                                        float: 'inline-start'
+                                        margin: '6px',
                                     }}
-                                >
-                                    <Carousel 
-                                        showThumbs={false}
-                                        //centerMode={true}
-                                    >
-                                        {this.props.data.properties[GlobalConstant.imagesOfProperty].map((img, index)=>(
-                                            <div>
-                                            <img src={img}  />
-                                            </div>
-                                        ))}
-                                    </Carousel>
+                                >  
                                 </div>
                                 :
                                 ''
-                            }     
-                            {__properties}
+                            }
                         </div>
                         
-                        {this.props.data.properties.hasOwnProperty(GlobalConstant.memoOfProperty) ?
-                            <div 
-                                dangerouslySetInnerHTML={{
-                                    __html: this.props.data.properties[GlobalConstant.memoOfProperty]
-                                }}
-                                style={{
-                                    border: '1px solid #ddd',
-                                    borderRadius: '4px',
-                                    padding: '5px',
-                                    margin: '6px',
-                                }}
-                            >  
-                            </div>
-                            :
-                            ''
-                        }
                         <Divider />
                         <div style={{
                             display: 'flex', 

@@ -330,6 +330,7 @@ class App extends React.Component {
                             prevState.data.graph.count.nodes = __countNode;
                             prevState.data.graph.nodes[i].labels = node[0][keyName].labels;
                             prevState.data.graph.nodes[i].properties = node[0][keyName].properties;
+                            console.log(prevState.data.graph.nodes[i].properties)
                             return prevState;
                         });
                         break;

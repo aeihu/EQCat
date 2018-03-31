@@ -5,8 +5,7 @@ import {D3ForceSimulation} from './D3ForceSimulation';
 import Chip from 'material-ui/Chip';
 import Avatar from 'material-ui/Avatar';
 import FlatButton from 'material-ui/FlatButton';
-
-const defaultIcon = 'icons/default/ic_add_to_queue_24px.svg';
+import GlobalConstant from '../Common/GlobalConstant';
 
 export default class EditStyleComponent extends React.Component {
     constructor(props) {
@@ -61,7 +60,7 @@ export default class EditStyleComponent extends React.Component {
             if (!D3ForceSimulation.NEStyles.nodes.hasOwnProperty(key) && key!='*'){
                 let __keys = Object.keys(this.props.data.nodes[key].propertiesList);
                 D3ForceSimulation.NEStyles.nodes[key] = {
-                    icon: defaultIcon,
+                    icon: GlobalConstant.defaultIcon,
                     size: 50,
                     caption: __keys.length > 1 ? __keys[1] : __keys[0]
                 };
@@ -136,11 +135,6 @@ export default class EditStyleComponent extends React.Component {
         
         return (
             <div style={{display: 'flex', flexDirection: 'column', width:'100%'}} >
-                <div style={{display: 'flex', justifyContent: 'space-between', flexDirection: 'row', flex:'0 0 auto'}} >
-                    {/* <FlatButton label={this.props.data.statement} labelPosition="before" containerElement="label" /> */}
-                    <FlatButton label='AA' labelPosition="before" containerElement="label" style={{alignSelf: 'flex-end'}} onClick={D3ForceSimulation.showOrHideImage} />
-                    <FlatButton label='BB' labelPosition="before" containerElement="label" style={{alignSelf: 'flex-end'}} onClick={D3ForceSimulation.showOrHideImage} />
-                </div>
                 <div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
                     {__nodeChip}
                 </div>

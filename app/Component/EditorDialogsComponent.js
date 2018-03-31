@@ -28,7 +28,12 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import GlobalConstant from '../Common/GlobalConstant';
 import GlobalFunction from '../Common/GlobalFunction';
-
+import ImageLooksOne from 'material-ui/svg-icons/image/looks-one';
+import ContentFontDownload from 'material-ui/svg-icons/content/font-download';
+import SocialPoll from 'material-ui/svg-icons/social/poll';
+import ToggleCheckBox from 'material-ui/svg-icons/toggle/check-box';
+import ContentAdd from 'material-ui/svg-icons/content/add';
+	
 export default class EditorDialogsComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -521,7 +526,15 @@ export default class EditorDialogsComponent extends React.Component {
 										height: '25px'
 									}}>
 										<Avatar
-											backgroundColor='Tomato'
+											backgroundColor={
+												this.state.properties[i].type == 'listBoolean' ?
+													'SeaGreen'
+													:
+													this.state.properties[i].type == 'listString' ?
+														'Tomato'
+														:
+														'MediumVioletRed'
+											}
 											size={25}
 											style={{marginRight:'2px'}}
 										>
@@ -584,6 +597,36 @@ export default class EditorDialogsComponent extends React.Component {
 										</IconButton>
 									</div>
 								))}
+								<IconMenu
+									iconButtonElement={
+										<IconButton 
+											style={{
+												padding:'0px',
+												width: '25px',
+												height: '25px'
+											}}
+										>
+										{this.state.properties[i].type == 'listBoolean' ?
+											<ToggleCheckBox />
+											:
+											this.state.properties[i].type == 'listString' ?
+												<ContentFontDownload />
+												:
+												<ImageLooksOne />
+										}
+										</IconButton>}
+									onChange ={function(event, value) {
+											this.setState(function(prevState, props) {
+												prevState.properties[i].value = [];
+												return prevState;
+											});
+										}.bind(this)
+									}
+								>
+									<MenuItem value="string" primaryText="String" leftIcon={<ContentFontDownload />} />
+									<MenuItem value="number" primaryText="Number" leftIcon={<ImageLooksOne />} />
+									<MenuItem value="boolean" primaryText="Boolean" leftIcon={<ToggleCheckBox />} />
+								</IconMenu>
 								
 								<IconButton 
 									style={{
@@ -602,31 +645,8 @@ export default class EditorDialogsComponent extends React.Component {
 										console.log(this.state.properties[i].value)
 									}.bind(this)}
 								>
-									<AddBox />
+									<ContentAdd />
 								</IconButton>
-								<IconMenu
-									iconButtonElement={
-										<IconButton 
-											style={{
-												padding:'0px',
-												width: '25px',
-												height: '25px'
-											}}
-										>
-											<MoreVertIcon />
-										</IconButton>}
-									onChange ={function(event, value) {
-											this.setState(function(prevState, props) {
-												prevState.properties[i].value = [];
-												return prevState;
-											});
-										}.bind(this)
-									}
-								>
-									<MenuItem value="string" primaryText="String" />
-									<MenuItem value="number" primaryText="Number" />
-									<MenuItem value="boolean" primaryText="Boolean" />
-								</IconMenu>
 							</div>
 							:
 							<TextField 
@@ -643,7 +663,20 @@ export default class EditorDialogsComponent extends React.Component {
 							/>
 					}
                     <IconMenu
-                        iconButtonElement={<IconButton><MoreVertIcon /></IconButton>}
+                        iconButtonElement={
+							<IconButton>
+								{this.state.properties[i].type == 'boolean' ?
+									<ToggleCheckBox />
+									:
+									this.state.properties[i].type == 'string' ?
+										<ContentFontDownload />
+										:
+										this.state.properties[i].type == 'number' ?
+											<ImageLooksOne />
+											:
+											<SocialPoll />
+								}
+							</IconButton>}
                         onChange={function(event, value) {
 								this.setState(function(prevState, props) {
 									console.log(value);
@@ -666,14 +699,16 @@ export default class EditorDialogsComponent extends React.Component {
 							}.bind(this)
 						}
                     >
-                        <MenuItem value="string" primaryText="String" />
-                        <MenuItem value="number" primaryText="Number" />
-                        <MenuItem value="boolean" primaryText="Boolean" />
+						<MenuItem value="string" primaryText="String" leftIcon={<ContentFontDownload />} />
+						<MenuItem value="number" primaryText="Number" leftIcon={<ImageLooksOne />} />
+						<MenuItem value="boolean" primaryText="Boolean" leftIcon={<ToggleCheckBox />} />
 						<MenuItem 
+							leftIcon={<SocialPoll />}
 							rightIcon={<ArrowDropRight />}
 							primaryText="List" 
 							menuItems={[
 								<MenuItem 
+									leftIcon={<ContentFontDownload />}
 									primaryText="String" 
 									onClick={function(event, value) {
 											this.setState(function(prevState, props) {
@@ -685,6 +720,7 @@ export default class EditorDialogsComponent extends React.Component {
 										}.bind(this)}
 								/>,
 								<MenuItem 
+									leftIcon={<ImageLooksOne />}
 									primaryText="Number" 
 									onClick={function(event, value) {
 											this.setState(function(prevState, props) {
@@ -696,6 +732,7 @@ export default class EditorDialogsComponent extends React.Component {
 										}.bind(this)}
 								/>,
 								<MenuItem 
+									leftIcon={<ToggleCheckBox />}
 									primaryText="Boolean" 
 									onClick={function(event, value) {
 											this.setState(function(prevState, props) {
@@ -762,16 +799,30 @@ export default class EditorDialogsComponent extends React.Component {
 								title={(index + 1) + ' / ' + this.state.images.length}
 								style={{width: '280px'}}
 								actionIcon={
-									<IconButton 
-										onClick={function(event) {
-											this.setState(function(prevState, props) {
-												prevState.images.splice(index, 1);
-												return prevState;
-											});
-										}.bind(this)}
-									>
-										<Clear color="rgb(0, 188, 212)" />
-									</IconButton>}
+									<div>
+										<IconButton 
+											onClick={function(event) {
+												this.setState(function(prevState, props) {
+													let __tmp = prevState.images[0];
+													prevState.images[0] = prevState.images[index];
+													prevState.images[index] = __tmp;
+													return prevState;
+												});
+											}.bind(this)}
+										>
+											<StarBorder color="rgb(0, 188, 212)" />
+										</IconButton>
+										<IconButton 
+											onClick={function(event) {
+												this.setState(function(prevState, props) {
+													prevState.images.splice(index, 1);
+													return prevState;
+												});
+											}.bind(this)}
+										>
+											<Clear color="rgb(0, 188, 212)" />
+										</IconButton>
+									</div>}
 								titleStyle={{color: 'rgb(0, 188, 212)',}}
 								titleBackground="linear-gradient(to top, rgba(0,0,0,0.7) 0%,rgba(0,0,0,0.3) 70%,rgba(0,0,0,0) 100%)"
 							>

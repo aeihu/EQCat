@@ -13,9 +13,14 @@ import Divider from 'material-ui/Divider';
 import ContentCopy from 'material-ui/svg-icons/content/content-copy';
 import Download from 'material-ui/svg-icons/file/file-download';
 import Delete from 'material-ui/svg-icons/action/delete';
+import ImagePhotoLibrary from 'material-ui/svg-icons/image/photo-library';
+import ImageControlPoint from 'material-ui/svg-icons/image/control-point';
+import ImageFilter from 'material-ui/svg-icons/image/filter';
+import ContentRemoveCircleOutline from 'material-ui/svg-icons/content/remove-circle-outline';
 
 import Popover from 'material-ui/Popover/Popover';
 import { SketchPicker } from 'react-color';
+import IconButton from 'material-ui/IconButton';
 
 export default class GraphForDataComponent extends React.Component {
     constructor(props) {
@@ -131,41 +136,54 @@ export default class GraphForDataComponent extends React.Component {
         
         return (
             <div style={{display: 'flex', flexDirection: 'column', height: '100%', width:'100%'}} >
-                <div id="displayContent" 
-                    style={{backgroundColor: '#EEEEEE', width:'100%', flex:'1 1 auto'}} 
-                    onContextMenu={this.handleClick}>
-                    {__cardElements}
-                    <div id='menuInDisplayContent' 
-                        style={{
-                            left:this.state.menu.x + 'px', 
-                            top: this.state.menu.y + 'px', 
-                            position: 'fixed'}} 
-                    />
-                    <Popover
-                        open={this.state.menu.open}
-                        anchorEl={this.state.menu.anchorEl}
-                        anchorOrigin={{horizontal:"left",vertical:"bottom"}}
-                        targetOrigin={{horizontal:"left",vertical:"top"}}
-                        onRequestClose={function () {
-                            this.updateFlag = false;
-                            this.setState(function(prevState, props) {
-                                prevState.menu.open = false;
-                                return prevState;
-                            });
-                        }.bind(this)}
-                        // animated={false}
-                    >
-                        <Menu desktop={true}>
-                            <MenuItem primaryText="Preview" leftIcon={<RemoveRedEye />} />
-                            <MenuItem primaryText="Share" leftIcon={<PersonAdd />} />
-                            <MenuItem primaryText="Get links" leftIcon={<ContentLink />} />
-                            <Divider />
-                            <MenuItem primaryText="Make a copy" leftIcon={<ContentCopy />} />
-                            <MenuItem primaryText="Download" leftIcon={<Download />} />
-                            <Divider />
-                            <MenuItem primaryText="Remove" leftIcon={<Delete />} />
-                        </Menu>
-                    </Popover>
+                <div style={{display: 'flex', flexDirection: 'row', flex:'1 1 auto', width:'100%'}}>
+                    <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto'}} >
+                        <IconButton onClick={D3ForceSimulation.showOrHideImage}>
+                            <ImageFilter />
+                        </IconButton>
+                        <IconButton onClick={D3ForceSimulation.showOrHideImage}>
+                            <ImageControlPoint />
+                        </IconButton>
+                        <IconButton onClick={D3ForceSimulation.showOrHideImage}>
+                            <ContentRemoveCircleOutline />
+                        </IconButton>
+                    </div>
+                    <div id="displayContent" 
+                        style={{backgroundColor: '#EEEEEE', width:'100%', flex:'1 1 auto'}} 
+                        onContextMenu={this.handleClick}>
+                        {__cardElements}
+                        <div id='menuInDisplayContent' 
+                            style={{
+                                left:this.state.menu.x + 'px', 
+                                top: this.state.menu.y + 'px', 
+                                position: 'fixed'}} 
+                        />
+                        <Popover
+                            open={this.state.menu.open}
+                            anchorEl={this.state.menu.anchorEl}
+                            anchorOrigin={{horizontal:"left",vertical:"bottom"}}
+                            targetOrigin={{horizontal:"left",vertical:"top"}}
+                            onRequestClose={function () {
+                                this.updateFlag = false;
+                                this.setState(function(prevState, props) {
+                                    prevState.menu.open = false;
+                                    return prevState;
+                                });
+                            }.bind(this)}
+                            // animated={false}
+                        >
+                            <Menu desktop={true}>
+                                <MenuItem primaryText="Preview" leftIcon={<RemoveRedEye />} />
+                                <MenuItem primaryText="Share" leftIcon={<PersonAdd />} />
+                                <MenuItem primaryText="Get links" leftIcon={<ContentLink />} />
+                                <Divider />
+                                <MenuItem primaryText="Make a copy" leftIcon={<ContentCopy />} />
+                                <MenuItem primaryText="Download" leftIcon={<Download />} />
+                                <Divider />
+                                <MenuItem primaryText="Remove" leftIcon={<Delete />} />
+                            </Menu>
+                        </Popover>
+                    </div>
                 </div>
                 <EditStyleComponent 
                     data={this.props.data.count}

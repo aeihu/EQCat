@@ -262,6 +262,27 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     console.log('/////////////////////////');
     console.log(__data);
 
+    let __updataForNode = this.svg
+        .selectAll(".nodes")
+        .data(__data.nodes)
+        
+    let __node = __updataForNode
+        .enter()
+        .append("g")
+        .attr("class", 'nodes');
+        
+    __updataForNode.exit().remove();
+
+    __node.append("image")
+        .attr("transform", 'translate(-50,-110)')
+        .attr("class", 'node_previewImage');
+        
+    __node.append("image")
+        .attr("class", 'node_icon')
+        
+    __node.append("text")
+        .attr("text-anchor", "middle");
+
     let __updataForLink = this.svg
         .selectAll(".links")
         .data(__data.edges)
@@ -284,29 +305,6 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .append('textPath');
 
     __updataForLink.exit().remove();
-
-    let __updataForNode = this.svg
-        .selectAll(".nodes")
-        .data(__data.nodes)
-        
-    let __node = __updataForNode
-        .enter()
-        .append("g")
-        .attr("class", 'nodes');
-        
-    __updataForNode.exit().remove();
-
-    __node.append("image")
-        .attr("class", 'node_previewImage')
-        .attr("xlink:href", (d)=>{ return isPreviewImageInNode(d) ? d.properties[GlobalConstant.imagesOfProperty][0] : ''})
-        .attr("height", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 200 : 0} : 0)
-        .attr("width", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 150 : 0} : 0);
-        
-    __node.append("image")
-        .attr("class", 'node_icon')
-        
-    __node.append("text")
-        .attr("text-anchor", "middle");
 
 ////////////////////// setStyle //////////////////////////////////
 
@@ -355,6 +353,11 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     let __textInNode = __node.select("text")
         .attr("dy", setNodeTextOffset)
         .text(setNodeText);
+
+    let __previewImageInNode = __node.select(".node_previewImage")
+        .attr("xlink:href", (d)=>{ return isPreviewImageInNode(d) ? d.properties[GlobalConstant.imagesOfProperty][0] : ''})
+        .attr("height", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 100 : 0} : 0)
+        .attr("width", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 100 : 0} : 0);
 
     __link
         .style('stroke', setEdgeColor)
@@ -414,8 +417,8 @@ D3ForceSimulation.showOrHideImage = function(){
     D3ForceSimulation.showedImage = !D3ForceSimulation.showedImage;
     D3ForceSimulation.svg
         .selectAll(".node_previewImage")
-        .attr("height", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 200 : 0} : 0)
-        .attr("width", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 150 : 0} : 0);
+        .attr("height", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 100 : 0} : 0)
+        .attr("width", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 100 : 0} : 0);
 }
 
   
