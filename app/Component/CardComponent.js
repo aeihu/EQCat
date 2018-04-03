@@ -22,11 +22,13 @@ import EditorDialogsComponent from './EditorDialogsComponent';
 import { Carousel } from 'react-responsive-carousel';
 import styles from 'react-responsive-carousel/lib/styles/carousel.min.css';
 import GlobalConstant from '../Common/GlobalConstant';
+import ImageEdit from 'material-ui/svg-icons/image/edit';
 
 export default class CardComponent extends React.Component {
     constructor(props) {
         super(props);
 		this.state = {
+            //mode: 0, // node:0  edge:1
 			open: false
 		};
     }
@@ -102,23 +104,33 @@ export default class CardComponent extends React.Component {
             }
         }
 
-        let __cardChip = [];
-        for (let i = 0; i <  this.props.data.labels.length; i++){
-            __cardChip.push(
+        let __chips = [];
+        if (this.props.mode == 0){
+            for (let i = 0; i <  this.props.data.labels.length; i++){
+                __chips.push(
+                    <Chip 
+                        className="labelChip"
+                        labelStyle={{fontSize: '12px'}}
+                    >
+                        <Avatar src={D3ForceSimulation.NEStyles.nodes[this.props.data.labels[i]].icon} 
+                            style={
+                                {
+                                    width:'23px', 
+                                    height:'23px', 
+                                    marginLeft:'6px', 
+                                    borderRadius:'0%', 
+                                    backgroundColor:'#00000000'}} 
+                        />
+                        {this.props.data.labels[i]}
+                    </Chip>);
+            }
+        }else{
+            __chips.push(
                 <Chip 
-                    className="labelChip"
+                    className="edgeChip"
                     labelStyle={{fontSize: '12px'}}
                 >
-                    <Avatar src={D3ForceSimulation.NEStyles.nodes[this.props.data.labels[i]].icon} 
-                        style={
-                            {
-                                width:'23px', 
-                                height:'23px', 
-                                marginLeft:'6px', 
-                                borderRadius:'0%', 
-                                backgroundColor:'#00000000'}} 
-                    />
-                    {this.props.data.labels[i]}
+                    {this.props.data.type}
                 </Chip>);
         }
     
@@ -130,9 +142,11 @@ export default class CardComponent extends React.Component {
                     zDepth={1}
                 >
                     <EditorDialogsComponent
+                        mode={this.props.mode}
+                        isNew={false}
                         data={this.props.data}
                         open={this.state.open}
-                        onMergeNode={this.props.onMergeNode}
+                        onChangeData={this.props.onMerge}
                         onRequestClose={()=> {this.setState(function(prevState, props) {
                             prevState.open = false;
                             return prevState;
@@ -140,7 +154,7 @@ export default class CardComponent extends React.Component {
                     />
                     <strong>
                         <AppBar 
-                            title={this.props.data.id != null ? 'Node: ID' + this.props.data.id : ''}
+                            title={this.props.mode == 0 ? 'Node: ID' + this.props.data.id : 'Edge: ID' + this.props.data.id}
                             titleStyle={{lineHeight:'24px', height:'26px'}}
                             iconElementLeft={
                                 <IconButton 
@@ -154,9 +168,32 @@ export default class CardComponent extends React.Component {
                                         width: '24px',}}
                                     />
                                 </IconButton>}
-                            onLeftIconButtonClick={function(event){this.props.closeCard(this.props.data.id)}.bind(this)}
-                            style={{height:'26px'}}
+                            iconElementRight={
+                                <IconButton 
+                                    style={{
+                                        padding:'0px',
+                                        height: '24px',
+                                        width: '24px',}}
+                                >
+                                    <ImageEdit style={{
+                                        height: '24px',
+                                        width: '24px',}}
+                                    />
+                                </IconButton>}
+                            onLeftIconButtonClick={function(event){
+                                    this.props.closeCard(this.props.data.id, this.props.mode);
+                                }.bind(this)}
+                            onRightIconButtonClick={()=> {this.setState(function(prevState, props) {
+                                    prevState.open = true;
+                                    return prevState;
+                                    })}}
+                            style={this.props.mode == 0 ? {height:'26px'} : {height:'26px', backgroundColor:'DarkSalmon'}}
                             iconStyleLeft={{
+                                marginTop: '0px',
+                                height: '24px',
+                                width: '24px',
+                            }}
+                            iconStyleRight={{
                                 marginTop: '0px',
                                 height: '24px',
                                 width: '24px',
@@ -172,7 +209,7 @@ export default class CardComponent extends React.Component {
                             display: 'flex', 
                             flexWrap: 'wrap',
                             flexDirection: 'row'}}>   
-                            {__cardChip}
+                            {__chips}
                         </div>
 
                         <Divider />
@@ -227,20 +264,6 @@ export default class CardComponent extends React.Component {
                                 :
                                 ''
                             }
-                        </div>
-                        
-                        <Divider />
-                        <div style={{
-                            display: 'flex', 
-                            flexWrap: 'wrap',
-                            flexDirection: 'row'}}>   
-                            <RaisedButton
-                                onClick={()=> {this.setState(function(prevState, props) {
-                                    prevState.open = true;
-                                    return prevState;
-                                })}}
-                                label="Github Link"
-                            />
                         </div>
                     </div>
                 </Paper>

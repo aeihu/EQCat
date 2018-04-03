@@ -2,6 +2,9 @@ import React from 'react';
 import {Controlled as CodeMirror} from 'react-codemirror2'
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
 import FloatingActionButton from 'material-ui/FloatingActionButton';
+import AvPlayArrow from 'material-ui/svg-icons/av/play-arrow';
+import ActionGrade from 'material-ui/svg-icons/action/grade';
+import Clear from 'material-ui/svg-icons/content/clear';
 
 import 'codemirror/addon/lint/lint'
 import 'codemirror/addon/hint/show-hint'
@@ -83,9 +86,15 @@ export default class CypherBarComponent extends React.Component {
                                 this.props.runCypher(this.state.text);
                             }.bind(this)
                         } 
-                    />
-                    <FloatingActionButton mini={true} style={{margin: 10}}/>
-                    <FloatingActionButton mini={true} style={{margin: 10}}/>
+                    >
+                        <AvPlayArrow />
+                    </FloatingActionButton>
+                    <FloatingActionButton mini={true} style={{margin: 10}}>
+                        <ActionGrade />
+                    </FloatingActionButton>
+                    <FloatingActionButton mini={true} style={{margin: 10}}>
+                        <Clear />
+                    </FloatingActionButton>
                 </ToolbarGroup>
             </Toolbar> 
         );

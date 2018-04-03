@@ -313,18 +313,31 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
 
     __node
         .on("click", function(d){
-            state.showCard(d);
+            state.showCard(d, 0); //node:0 edge:1
+            return;
+            if (d.hasOwnProperty('selected')){
+                d.selected = !d.selected;
+            }
+            else{
+                d.selected = true;
+            }
+
+            d3.select(this)
+                .attr('shadowed', d.selected ? '' : 'mouseover')
+                .attr('class', d.selected ? 'nodes nodes_selected' : 'nodes');
         })
         .on("mouseover", function(d){
             d3.select(this)
-                .attr('shadowed', 'selected');
+                .attr('shadowed', 'mouseover');
             
-            for (let i = 0; i < d.edges.length; i++){
-                D3ForceSimulation.svg.select('#node_id_' + (d.edges[i].target.id == d.id ? d.edges[i].source.id : d.edges[i].target.id))
-                    .attr('shadowed', 'adjacent');
-                
-                D3ForceSimulation.svg.select('#link_id_' + d.edges[i].id)
-                    .attr('shadowed', true);
+            if (d.hasOwnProperty('edges')){
+                for (let i = 0; i < d.edges.length; i++){
+                    D3ForceSimulation.svg.select('#node_id_' + (d.edges[i].target.id == d.id ? d.edges[i].source.id : d.edges[i].target.id))
+                        .attr('shadowed', 'adjacent');
+                    
+                    D3ForceSimulation.svg.select('#link_id_' + d.edges[i].id)
+                        .attr('shadowed', true);
+                }
             }
         })
         .on("mouseout", function(d){
@@ -363,7 +376,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .style('stroke', setEdgeColor)
         .attr('id', function(d){ return 'link_id_' + d.id})
         .on("click", function(d){
-            state.showCard(d);
+            state.showCard(d, 1); //node:0 edge:1
         })
         .on("mouseover", function(d){
             D3ForceSimulation.svg.select('#link_id_' + d.id)

@@ -108,24 +108,25 @@ class App extends React.Component {
                                     let __label = v[key].labels[i];
                                     if (__count.nodes.hasOwnProperty(__label)){
                                         __count.nodes[__label].total++;
-
-                                        for (let propertyName in v[key].properties){
-                                            if (propertyName != GlobalConstant.imagesOfProperty &&
-                                                propertyName != GlobalConstant.memoOfProperty){
-                                                __count.nodes[__label].propertiesList[propertyName] = 
-                                                    __count.nodes[__label].propertiesList.hasOwnProperty(propertyName) ?
-                                                        __count.nodes[__label].propertiesList[propertyName] + 1
-                                                        :
-                                                        1;
-                                            }
-                                        }
-                                    }else
+                                    }else{
                                         __count.nodes[__label] = {
                                             total:1, 
                                             propertiesList: {
                                                 '<id>':1
                                             }
                                         };
+                                    }
+                                    
+                                    for (let propertyName in v[key].properties){
+                                        if (propertyName != GlobalConstant.imagesOfProperty &&
+                                            propertyName != GlobalConstant.memoOfProperty){
+                                            __count.nodes[__label].propertiesList[propertyName] = 
+                                                __count.nodes[__label].propertiesList.hasOwnProperty(propertyName) ?
+                                                    __count.nodes[__label].propertiesList[propertyName] + 1
+                                                    :
+                                                    1;
+                                        }
+                                    }
                                     
                                     __count.nodes['*'].total++;
                                 }
@@ -339,6 +340,38 @@ class App extends React.Component {
             }
         }
     }.bind(this)
+    
+    mergeEdge = function(edge){
+        if (edge.length > 0){
+            for (let keyName in edge[0]){
+                for (let i=0; i<this.state.data.graph.edges.length; i++){
+                    if (this.state.data.graph.edges[i].id == edge[0][keyName].id){
+                        this.setState(function(prevState, props) {
+                            if (prevState.data.graph.edges[i].type != node[0][keyName].type){
+                                let __countEdge = prevState.data.graph.count.edges;
+                                __countEdge[prevState.data.graph.edges[i].type]--;
+                                let __label = node[0][keyName].type;
+                                if (__countEdge.hasOwnProperty(__label)){
+                                    __countEdge[__label]++;
+                                }
+                                else{W
+                                    __countEdge[__label] = 1;
+                                }
+
+                                prevState.data.graph.count.edges = __countEdge;
+                                prevState.data.graph.edges[i].type = edge[0][keyName].type;
+                            }
+
+                            prevState.data.graph.edges[i].properties = edge[0][keyName].properties;
+                            console.log(prevState.data.graph.edges[i].properties)
+                            return prevState;
+                        });
+                        break;
+                    }
+                }
+            }
+        }
+    }.bind(this)
 
     render() {
         return (
@@ -358,6 +391,7 @@ class App extends React.Component {
                         data={this.state.data} 
                         onAddNode={this.addNode}
                         onMergeNode={this.mergeNode}
+                        onMergeEdge={this.mergeEdge}
                     />
                 </div>
                 

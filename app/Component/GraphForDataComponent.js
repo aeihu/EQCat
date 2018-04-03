@@ -17,6 +17,8 @@ import ImagePhotoLibrary from 'material-ui/svg-icons/image/photo-library';
 import ImageControlPoint from 'material-ui/svg-icons/image/control-point';
 import ImageFilter from 'material-ui/svg-icons/image/filter';
 import ContentRemoveCircleOutline from 'material-ui/svg-icons/content/remove-circle-outline';
+import ImageEdit from 'material-ui/svg-icons/image/edit';
+import EditorDialogsComponent from './EditorDialogsComponent';
 
 import Popover from 'material-ui/Popover/Popover';
 import { SketchPicker } from 'react-color';
@@ -26,7 +28,11 @@ export default class GraphForDataComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            cards:[],
+            open: false,
+            cards:{
+                nodes:[],
+                edges:[],
+            },
             showCard: this.showCard,
             menu: {
                 open: false,
@@ -58,26 +64,28 @@ export default class GraphForDataComponent extends React.Component {
         });
     }.bind(this)
 
-    showCard = function(d) {
-        for (let index in this.state.cards){
-            if (this.state.cards[index].id == d.id){
+    showCard = function(d, mode) {
+        let __mode = mode == 0 ? 'nodes' : 'edges';
+        for (let index in this.state.cards[__mode]){
+            if (this.state.cards[__mode][index].id == d.id){
                 return;
             }
         }
 
         this.updateFlag = false;
         this.setState(function(prevState, props) {
-            prevState.cards.push(d);
+            prevState.cards[__mode].push(d);
             return prevState;
         });
     }.bind(this);
 
-    hideCard = function(id) {
-        for (let index in this.state.cards){
-            if (this.state.cards[index].id == id){
+    hideCard = function(id, mode) {
+        let __mode = mode == 0 ? 'nodes' : 'edges';
+        for (let index in this.state.cards[__mode]){
+            if (this.state.cards[__mode][index].id == id){
                 this.updateFlag = false;
                 this.setState(function(prevState, props) {
-                    prevState.cards.splice(index, 1);
+                    prevState.cards[__mode].splice(index, 1);
                     return prevState;
                 });
             }
@@ -97,7 +105,16 @@ export default class GraphForDataComponent extends React.Component {
     {
         this.updateFlag = true;
         this.setState(function(prevState, props) {
-            prevState.cards = [];
+            prevState.cards = {
+                nodes:[],
+                edges:[],
+            };
+            //
+            //
+            //  need fix
+            //
+            //
+            //
             return prevState;
         });
         // if(this.updateFlag){
@@ -125,29 +142,31 @@ export default class GraphForDataComponent extends React.Component {
 
     render() {
         let __cardElements=[];
-        for (let i = 0; i < this.state.cards.length; i++){
-            __cardElements.push(
-                <CardComponent 
-                    data={this.state.cards[i]} 
-                    closeCard={this.hideCard} 
-                    onMergeNode={this.props.onMergeNode}
-                />);
+        for (let key in this.state.cards){
+            let __val = key == 'nodes' ? {mode:0, onMerge: this.props.onMergeNode} : {mode:1, onMerge:this.props.onMergeEdge}
+            for (let i = 0; i < this.state.cards[key].length; i++){
+                __cardElements.push(
+                    <CardComponent 
+                        mode={__val.mode} // node:0  edge:1
+                        data={this.state.cards[key][i]} 
+                        closeCard={this.hideCard} 
+                        onMerge={__val.onMerge}
+                    />);
+            }
         }
         
         return (
             <div style={{display: 'flex', flexDirection: 'column', height: '100%', width:'100%'}} >
+                <EditorDialogsComponent 
+                    isNew={true}
+                    open={this.state.open}
+                    onChangeData={this.props.onAddNode}
+                    onRequestClose={()=> {this.setState(function(prevState, props) {
+                        prevState.open = false;
+                        return prevState;
+                    })}}
+                />
                 <div style={{display: 'flex', flexDirection: 'row', flex:'1 1 auto', width:'100%'}}>
-                    <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto'}} >
-                        <IconButton onClick={D3ForceSimulation.showOrHideImage}>
-                            <ImageFilter />
-                        </IconButton>
-                        <IconButton onClick={D3ForceSimulation.showOrHideImage}>
-                            <ImageControlPoint />
-                        </IconButton>
-                        <IconButton onClick={D3ForceSimulation.showOrHideImage}>
-                            <ContentRemoveCircleOutline />
-                        </IconButton>
-                    </div>
                     <div id="displayContent" 
                         style={{backgroundColor: '#EEEEEE', width:'100%', flex:'1 1 auto'}} 
                         onContextMenu={this.handleClick}>
@@ -183,6 +202,37 @@ export default class GraphForDataComponent extends React.Component {
                                 <MenuItem primaryText="Remove" leftIcon={<Delete />} />
                             </Menu>
                         </Popover>
+                    </div>
+                    <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto'}} >
+                        <IconButton 
+                            style={{borderBottom: '1px solid #ddd',}}
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            //onMouseOver={()=>{console.log('phi')}}
+                            onClick={()=> {this.setState(function(prevState, props) {
+                                prevState.open = true;
+                                return prevState;
+                            })}}
+                        >
+                            <ImageControlPoint />
+                        </IconButton>
+                        <IconButton 
+                            style={{borderBottom: '1px solid #ddd',}}
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            onClick={D3ForceSimulation.showOrHideImage}>
+                            <ImageEdit />
+                        </IconButton>
+                        <IconButton 
+                            style={{borderBottom: '1px solid #ddd',}}
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            onClick={D3ForceSimulation.showOrHideImage}>
+                            <ContentRemoveCircleOutline />
+                        </IconButton>
+                        <IconButton 
+                            style={{borderBottom: '1px solid #ddd',}}
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            onClick={D3ForceSimulation.showOrHideImage}>
+                            <ImageFilter />
+                        </IconButton>
                     </div>
                 </div>
                 <EditStyleComponent 

@@ -63,7 +63,6 @@ app.use(staticDir);
 console.log(staticDir)
 
 app.get('/', function (req, res) {
-	console.log('11111');
 	res.sendfile("index.html");
 });
 
@@ -93,6 +92,7 @@ app.get('/template', function (req, res) {
 		templates: templates,
 		labels: DBDriver._labels,
 		propertyKeys: DBDriver._propertyKeys,
+		relationshipTypes: DBDriver._relationshipTypes,
 	}
 	res.jsonp(__result);
 });
@@ -115,6 +115,19 @@ app.get('/icon', function (req, res) {
 
 app.get('/template/save?:template', function (req, res) {
 
+});
+
+app.get('/addNode?:node', function (req, res) {
+	console.log(req.query.node);
+	
+	try{
+		let __json = JSON.parse(req.query.node);
+		DBDriver.addSingleNode(__json, res);
+	}	
+	catch (err){
+		console.log(err);
+		res.send('error');
+	}
 });
 
 app.get('/mergeNode?:node', function (req, res) {

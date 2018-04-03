@@ -120,6 +120,29 @@ export default class Neo4j
         }
     }
 
+    addSingleNode(node, res)
+    {
+        let __statement = 'create (n';
+        for (let i=0; i<node.labels.length; i++){
+            __statement += ':' + node.labels[i];
+        }
+
+        __statement += '{';
+        let __index = 0;
+        for (let key in node.properties){
+            if (__index > 0){
+                __statement += ',';
+            }
+            __index++;
+            __statement += key + ':{' + key + '}';
+        }
+
+        __statement += '}) return n';
+
+        console.log(__statement);
+        this.runStatement(__statement, node.properties.merge, res);
+    }
+
     mergeSingleNode(node, res)
     {
         //MATCH (n)  WHERE id(n) = 1 set n.bor=1986  return n
@@ -156,7 +179,13 @@ export default class Neo4j
 
         __statement += ' return n';
         console.log(__statement);
-        this.runStatement(__statement, node.properties.merge, res)
+        this.runStatement(__statement, node.properties.merge, res);
+    }
+    
+    deleteNode(node, res){
+        let __statement = 'Match (n) where id(n)=' + node.id + ' delete n';
+        console.log(__statement);
+        this.runStatement(__statement, node.properties.merge, res);
     }
 
     runStatement(statement, param, res)

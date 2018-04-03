@@ -47,8 +47,13 @@
             filter: drop-shadow(rgba(0, 0, 0, 0) 0px 0px);
         }
 
-        .nodes[shadowed='selected'] {
-            filter: drop-shadow(0px 0px 2px OrangeRed);
+        .nodes_selected{
+            /* filter: drop-shadow(0px 0px 2px MidnightBlue); */
+            filter: drop-shadow(Tomato 3px 2px);
+        }
+
+        .nodes[shadowed='mouseover'] {
+            filter: drop-shadow(0px 0px 2px OrangeRed); 
         }
 
         .nodes[shadowed='adjacent'] {

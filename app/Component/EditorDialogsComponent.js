@@ -40,34 +40,44 @@ export default class EditorDialogsComponent extends React.Component {
 		this.state = {
 			progress: false,
 			templates: {},
-			labelAutoComplete: '',
 
 			memo: {},
 			images: [],
 			labels: [],
+			type:'',    // edge
 			properties:[
                 //{key:1,type:'String',value:'1'}
 			],
 		//======DataSource=======
 			labelList: [],
 			propertyList: [],
+			relationshipTypeList: []
 		};
 
 		this.getTemplate();
 	}
 
 	
-	updateInputForLabel = (searchText) => {
+	updateInputForLabel = (searchText, index) => {
 		this.setState(function(prevState, props) {
-            prevState.labelAutoComplete = searchText;
+			if (props.mode == 0){
+				prevState.labels[index] = searchText;
+			}else{
+				prevState.type = searchText;
+			}
+
             return prevState;
         });
 	};
 
-	newRequestForLabel = (value) => {
+	newRequestForLabel = (value, index) => {
 		this.setState(function(prevState, props) {
-			console.log('newRequestForLabel');
-            prevState.labelAutoComplete = value;
+			if (props.mode == 0){
+				prevState.labels[index] = value;
+			}else{
+				prevState.type = value;
+			}
+			
             return prevState;
         });
 	};
@@ -127,14 +137,8 @@ export default class EditorDialogsComponent extends React.Component {
 	}
 
 	addLabel = () => {
-        for (let i = 0; i < this.state.labels.length; i++){
-			if (this.state.labels[i] == this.state.labelAutoComplete){
-				return;
-			}
-		}
-
 		this.setState(function(prevState, props) {
-            prevState.labels.push(prevState.labelAutoComplete);
+            prevState.labels.push('');
             return prevState;
         });
 	};
@@ -164,6 +168,7 @@ export default class EditorDialogsComponent extends React.Component {
 					prevState.templates = __json.templates;
 					prevState.labelList = __json.labels;
 					prevState.propertyList = __json.propertyKeys;
+					prevState.relationshipTypeList = __json.relationshipTypes;
                     return prevState;
 				});
             }
@@ -217,36 +222,23 @@ export default class EditorDialogsComponent extends React.Component {
 				let __node = JSON.parse(xmlhttp.responseText);
 				console.log('ssssssssssssssssssssssssssssssssssssssss')
 				console.log(__node)
-				this.props.onAddNode(__node);
+				this.props.onChangeData(__node);
 			}
 		}.bind(this)
 
+		console.log(this.state)
+		console.log(__node)
 		xmlhttp.open("GET", "/addNode?node=" + JSON.stringify(__node), true);
 		xmlhttp.send();
 	}.bind(this)
 	
-	mergeNode = function() {
-		let __node = {
-			id: this.props.data.id,
-			labels:{
-				merge: [...this.state.labels],
-				remove:[],
-			},
-			properties:{
-				merge:{},
-				remove:[],
-			}
-		};
+	arrangePropertiesForMerge = function(){
+		let __result = {
+			merge:{},
+			remove:[],
+		}
 
 		let __prevData = {...this.props.data.properties};
-		console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq')
-		console.log(this.props.data.properties)
-		console.log('rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr')
-		console.log(__prevData)
-		
-		/////////////////////////////////////////////
-		//			merge properties
-		/////////////////////////////////////////////
 
 		for (let i=0; i<this.state.properties.length; i++){
 			let __key = this.state.properties[i].key;
@@ -272,31 +264,91 @@ export default class EditorDialogsComponent extends React.Component {
 					case 'listNumber':
 					case 'listBoolean':
 						if(!GlobalFunction.ArrayEquals(__val, __prevData[__key])){
-							__node.properties.merge[__key] = __val;
+							__result.merge[__key] = __val;
 						}
 						break;
 					default:
 						if (__prevData[__key] != __val){
-							__node.properties.merge[__key] = __val;
+							__result.merge[__key] = __val;
 						}
 						break;
 				}
 				
 				delete __prevData[__key];
 			}else{
-				__node.properties.merge[__key] = __val;
+				__result.merge[__key] = __val;
 			}
 		}
 
 		for (let key in __prevData){
-			__node.properties.remove.push(key);
+			__result.remove.push(key);
 		}
+
+		return __result;
+	}
+
+	mergeEdge = function(){
+		let __edge = {
+			id: this.props.data.id,
+			type:'',
+			properties:{
+				merge:{},
+				remove:[],
+			}
+		};
+			
+		/////////////////////////////////////////////
+		//			merge properties
+		/////////////////////////////////////////////
+		__edge.properties = arrangePropertiesForMerge();
+		
+		/////////////////////////////////////////////
+		//			merge type
+		/////////////////////////////////////////////
+		if (
+			Object.keys(__node.properties.merge).length > 0 ||
+			__node.properties.remove.length > 0)
+		{
+			let xmlhttp = new XMLHttpRequest()
+			
+			xmlhttp.onreadystatechange = function(){
+				if (xmlhttp.readyState==4 && xmlhttp.status==200){
+					console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+					let __edge = JSON.parse(xmlhttp.responseText);
+					console.log('ssssssssssssssssssssssssssssssssssssssss')
+					console.log(__edge)
+					this.props.onMergeEdge(__edge);
+				}
+			}.bind(this)
+
+			xmlhttp.open("GET", "/mergeEdge?edge=" + JSON.stringify(__edge), true);
+			xmlhttp.send();
+		}
+	}.bind(this)
+
+	mergeNode = function() {
+		let __node = {
+			id: this.props.data.id,
+			labels:{
+				merge: [...this.state.labels],
+				remove:[],
+			},
+			properties:{
+				//merge:{},
+				//remove:[],
+			}
+		};
+		
+		/////////////////////////////////////////////
+		//			merge properties
+		/////////////////////////////////////////////
+		__node.properties = arrangePropertiesForMerge();
 
 		/////////////////////////////////////////////
 		//			merge labels
 		/////////////////////////////////////////////
 
-		__prevData = [...this.props.data.labels];
+		let __prevData = [...this.props.data.labels];
 		let __isRemove = true;
 		for (let i=0; i<__prevData.length; i++){
 			__isRemove = true;
@@ -312,8 +364,6 @@ export default class EditorDialogsComponent extends React.Component {
 				__node.labels.remove.push(__prevData[i]);
 			}
 		}
-		console.log(__node.labels.merge)
-		console.log(__node.labels.remove)
 
 		if (__node.labels.merge.length > 0 ||
 			__node.labels.remove.length > 0 ||
@@ -328,7 +378,7 @@ export default class EditorDialogsComponent extends React.Component {
 					let __node = JSON.parse(xmlhttp.responseText);
 					console.log('ssssssssssssssssssssssssssssssssssssssss')
 					console.log(__node)
-					this.props.onMergeNode(__node);
+					this.props.onChangeData(__node);
 				}
 			}.bind(this)
 
@@ -353,11 +403,9 @@ export default class EditorDialogsComponent extends React.Component {
 	
     componentWillReceiveProps(newProps)
     {
-		if (newProps.data != null){
+		if (this.props.isNew){
 			this.setState(function(prevState, props) {
-				prevState.labels = [...newProps.data.labels];
-				
-				//{key:1,type:'String',value:'1'}
+				prevState.labels = [];
 				prevState.properties=[];
 				prevState.images = [];
 				prevState.memo = {
@@ -365,61 +413,80 @@ export default class EditorDialogsComponent extends React.Component {
 					value: '',
 					type: 'string'
 				};
-
-				for (let key in newProps.data.properties){
-					switch (key){
-						case GlobalConstant.imagesOfProperty:
-							prevState.images = [...newProps.data.properties[key]];
-							break;
-						case GlobalConstant.memoOfProperty:
-							prevState.memo.value = newProps.data.properties[key];
-							console.log('prevState.memo.value');
-							console.log(newProps.data.properties[key]);
-							break;
-						default:{
-							let __type = typeof newProps.data.properties[key];
-							if (__type == 'object'){
-								__type = "listString";
-								if (newProps.data.properties[key].length > 0){
-									switch (typeof newProps.data.properties[key][0]){
-										case 'string':
-											__type = "listString";
-											break;
-										case 'number':
-											__type = "listNumber";
-											break;
-										case 'boolean':
-											__type = "listBoolean";
-											break;
-									}
-								}
-							}
-
-							prevState.properties.push({
-								key: key,
-								value: typeof newProps.data.properties[key] == 'object' ? 
-									[...newProps.data.properties[key]]
-									:
-									newProps.data.properties[key],
-								type: __type
-							});
-						}
-					}
-				}
-
-				prevState.properties.push(prevState.memo);
-				prevState.properties.push({
-					key: GlobalConstant.imagesOfProperty,
-					value: prevState.images,
-					type: 'listString'
-				});
-				
 				return prevState;
 			});
+		}else{
+			if (newProps.data != null){
+				this.setState(function(prevState, props) {
+					if (props.mode == 0){
+						prevState.labels = [...newProps.data.labels];
+					}else{
+						prevState.type = newProps.data.type;
+					}
+					
+					//{key:1,type:'String',value:'1'}
+					prevState.properties=[];
+					prevState.images = [];
+					prevState.memo = {
+						key: GlobalConstant.memoOfProperty,
+						value: '',
+						type: 'string'
+					};
+
+					for (let key in newProps.data.properties){
+						switch (key){
+							case GlobalConstant.imagesOfProperty:
+								prevState.images = [...newProps.data.properties[key]];
+								break;
+							case GlobalConstant.memoOfProperty:
+								prevState.memo.value = newProps.data.properties[key];
+								break;
+							default:{
+								let __type = typeof newProps.data.properties[key];
+								if (__type == 'object'){
+									__type = "listString";
+									if (newProps.data.properties[key].length > 0){
+										switch (typeof newProps.data.properties[key][0]){
+											case 'string':
+												__type = "listString";
+												break;
+											case 'number':
+												__type = "listNumber";
+												break;
+											case 'boolean':
+												__type = "listBoolean";
+												break;
+										}
+									}
+								}
+
+								prevState.properties.push({
+									key: key,
+									value: typeof newProps.data.properties[key] == 'object' ? 
+										[...newProps.data.properties[key]]
+										:
+										newProps.data.properties[key],
+									type: __type
+								});
+							}
+						}
+					}
+
+					prevState.properties.push(prevState.memo);
+					prevState.properties.push({
+						key: GlobalConstant.imagesOfProperty,
+						value: prevState.images,
+						type: 'listString'
+					});
+					
+					return prevState;
+				});
+			}
 		}
 	}
 	
 	render() {
+		let __submit = this.props.isNew ? this.addNode : this.mergeNode;
 		const __actions = [
 			<FlatButton
 				label="Cancel"
@@ -430,38 +497,98 @@ export default class EditorDialogsComponent extends React.Component {
 				label="Submit"
 				primary={true}
 				keyboardFocused={true}
-				onClick={this.mergeNode}
+				onClick={__submit}
 			/>,
 		];
 
-        let __labelChip = [];
-        for (let i = 0; i < this.state.labels.length; i++){
-			__labelChip.push(<Chip 
-					key={i}
-					className="labelChip"
-					deleteIconStyle={{margin:'4px', height:'16px', width:'16px'}}
-					style={this.state.templates.hasOwnProperty(this.state.labels[i]) ? {border:'2px solid #a1a1ff'} : {}}
-					labelStyle={{fontSize: '12px'}}
-					onClick={this.state.templates.hasOwnProperty(this.state.labels[i]) ? 
-						() => this.setPropertiesByLabel(this.state.labels[i]) :
-						null}
-					onRequestDelete={() => this.delLabel(i)}
-					>
-						{D3ForceSimulation.NEStyles.nodes.hasOwnProperty(this.state.labels[i]) ?
-							<Avatar src={D3ForceSimulation.NEStyles.nodes[this.state.labels[i]].icon} 
-								style={
-									{
-										width:'23px', 
-										height:'23px', 
-										marginLeft:'6px', 
-										borderRadius:'0%', 
-										backgroundColor:'#00000000'}} 
+		let __chips = [];
+		if (this.props.mode == 0){
+			for (let i = 0; i < this.state.labels.length; i++){
+				__chips.push(
+					<div
+						style={{
+						display: 'flex',
+						alignItems: 'center',
+						paddingRight: '8px',
+						borderRadius: '10px',
+						backgroundColor: 'Gainsboro',
+						margin: '3px',
+						height: '25px'
+					}}>
+						<Avatar
+							src={D3ForceSimulation.NEStyles.nodes.hasOwnProperty(this.state.labels[i]) ?
+								D3ForceSimulation.NEStyles.nodes[this.state.labels[i]].icon
+								:
+								GlobalConstant.defaultIcon}
+							style={{
+								width:'23px', 
+								height:'23px', 
+								marginLeft:'6px', 
+								borderRadius:'0%', 
+								backgroundColor:'#00000000'}} 
+						/>
+						<AutoComplete
+							//floatingLabelText="Label"
+							searchText={this.state.labels[i]}
+							onUpdateInput={(searchText)=>this.updateInputForLabel(searchText, i)}
+							onNewRequest={(value)=>this.newRequestForLabel(value, i)}
+							dataSource={this.state.labelList}
+							filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
+							openOnFocus={false}
+							maxSearchResults={6}
+							style={{width:'85px',height:'32px'}} 
+							textFieldStyle={{width:'85px',height:'32px'}} 
+							inputStyle={{fontSize: '12px'}}
+						/>
+						<IconButton 
+							tooltip="Delete Label"
+							style={{
+								padding:'0px',
+								width: '24px',
+								height: '24px'
+							}}
+							onClick={function(event) {
+								this.setState(function(prevState, props) {
+									prevState.labels.splice(i, 1);
+									return prevState;
+								});
+							}.bind(this)}
+						>
+							<Clear
+								style={{
+									height: '24px',
+									width: '24px',}} 
 							/>
-							:
-							''
-						}
-						{this.state.labels[i]}
-				</Chip>);
+						</IconButton>
+					</div>
+				)
+			}
+		}else{
+			__chips.push(
+				<div
+					style={{
+					display: 'flex',
+					alignItems: 'center',
+					paddingRight: '8px',
+					borderRadius: '3px',
+					backgroundColor: 'Gainsboro',
+					margin: '3px',
+					height: '25px'
+				}}>
+					<AutoComplete
+						//floatingLabelText="Label"
+						searchText={this.state.type}
+						onUpdateInput={this.updateInputForLabel}
+						onNewRequest={this.newRequestForLabel}
+						dataSource={this.state.relationshipTypeList}
+						filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
+						openOnFocus={false}
+						maxSearchResults={6}
+						style={{width:'85px',height:'32px'}} 
+						textFieldStyle={{width:'85px',height:'32px'}} 
+						inputStyle={{fontSize: '12px'}}
+					/>
+				</div>);
 		}
 		
 		let __propertiesElement = [];
@@ -577,6 +704,7 @@ export default class EditorDialogsComponent extends React.Component {
 											/>
 										}
 										<IconButton 
+											tooltip="Delete Item"
 											style={{
 												padding:'0px',
 												width: '24px',
@@ -629,6 +757,7 @@ export default class EditorDialogsComponent extends React.Component {
 								</IconMenu>
 								
 								<IconButton 
+									tooltip="Add Item"
 									style={{
 										padding:'0px',
 										width: '25px',
@@ -746,41 +875,43 @@ export default class EditorDialogsComponent extends React.Component {
 							  ]}
 						/>
                     </IconMenu>
-					<IconButton onClick={() => this.delProperty(i)}><Clear /></IconButton>
+					<IconButton 
+						tooltip="Delete Property"
+						onClick={() => this.delProperty(i)}
+					>
+						<Clear />
+					</IconButton>
                 </div>
             );
 		}
 		
 		return (
 			<Dialog
-				title="Edit Node"
+				title={this.props.isNew ? "New Node" : this.props.mode == 0 ? "Edit Node" : "Edit Relationship"}
 				actions={__actions}
 				modal={false}
 				open={this.props.open}
 				onRequestClose={this.props.onRequestClose}
 				autoScrollBodyContent={true}
 			>
-				<h2>Labels</h2>
+				<h2>{this.props.mode == 0 ? 'Labels' : 'Type'}</h2>
 				<div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto'}} >
-					{__labelChip}
-				</div>
-				<div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto', alignItems: 'flex-end'}} >
-					<AutoComplete
-						floatingLabelText="Label"
-						searchText={this.state.labelAutoComplete}
-						onUpdateInput={this.updateInputForLabel}
-						onNewRequest={this.newRequestForLabel}
-						dataSource={this.state.labelList}
-						filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
-						openOnFocus={false}
-						maxSearchResults={6}
-					/>
-					<RaisedButton
-						onClick={this.addLabel}
-						label="Add Label"
-						style={{margin: 12}}
-						primary={true}
-					/>
+					{__chips}
+					{this.props.mode == 0 ?
+						<IconButton 
+							tooltip="Add Label"
+							style={{
+								padding:'0px',
+								width: '25px',
+								height: '25px',
+								marginRight: '5px'
+							}}
+							onClick={this.addLabel}
+						>
+							<ContentAdd />
+						</IconButton>
+						:
+						''}
 				</div>
 				<div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
 					<h2>Images</h2>
@@ -797,10 +928,14 @@ export default class EditorDialogsComponent extends React.Component {
 							<GridTile
 								key={tile}
 								title={(index + 1) + ' / ' + this.state.images.length}
-								style={{width: '280px'}}
+								style={{
+									//width: '280px'
+									minWidth: '150px'
+								}}
 								actionIcon={
 									<div>
 										<IconButton 
+											//tooltip="Move Image To Top"
 											onClick={function(event) {
 												this.setState(function(prevState, props) {
 													let __tmp = prevState.images[0];
@@ -813,6 +948,7 @@ export default class EditorDialogsComponent extends React.Component {
 											<StarBorder color="rgb(0, 188, 212)" />
 										</IconButton>
 										<IconButton 
+											//tooltip="Delete Image"
 											onClick={function(event) {
 												this.setState(function(prevState, props) {
 													prevState.images.splice(index, 1);
