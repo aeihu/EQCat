@@ -57,13 +57,9 @@ export default class EditStyleComponent extends React.Component {
     render() {
         let __nodeChip = [];
         for (let key in this.props.data.nodes){
-            if (!D3ForceSimulation.NEStyles.nodes.hasOwnProperty(key) && key!='*'){
+            if (key != '*'){
                 let __keys = Object.keys(this.props.data.nodes[key].propertiesList);
-                D3ForceSimulation.NEStyles.nodes[key] = {
-                    icon: GlobalConstant.defaultIcon,
-                    size: 50,
-                    caption: __keys.length > 1 ? __keys[1] : __keys[0]
-                };
+                D3ForceSimulation.getNodeStyle(key).caption = __keys.length > 1 ? __keys[1] : __keys[0];
             }
 
             //////////////////////////////////////////////
@@ -87,7 +83,7 @@ export default class EditStyleComponent extends React.Component {
                     null}
                 >
                     {key != '*' ?
-                        <Avatar src={D3ForceSimulation.NEStyles.nodes[key].icon} 
+                        <Avatar src={D3ForceSimulation.getNodeStyle(key).icon} 
                             style={
                                 {
                                     width:'23px', 
@@ -103,13 +99,6 @@ export default class EditStyleComponent extends React.Component {
 
         let __edgeChip = [];
         for (let key in this.props.data.edges){
-            if (!D3ForceSimulation.NEStyles.edges.hasOwnProperty(key) && key!='*'){
-                D3ForceSimulation.NEStyles.edges[key] = {
-                    color: '#000000'
-                };
-            }
-            //////////////////////////////////////////////
-
             __edgeChip.push(<Chip 
                 className="edgeChip" 
                 labelStyle={{fontSize: '12px'}}
@@ -143,9 +132,9 @@ export default class EditStyleComponent extends React.Component {
                 </div>
                 {this.state.mode == 1 ? ///////////////////  editMode  /////////////////////////
                     <EditNodeComponent 
-                        size={D3ForceSimulation.NEStyles.nodes[this.state.name].size}
-                        caption={D3ForceSimulation.NEStyles.nodes[this.state.name].caption}
-                        icon={D3ForceSimulation.NEStyles.nodes[this.state.name].icon}
+                        size={D3ForceSimulation.getNodeStyle(this.state.name).size}
+                        caption={D3ForceSimulation.getNodeStyle(this.state.name).caption}
+                        icon={D3ForceSimulation.getNodeStyle(this.state.name).icon}
                         data={this.props.data.nodes} 
                         chipName={this.state.name} 
                         onIconChange={this.setIconInBar}
@@ -153,7 +142,7 @@ export default class EditStyleComponent extends React.Component {
                         onSizeChange={this.setSizeInBar} />
                 : this.state.mode == 2 ?
                     <EditEdgeComponent 
-                        color={D3ForceSimulation.NEStyles.edges[this.state.name].color}
+                        color={D3ForceSimulation.getEdgeStyle(this.state.name).color}
                         data={this.props.data.edges} 
                         chipName={this.state.name} 
                         onChange={this.setColorInBar} />

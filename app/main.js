@@ -341,29 +341,30 @@ class App extends React.Component {
         }
     }.bind(this)
     
-    mergeEdge = function(edge){
+    mergeEdge = function(edge, prevEdgeId){
         if (edge.length > 0){
             for (let keyName in edge[0]){
                 for (let i=0; i<this.state.data.graph.edges.length; i++){
-                    if (this.state.data.graph.edges[i].id == edge[0][keyName].id){
+                    if (this.state.data.graph.edges[i].id == prevEdgeId){
                         this.setState(function(prevState, props) {
-                            if (prevState.data.graph.edges[i].type != node[0][keyName].type){
+                            if (prevState.data.graph.edges[i].type != edge[0][keyName].type){
                                 let __countEdge = prevState.data.graph.count.edges;
                                 __countEdge[prevState.data.graph.edges[i].type]--;
-                                let __label = node[0][keyName].type;
+                                let __label = edge[0][keyName].type;
                                 if (__countEdge.hasOwnProperty(__label)){
                                     __countEdge[__label]++;
                                 }
-                                else{W
+                                else{
                                     __countEdge[__label] = 1;
                                 }
 
                                 prevState.data.graph.count.edges = __countEdge;
                                 prevState.data.graph.edges[i].type = edge[0][keyName].type;
+                                prevState.data.graph.edges[i].id = edge[0][keyName].id;
                             }
 
                             prevState.data.graph.edges[i].properties = edge[0][keyName].properties;
-                            console.log(prevState.data.graph.edges[i].properties)
+                            console.log(prevState.data.graph.edges[i])
                             return prevState;
                         });
                         break;

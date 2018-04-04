@@ -104,19 +104,19 @@ export default class GraphForDataComponent extends React.Component {
     componentWillReceiveProps(newProps)
     {
         this.updateFlag = true;
-        this.setState(function(prevState, props) {
-            prevState.cards = {
-                nodes:[],
-                edges:[],
-            };
-            //
-            //
-            //  need fix
-            //
-            //
-            //
-            return prevState;
-        });
+        // this.setState(function(prevState, props) {
+        //     prevState.cards = {
+        //         nodes:[],
+        //         edges:[],
+        //     };
+        //     //
+        //     //
+        //     //  need fix
+        //     //
+        //     //
+        //     //
+        //     return prevState;
+        // });
         // if(this.updateFlag){
         //     let el = ReactDOM.findDOMNode();
         //     D3ForceSimulation.update(el, this.props, this.state, this.NEStyles);
@@ -143,15 +143,23 @@ export default class GraphForDataComponent extends React.Component {
     render() {
         let __cardElements=[];
         for (let key in this.state.cards){
-            let __val = key == 'nodes' ? {mode:0, onMerge: this.props.onMergeNode} : {mode:1, onMerge:this.props.onMergeEdge}
             for (let i = 0; i < this.state.cards[key].length; i++){
                 __cardElements.push(
-                    <CardComponent 
-                        mode={__val.mode} // node:0  edge:1
-                        data={this.state.cards[key][i]} 
-                        closeCard={this.hideCard} 
-                        onMerge={__val.onMerge}
-                    />);
+                    key == 'nodes' ?
+                        <CardComponent 
+                            mode={0} // node:0  edge:1
+                            data={this.state.cards[key][i]} 
+                            closeCard={this.hideCard} 
+                            onMerge={this.props.onMergeNode}
+                        />
+                        :
+                        <CardComponent 
+                            mode={1} // node:0  edge:1
+                            data={this.state.cards[key][i]} 
+                            closeCard={this.hideCard} 
+                            onMerge={this.props.onMergeEdge}
+                        />
+                );
             }
         }
         

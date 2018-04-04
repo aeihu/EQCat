@@ -223,6 +223,7 @@ export default class EditorDialogsComponent extends React.Component {
 				console.log('ssssssssssssssssssssssssssssssssssssssss')
 				console.log(__node)
 				this.props.onChangeData(__node);
+				this.props.onRequestClose();
 			}
 		}.bind(this)
 
@@ -288,27 +289,60 @@ export default class EditorDialogsComponent extends React.Component {
 	}
 
 	mergeEdge = function(){
-		let __edge = {
-			id: this.props.data.id,
-			type:'',
-			properties:{
-				merge:{},
-				remove:[],
-			}
-		};
-			
-		/////////////////////////////////////////////
-		//			merge properties
-		/////////////////////////////////////////////
-		__edge.properties = arrangePropertiesForMerge();
+		let __edge;
+		let __hasChanged = false;
 		
-		/////////////////////////////////////////////
-		//			merge type
-		/////////////////////////////////////////////
-		if (
-			Object.keys(__node.properties.merge).length > 0 ||
-			__node.properties.remove.length > 0)
-		{
+		if (this.props.data.type == this.state.type){
+			__edge = {
+				id: this.props.data.id,
+				properties:{
+					merge:{},
+					remove:[],
+				}
+			};
+
+			/////////////////////////////////////////////
+			//			merge properties
+			/////////////////////////////////////////////
+			__edge.properties = this.arrangePropertiesForMerge();
+
+			__hasChanged = Object.keys(__edge.properties.merge).length > 0 ||
+				__edge.properties.remove.length > 0
+		}else{
+			__edge = {
+				id: this.props.data.id,
+				source: this.props.data.source.id,
+				target: this.props.data.target.id,
+				type: this.state.type,
+				properties:{}
+			};
+
+			for (let i=0; i<this.state.properties.length; i++){
+				let __key = this.state.properties[i].key;
+				let __val = this.state.properties[i].value;
+
+				switch (this.state.properties[i].type){
+					case 'number':
+						__edge.properties[__key] = Number(__val);
+						break;
+					case 'listNumber':{
+						let __listNumber = [];
+						for (let i=0; i<__val.length; i++){
+							__listNumber.push(Number(__val[i]));
+						}
+						__edge.properties[__key] = __listNumber;
+						break;
+					}
+					default:
+						__edge.properties[__key] = __val;
+						break;
+				}
+			}
+
+			__hasChanged = true;
+		}
+		
+		if (__hasChanged){
 			let xmlhttp = new XMLHttpRequest()
 			
 			xmlhttp.onreadystatechange = function(){
@@ -317,7 +351,8 @@ export default class EditorDialogsComponent extends React.Component {
 					let __edge = JSON.parse(xmlhttp.responseText);
 					console.log('ssssssssssssssssssssssssssssssssssssssss')
 					console.log(__edge)
-					this.props.onMergeEdge(__edge);
+					this.props.onChangeData(__edge, this.props.data.id);
+					this.props.onRequestClose();
 				}
 			}.bind(this)
 
@@ -342,7 +377,7 @@ export default class EditorDialogsComponent extends React.Component {
 		/////////////////////////////////////////////
 		//			merge properties
 		/////////////////////////////////////////////
-		__node.properties = arrangePropertiesForMerge();
+		__node.properties = this.arrangePropertiesForMerge();
 
 		/////////////////////////////////////////////
 		//			merge labels
@@ -379,6 +414,7 @@ export default class EditorDialogsComponent extends React.Component {
 					console.log('ssssssssssssssssssssssssssssssssssssssss')
 					console.log(__node)
 					this.props.onChangeData(__node);
+					this.props.onRequestClose();
 				}
 			}.bind(this)
 
@@ -403,6 +439,7 @@ export default class EditorDialogsComponent extends React.Component {
 	
     componentWillReceiveProps(newProps)
     {
+		console.log(newProps)
 		if (this.props.isNew){
 			this.setState(function(prevState, props) {
 				prevState.labels = [];
@@ -486,7 +523,7 @@ export default class EditorDialogsComponent extends React.Component {
 	}
 	
 	render() {
-		let __submit = this.props.isNew ? this.addNode : this.mergeNode;
+		let __submit = this.props.mode == 1 ? this.mergeEdge : this.props.isNew ? this.addNode : this.mergeNode;
 		const __actions = [
 			<FlatButton
 				label="Cancel"
@@ -516,10 +553,7 @@ export default class EditorDialogsComponent extends React.Component {
 						height: '25px'
 					}}>
 						<Avatar
-							src={D3ForceSimulation.NEStyles.nodes.hasOwnProperty(this.state.labels[i]) ?
-								D3ForceSimulation.NEStyles.nodes[this.state.labels[i]].icon
-								:
-								GlobalConstant.defaultIcon}
+							src={D3ForceSimulation.getNodeStyle(this.state.labels[i]).icon}
 							style={{
 								width:'23px', 
 								height:'23px', 

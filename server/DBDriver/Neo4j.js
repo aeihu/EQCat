@@ -187,6 +187,47 @@ export default class Neo4j
         console.log(__statement);
         this.runStatement(__statement, node.properties.merge, res);
     }
+    
+    mergeSingleEdge(edge, res)
+    {
+        let __statement = '';
+        let __index = 0;
+        if (edge.hasOwnProperty('target')){
+            //match (n),(m),()-[r]-() where id(n)=0 and id(m)=3 and id(r)=1046 merge (n)-[rr:vss]-(m) delete r return DISTINCT rr
+            __statement = 'match (s),(t),()-[r]-()' +
+                ' where id(s)=' + edge.source + ' and id(t)=' + edge.target + ' and id(r)=' + edge.id +
+                ' merge (s)-[nr:' + edge.type + ' {';
+                
+            for (let key in edge.properties){
+                if (__index > 0){
+                    __statement += ',';
+                }
+                __index++;
+                __statement += key + ':{' + key + '}';
+            }
+
+            __statement += '}]->(t) delete r return DISTINCT nr';
+        }else{
+            //match ()-[r]-() where id(r)=4 set r.type=1 return DISTINCT r
+            __statement = 'Match ()-[r]-() where id(r)=' + edge.id;
+            for (let key in edge.properties.merge){
+                __statement += __index == 0 ? ' set ' : ', ';
+                __statement += 'r.' + key + '={' + key + '}';
+                __index++;
+            }
+
+            __index = 0;
+            for (let i=0; i<edge.properties.remove.length; i++){
+                __statement += __index == 0 ? ' remove ' : ', '
+                __statement += 'r.' + edge.properties.remove[i];
+                __index++;
+            }
+
+            __statement += ' return DISTINCT r';
+        }
+        console.log(__statement);
+        this.runStatement(__statement, edge.hasOwnProperty('target') ? edge.properties : edge.properties.merge, res);
+    }
 
     runStatement(statement, param, res)
     {

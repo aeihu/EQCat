@@ -103,10 +103,10 @@ function isPreviewImageInNode(d){
 
 function setIcon(d) { 
     if (d.labels.length > 0){
-            return D3ForceSimulation.NEStyles.nodes[d.labels[0]].icon ;
+        return D3ForceSimulation.getNodeStyle(d.labels[0]).icon ;
     }
 
-    return defaultIcon; 
+    return GlobalConstant.defaultIcon; 
     // if (d.labels.length > 1){
     //     let __d = D3ForceSimulation.svg.select('#node_image_id_' + d.id);
     //     setInterval(
@@ -124,10 +124,8 @@ function setIcon(d) {
 
 function setNodeText(d) { 
     if (d.labels.length > 0){
-        if (D3ForceSimulation.NEStyles.nodes[d.labels[0]].caption != '<id>'){
-            return d.properties.hasOwnProperty(D3ForceSimulation.NEStyles.nodes[d.labels[0]].caption) ? 
-                d.properties[D3ForceSimulation.NEStyles.nodes[d.labels[0]].caption]
-                : '';
+        if (D3ForceSimulation.getNodeStyle(d.labels[0]).caption != '<id>'){
+            return D3ForceSimulation.getNodeStyle(d.labels[0]).caption;
         }
     }
 
@@ -135,7 +133,7 @@ function setNodeText(d) {
 }
 
 function setNodeSize(d) { 
-    d.size = d.labels.length > 0 ? D3ForceSimulation.NEStyles.nodes[d.labels[0]].size : 35;
+    d.size = d.labels.length > 0 ? D3ForceSimulation.getNodeStyle(d.labels[0]).size : 35;
     let __offset = -d.size / 2;
 
     D3ForceSimulation.svg.select('#node_image_id_'+d.id)
@@ -146,14 +144,14 @@ function setNodeSize(d) {
 
 function setNodeTextOffset(d) { 
     if (d.labels.length > 0){
-        return D3ForceSimulation.NEStyles.nodes[d.labels[0]].size / 2 + 10;
+        return D3ForceSimulation.getNodeStyle(d.labels[0]).size / 2 + 10;
     }
 
     return -27.5;
 }
 
 function setEdgeColor(d) { 
-    return D3ForceSimulation.NEStyles.edges[d.type].color;
+    return D3ForceSimulation.getEdgeStyle(d.type).color;
 }
 
 function drawLine(d)
@@ -182,12 +180,34 @@ function drawLine(d)
     d.pty = __x < 0 ? d.ty : d.sy;
 }
 
+D3ForceSimulation.getNodeStyle = function(label){
+    if (!this.NEStyles.nodes.hasOwnProperty(label)){
+        this.NEStyles.nodes[label] = {
+            icon: GlobalConstant.defaultIcon,
+            size: 50,
+            caption: 'name',
+        }
+    }
+
+    return this.NEStyles.nodes[label];
+}
+
+D3ForceSimulation.getEdgeStyle = function(type){
+    if (!this.NEStyles.edges.hasOwnProperty(type)){
+        this.NEStyles.edges[type] = {
+            color: '#000000'
+        }
+    }
+
+    return this.NEStyles.edges[type];
+}
+
 D3ForceSimulation.setStyle = function(state, type, val) {
     switch (state.mode){
         case 1:
             if (!this.NEStyles.nodes.hasOwnProperty(state.name)){
                 this.NEStyles.nodes[state.name] = {
-                    icon: defaultIcon,
+                    icon: GlobalConstant.defaultIcon,
                     size: 50,
                     caption: 'name',
                 }

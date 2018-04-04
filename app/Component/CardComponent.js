@@ -112,7 +112,7 @@ export default class CardComponent extends React.Component {
                         className="labelChip"
                         labelStyle={{fontSize: '12px'}}
                     >
-                        <Avatar src={D3ForceSimulation.NEStyles.nodes[this.props.data.labels[i]].icon} 
+                        <Avatar src={D3ForceSimulation.getNodeStyle(this.props.data.labels[i]).icon} 
                             style={
                                 {
                                     width:'23px', 
@@ -221,27 +221,30 @@ export default class CardComponent extends React.Component {
                         >  
                             <div>
                                 {this.props.data.properties.hasOwnProperty(GlobalConstant.imagesOfProperty) ?
-                                    <div 
-                                        style={{
-                                            width:'230px',
-                                            border: '1px solid #ddd',
-                                            borderRadius: '4px',
-                                            padding: '5px',
-                                            margin: '6px 6px 6px 16px',
-                                            float: 'inline-start'
-                                        }}
-                                    >
-                                        <Carousel 
-                                            showThumbs={false}
-                                            //centerMode={true}
+                                    this.props.data.properties[GlobalConstant.imagesOfProperty].length > 0 ?
+                                        <div 
+                                            style={{
+                                                width:'230px',
+                                                border: '1px solid #ddd',
+                                                borderRadius: '4px',
+                                                padding: '5px',
+                                                margin: '6px 6px 6px 16px',
+                                                float: 'inline-start'
+                                            }}
                                         >
-                                            {this.props.data.properties[GlobalConstant.imagesOfProperty].map((img, index)=>(
-                                                <div>
-                                                <img src={img}  />
-                                                </div>
-                                            ))}
-                                        </Carousel>
-                                    </div>
+                                            <Carousel 
+                                                showThumbs={false}
+                                                //centerMode={true}
+                                            >
+                                                {this.props.data.properties[GlobalConstant.imagesOfProperty].map((img, index)=>(
+                                                    <div>
+                                                    <img src={img}  />
+                                                    </div>
+                                                ))}
+                                            </Carousel>
+                                        </div>
+                                        :
+                                        ''
                                     :
                                     ''
                                 }     
@@ -249,18 +252,21 @@ export default class CardComponent extends React.Component {
                             </div>
                             
                             {this.props.data.properties.hasOwnProperty(GlobalConstant.memoOfProperty) ?
-                                <div 
-                                    dangerouslySetInnerHTML={{
-                                        __html: this.props.data.properties[GlobalConstant.memoOfProperty]
-                                    }}
-                                    style={{
-                                        border: '1px solid #ddd',
-                                        borderRadius: '4px',
-                                        padding: '5px',
-                                        margin: '6px',
-                                    }}
-                                >  
-                                </div>
+                                this.props.data.properties[GlobalConstant.memoOfProperty].trim() != '' ?
+                                    <div 
+                                        dangerouslySetInnerHTML={{
+                                            __html: this.props.data.properties[GlobalConstant.memoOfProperty]
+                                        }}
+                                        style={{
+                                            border: '1px solid #ddd',
+                                            borderRadius: '4px',
+                                            padding: '5px',
+                                            margin: '6px',
+                                        }}
+                                    >  
+                                    </div>
+                                    :
+                                    ''
                                 :
                                 ''
                             }

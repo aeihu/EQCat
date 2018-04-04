@@ -143,6 +143,19 @@ app.get('/mergeNode?:node', function (req, res) {
 	}
 });
 
+app.get('/mergeEdge?:edge', function (req, res) {
+	console.log(req.query.edge);
+	
+	try{
+		let __json = JSON.parse(req.query.edge);
+		DBDriver.mergeSingleEdge(__json, res);
+	}	
+	catch (err){
+		console.log(err);
+		res.send('error');
+	}
+});
+
 app.post('/upload_icon',  function (req, res) {
 	//console.log(req)
 	uploadIcon(req, res, function (err) {
