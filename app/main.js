@@ -8,6 +8,7 @@ import CircularProgress from 'material-ui/CircularProgress';
 import Dialog from 'material-ui/Dialog';
 import Snackbar from 'material-ui/Snackbar';
 import GlobalConstant from './Common/GlobalConstant';
+import GlobalFunction from './Common/GlobalFunction';
 
 class App extends React.Component {
     constructor(props) {
@@ -45,6 +46,8 @@ class App extends React.Component {
                 }
             }
         };
+        
+        GlobalFunction.GetTemplate();
     }
 
     handleClick = () => {
@@ -341,6 +344,28 @@ class App extends React.Component {
         }
     }.bind(this)
     
+    addEdge = function(edge){
+        if (edge.length > 0){
+            for (let keyName in edge[0]){
+                this.setState(function(prevState, props) {
+                    let __countEdge = prevState.data.graph.count.edges;
+                    let __type = edge[0][keyName].type;
+                    if (__countEdge.hasOwnProperty(__type)){
+                        __countEdge[__type]++;
+                    }
+                    else{
+                        __countEdge[__type] = 1;
+                    }
+
+                    prevState.data.graph.count.edges = __countEdge;
+                    prevState.data.graph.edges.push(edge[0][keyName]);
+                    console.log(edge[0][keyName])
+                    return prevState;
+                });
+            }
+        }
+    }.bind(this)
+
     mergeEdge = function(edge, prevEdgeId){
         if (edge.length > 0){
             for (let keyName in edge[0]){
@@ -350,12 +375,12 @@ class App extends React.Component {
                             if (prevState.data.graph.edges[i].type != edge[0][keyName].type){
                                 let __countEdge = prevState.data.graph.count.edges;
                                 __countEdge[prevState.data.graph.edges[i].type]--;
-                                let __label = edge[0][keyName].type;
-                                if (__countEdge.hasOwnProperty(__label)){
-                                    __countEdge[__label]++;
+                                let __type = edge[0][keyName].type;
+                                if (__countEdge.hasOwnProperty(__type)){
+                                    __countEdge[__type]++;
                                 }
                                 else{
-                                    __countEdge[__label] = 1;
+                                    __countEdge[__type] = 1;
                                 }
 
                                 prevState.data.graph.count.edges = __countEdge;
@@ -391,6 +416,7 @@ class App extends React.Component {
                     <VisualizationComponent 
                         data={this.state.data} 
                         onAddNode={this.addNode}
+                        onAddEdge={this.addEdge}
                         onMergeNode={this.mergeNode}
                         onMergeEdge={this.mergeEdge}
                     />

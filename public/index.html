@@ -100,6 +100,37 @@
             height: 20px; 
             align-items: center;
         }
+
+        #talkBubble {
+            border-radius: 3px ;
+            position: absolute;
+            width: 200px;
+            /* height: 40px; */
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+        #talkBubble:before {
+            position: absolute;
+            content: "";
+            width: 0;
+            height: 0;
+            left: 200px;
+            top: 8px;
+            border-left: 10px solid #ddd;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+         #talkBubble:after{
+            position: absolute;
+            content: "";
+            width: 0;
+            height: 0;
+            left: 200px;
+            top: 9px;
+            border-left: 9px solid #fff;
+            border-top: 9px solid transparent;
+            border-bottom: 9px solid transparent;
+        } 
     </style>
   </head>
   <!-- <body oncontextmenu="return false"> -->

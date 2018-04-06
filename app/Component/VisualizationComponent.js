@@ -30,6 +30,7 @@ export default class VisualizationComponent extends React.Component {
                     <GraphForDataComponent 
                         data={this.props.data.graph} 
                         onAddNode={this.props.onAddNode}
+                        onAddEdge={this.props.onAddEdge}
                         onMergeNode={this.props.onMergeNode}
                         onMergeEdge={this.props.onMergeEdge}
                     />

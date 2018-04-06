@@ -39,7 +39,6 @@ export default class EditorDialogsComponent extends React.Component {
         super(props);
 		this.state = {
 			progress: false,
-			templates: {},
 
 			memo: {},
 			images: [],
@@ -48,13 +47,7 @@ export default class EditorDialogsComponent extends React.Component {
 			properties:[
                 //{key:1,type:'String',value:'1'}
 			],
-		//======DataSource=======
-			labelList: [],
-			propertyList: [],
-			relationshipTypeList: []
 		};
-
-		this.getTemplate();
 	}
 
 	
@@ -97,10 +90,10 @@ export default class EditorDialogsComponent extends React.Component {
 	};
 
 	setPropertiesByLabel = (labelName) => {
-		if (this.state.templates.hasOwnProperty(labelName)){
+		if (GlobalConstant.templateList.hasOwnProperty(labelName)){
 			this.setState(function(prevState, props) {
 				let __isHas = false;
-				for (let key in prevState.templates[labelName]){
+				for (let key in GlobalConstant.templateList[labelName]){
 					__isHas = false;
 					for (let i = 0; i < prevState.properties.length; i++){
 						if (prevState.properties[i].key == key){
@@ -111,7 +104,7 @@ export default class EditorDialogsComponent extends React.Component {
 					
 					if (!__isHas){
 						let __val = '';
-						switch (prevState.templates[labelName][key]){
+						switch (GlobalConstant.templateList[labelName][key]){
 							case 'boolean':
 								__val = true;
 								break;
@@ -125,7 +118,7 @@ export default class EditorDialogsComponent extends React.Component {
 						}
 						prevState.properties.push({
 							key : key,
-							type : prevState.templates[labelName][key],
+							type : GlobalConstant.templateList[labelName][key],
 							value : __val
 						});
 					}
@@ -156,28 +149,6 @@ export default class EditorDialogsComponent extends React.Component {
 		}
 	};
 
-	getTemplate = function() {
-        let xmlhttp = new XMLHttpRequest()
-        
-        xmlhttp.onreadystatechange = function(){
-            if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-				let __json = JSON.parse(xmlhttp.responseText);
-				
-                this.setState(function(prevState, props) {
-					prevState.templates = __json.templates;
-					prevState.labelList = __json.labels;
-					prevState.propertyList = __json.propertyKeys;
-					prevState.relationshipTypeList = __json.relationshipTypes;
-                    return prevState;
-				});
-            }
-        }.bind(this)
-
-        xmlhttp.open("GET", "/template", true);
-        xmlhttp.send();
-	}.bind(this)
-	
 	addNode = function() {
 		let __node = {
 			labels:[],
@@ -566,7 +537,7 @@ export default class EditorDialogsComponent extends React.Component {
 							searchText={this.state.labels[i]}
 							onUpdateInput={(searchText)=>this.updateInputForLabel(searchText, i)}
 							onNewRequest={(value)=>this.newRequestForLabel(value, i)}
-							dataSource={this.state.labelList}
+							dataSource={GlobalConstant.labelList}
 							filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
 							openOnFocus={false}
 							maxSearchResults={6}
@@ -614,7 +585,7 @@ export default class EditorDialogsComponent extends React.Component {
 						searchText={this.state.type}
 						onUpdateInput={this.updateInputForLabel}
 						onNewRequest={this.newRequestForLabel}
-						dataSource={this.state.relationshipTypeList}
+						dataSource={GlobalConstant.relationshipTypeList}
 						filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
 						openOnFocus={false}
 						maxSearchResults={6}
@@ -643,7 +614,7 @@ export default class EditorDialogsComponent extends React.Component {
 							searchText={this.state.properties[i].key}
 							onUpdateInput={(searchText) => this.updateInputForPropertyKey(searchText, i)}
 							onNewRequest={(chosenRequest) => this.newRequestForPropertyKey(chosenRequest, i)}
-							dataSource={this.state.propertyList}
+							dataSource={GlobalConstant.propertyList}
 							filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
 							// openOnFocus={false}
 							maxSearchResults={6}

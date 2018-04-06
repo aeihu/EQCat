@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import CardComponent from './CardComponent';
 import {D3ForceSimulation} from './D3ForceSimulation';
 import EditStyleComponent from './EditStyleComponent';
+import GlobalConstant from '../Common/GlobalConstant';
 
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
@@ -16,13 +17,16 @@ import Delete from 'material-ui/svg-icons/action/delete';
 import ImagePhotoLibrary from 'material-ui/svg-icons/image/photo-library';
 import ImageControlPoint from 'material-ui/svg-icons/image/control-point';
 import ImageFilter from 'material-ui/svg-icons/image/filter';
+import SocialShare from 'material-ui/svg-icons/social/share';
 import ContentRemoveCircleOutline from 'material-ui/svg-icons/content/remove-circle-outline';
 import ImageEdit from 'material-ui/svg-icons/image/edit';
 import EditorDialogsComponent from './EditorDialogsComponent';
+import AutoComplete from 'material-ui/AutoComplete';
 
 import Popover from 'material-ui/Popover/Popover';
 import { SketchPicker } from 'react-color';
 import IconButton from 'material-ui/IconButton';
+import Tooltip from 'material-ui/internal/Tooltip';
 
 export default class GraphForDataComponent extends React.Component {
     constructor(props) {
@@ -39,6 +43,11 @@ export default class GraphForDataComponent extends React.Component {
                 x: 0,
                 y: 0,
                 anchorEl: null
+            },
+            tooltip:{
+                connectMode: false,
+                showedImage: false,
+                relationshipType: ''
             }
         };
     }
@@ -104,23 +113,6 @@ export default class GraphForDataComponent extends React.Component {
     componentWillReceiveProps(newProps)
     {
         this.updateFlag = true;
-        // this.setState(function(prevState, props) {
-        //     prevState.cards = {
-        //         nodes:[],
-        //         edges:[],
-        //     };
-        //     //
-        //     //
-        //     //  need fix
-        //     //
-        //     //
-        //     //
-        //     return prevState;
-        // });
-        // if(this.updateFlag){
-        //     let el = ReactDOM.findDOMNode();
-        //     D3ForceSimulation.update(el, this.props, this.state, this.NEStyles);
-        // }
     }
 
     componentDidUpdate()
@@ -166,6 +158,7 @@ export default class GraphForDataComponent extends React.Component {
         return (
             <div style={{display: 'flex', flexDirection: 'column', height: '100%', width:'100%'}} >
                 <EditorDialogsComponent 
+                    mode={0}
                     isNew={true}
                     open={this.state.open}
                     onChangeData={this.props.onAddNode}
@@ -210,37 +203,99 @@ export default class GraphForDataComponent extends React.Component {
                                 <MenuItem primaryText="Remove" leftIcon={<Delete />} />
                             </Menu>
                         </Popover>
+                        {this.state.tooltip.connectMode ?
+                            <div id='talkBubble' style={{right:'60px', top:'3px'}} >
+                                <div
+                                    style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    paddingRight: '8px',
+                                    borderRadius: '3px',
+                                    backgroundColor: 'Gainsboro',
+                                    margin: '3px',
+                                    height: '34px'
+                                }}>
+                                    <AutoComplete
+                                        hintText="Relationship Type"
+                                        searchText={this.state.tooltip.relationshipType}
+                                        onUpdateInput={(searchText)=>{
+                                            this.setState(function(prevState, props) {
+                                                prevState.tooltip.relationshipType = searchText;
+                                                return prevState;
+                                            });
+                                        }}
+                                        onNewRequest={(value)=>{
+                                            this.setState(function(prevState, props) {
+                                                prevState.tooltip.relationshipType = value;
+                                                return prevState;
+                                            });
+                                        }}
+                                        dataSource={GlobalConstant.relationshipTypeList}
+                                        filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
+                                        openOnFocus={false}
+                                        maxSearchResults={6}
+                                        style={{width:'190px'}} 
+                                        textFieldStyle={{width:'190px'}} 
+                                        //inputStyle={{fontSize: '12px'}}
+                                    />
+                                </div>
+                            </div>
+                            :
+                            ''
+                        }
                     </div>
-                    <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto'}} >
-                        <IconButton 
-                            style={{borderBottom: '1px solid #ddd',}}
-                            hoveredStyle={{backgroundColor:'SkyBlue'}}
-                            //onMouseOver={()=>{console.log('phi')}}
-                            onClick={()=> {this.setState(function(prevState, props) {
-                                prevState.open = true;
-                                return prevState;
-                            })}}
-                        >
-                            <ImageControlPoint />
-                        </IconButton>
-                        <IconButton 
-                            style={{borderBottom: '1px solid #ddd',}}
-                            hoveredStyle={{backgroundColor:'SkyBlue'}}
-                            onClick={D3ForceSimulation.showOrHideImage}>
-                            <ImageEdit />
-                        </IconButton>
-                        <IconButton 
-                            style={{borderBottom: '1px solid #ddd',}}
-                            hoveredStyle={{backgroundColor:'SkyBlue'}}
-                            onClick={D3ForceSimulation.showOrHideImage}>
-                            <ContentRemoveCircleOutline />
-                        </IconButton>
-                        <IconButton 
-                            style={{borderBottom: '1px solid #ddd',}}
-                            hoveredStyle={{backgroundColor:'SkyBlue'}}
-                            onClick={D3ForceSimulation.showOrHideImage}>
-                            <ImageFilter />
-                        </IconButton>
+                    <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', justifyContent:'space-between'}} >
+                        <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto'}} >
+                            <IconButton 
+                                style={this.state.tooltip.connectMode ? {backgroundColor:'YellowGreen', borderBottom: '1px solid #ddd'} : {borderBottom: '1px solid #ddd'}}
+                                hoveredStyle={{backgroundColor:'SkyBlue'}}
+                                onClick={() => {this.setState(function(prevState, props) {
+                                    this.updateFlag = false;
+                                    D3ForceSimulation.changeConnectMode();
+                                    prevState.tooltip.connectMode = D3ForceSimulation.connectMode;
+                                    return prevState;
+                                })}}
+                            >
+                                <SocialShare />
+                            </IconButton>
+                            <IconButton 
+                                style={this.state.tooltip.showedImage ? {backgroundColor:'YellowGreen', borderBottom: '1px solid #ddd'} : {borderBottom: '1px solid #ddd'}}
+                                hoveredStyle={{backgroundColor:'SkyBlue'}}
+                                onClick={() => {this.setState(function(prevState, props) {
+                                    this.updateFlag = false;
+                                    D3ForceSimulation.showOrHideImage();
+                                    prevState.tooltip.showedImage = D3ForceSimulation.showedImage;
+                                    return prevState;
+                                })}}
+                            >
+                                <ImageFilter />
+                            </IconButton>
+                        </div>
+                        <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto'}} >
+                            <IconButton 
+                                style={{borderTop: '1px solid #ddd',}}
+                                hoveredStyle={{backgroundColor:'SkyBlue'}}
+                                //onMouseOver={()=>{console.log('phi')}}
+                                onClick={()=> {this.setState(function(prevState, props) {
+                                    prevState.open = true;
+                                    return prevState;
+                                })}}
+                            >
+                                <ImageControlPoint />
+                            </IconButton>
+                            <IconButton 
+                                style={{borderTop: '1px solid #ddd',}}
+                                hoveredStyle={{backgroundColor:'SkyBlue'}}
+                                onClick={D3ForceSimulation.showOrHideImage}>
+                                <ImageEdit />
+                            </IconButton>
+                            <IconButton 
+                                style={{borderTop: '1px solid #ddd',}}
+                                hoveredStyle={{backgroundColor:'SkyBlue'}}
+                                onClick={D3ForceSimulation.showOrHideImage}>
+                                <ContentRemoveCircleOutline />
+                            </IconButton>
+                        </div>
                     </div>
                 </div>
                 <EditStyleComponent 

@@ -143,6 +143,19 @@ app.get('/mergeNode?:node', function (req, res) {
 	}
 });
 
+app.get('/addEdge?:edge', function (req, res) {
+	console.log(req.query.edge);
+	
+	try{
+		let __json = JSON.parse(req.query.edge);
+		DBDriver.addSingleEdge(__json, res);
+	}	
+	catch (err){
+		console.log(err);
+		res.send('error');
+	}
+});
+
 app.get('/mergeEdge?:edge', function (req, res) {
 	console.log(req.query.edge);
 	

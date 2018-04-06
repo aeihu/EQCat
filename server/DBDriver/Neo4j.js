@@ -188,6 +188,18 @@ export default class Neo4j
         this.runStatement(__statement, node.properties.merge, res);
     }
     
+    addSingleEdge(edge, res)
+    {
+        let __statement = '';
+        if (edge.hasOwnProperty('target')){
+            __statement = 'match (s),(t)' +
+                ' where id(s)=' + edge.source + ' and id(t)=' + edge.target +
+                ' create (s)-[r:' + edge.type + ']->(t) return DISTINCT r';
+        }
+        console.log(__statement);
+        this.runStatement(__statement, {}, res);
+    }
+
     mergeSingleEdge(edge, res)
     {
         let __statement = '';

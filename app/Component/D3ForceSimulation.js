@@ -10,6 +10,7 @@ D3ForceSimulation.y = 0;
 D3ForceSimulation.tx = 1920;
 D3ForceSimulation.ty = 1080;
 D3ForceSimulation.showedImage = false;
+D3ForceSimulation.connectMode = false;
 D3ForceSimulation.NEStyles = {
     nodes: {
         //xx:{
@@ -44,9 +45,30 @@ D3ForceSimulation.create = function(el, props, state) {
                         + (D3ForceSimulation.y - (D3ForceSimulation.ty - d3.event.y)) + ')')
                 })
                 .on("end", function (){
+                    console.log('end');
                     D3ForceSimulation.x = D3ForceSimulation.x - (D3ForceSimulation.tx - d3.event.x);
                     D3ForceSimulation.y = D3ForceSimulation.y - (D3ForceSimulation.ty - d3.event.y);
                 }))
+        .on("mousemove", function(d){
+            if (D3ForceSimulation.connectMode){
+                let __conncet_line = D3ForceSimulation.svg.select('#conncet_line');
+                if (!__conncet_line.empty()){
+                    let __x = d3.mouse(this)[0] - D3ForceSimulation.x;
+                    __conncet_line
+                        .attr('x2', __x + (__x < __conncet_line.attr('x1') ? 8 : -8))
+                        .attr('y2', d3.mouse(this)[1] - D3ForceSimulation.y);
+                }
+            }
+        })
+        // .on("mousedown", function(d){
+        //     if (D3ForceSimulation.connectMode){
+        //         console.log('wwwwwwwwwwwwwwwwwwwasasa')
+        //         let __conncet_line = D3ForceSimulation.svg.select('#conncet_line');
+        //         if (!__conncet_line.empty()){
+        //             __conncet_line.remove();
+        //         }
+        //     }
+        // })
         .append("g");
     
     this.svg.append("defs")
@@ -70,26 +92,33 @@ D3ForceSimulation.create = function(el, props, state) {
 };
 
 D3ForceSimulation.dragstarted = function dragstarted(d) {
-    if (!d3.event.active) {
-        D3ForceSimulation.simulation.alphaTarget(0.3).restart();
-    }
+    if (!D3ForceSimulation.connectMode){
+        console.log(D3ForceSimulation.connectMode)
+        if (!d3.event.active) {
+            D3ForceSimulation.simulation.alphaTarget(0.3).restart();
+        }
 
-    d.fx = d.x;
-    d.fy = d.y;
+        d.fx = d.x;
+        d.fy = d.y;
+    }
 }
 
 D3ForceSimulation.dragged = function dragged(d) {
-    d.fx = d3.event.x;
-    d.fy = d3.event.y;
+    if (!D3ForceSimulation.connectMode){
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+    }
 }
 
 D3ForceSimulation.dragended = function dragended(d) {
-    if (!d3.event.active) {
-        D3ForceSimulation.simulation.alphaTarget(0);
-    }
+    if (!D3ForceSimulation.connectMode){
+        if (!d3.event.active) {
+            D3ForceSimulation.simulation.alphaTarget(0);
+        }
 
-    d.fx = null;
-    d.fy = null;
+        d.fx = null;
+        d.fy = null;
+    }
 }
 
 function isPreviewImageInNode(d){
@@ -332,19 +361,60 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     __link = __link.merge(__updataForLink); 
 
     __node
-        .on("click", function(d){
+        .on("dblclick", function(d){
             state.showCard(d, 0); //node:0 edge:1
-            return;
-            if (d.hasOwnProperty('selected')){
-                d.selected = !d.selected;
-            }
-            else{
-                d.selected = true;
-            }
+        })
+        .on("click", function(d){
+            if (D3ForceSimulation.connectMode){
+                let __conncet_line = D3ForceSimulation.svg.select('#conncet_line');
+                console.log('aaaaaaaaaaaa')
+                if (__conncet_line.empty()){
+                    console.log('bbbbbbbbbbbbbbbb')
+                    let dsadsa = D3ForceSimulation.svg
+                        .append('line')
+                        .attr('id', 'conncet_line')
+                        .attr('x1', d.x)
+                        .attr('y1', d.y)
+                        .attr('x2', d.x)
+                        .attr('y2', d.y)
+                        .attr('source', d.id)
+                        .style('marker-end', 'url(#marker_arrow)')
+                        .style('stroke', 'rgb(0, 0, 0)');
+                        console.log(dsadsa)
+                }else{
+                    let __edge = {
+                        source: __conncet_line.attr('source'),
+                        target: d.id,
+                        type: state.tooltip.relationshipType
+                    }
+                    let xmlhttp = new XMLHttpRequest()
+		
+                    xmlhttp.onreadystatechange = function(){
+                        if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                            console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+                            let __edge = JSON.parse(xmlhttp.responseText);
+                            console.log('ssssssssssssssssssssssssssssssssssssssss')
+                            console.log(__edge)
+                            props.onAddEdge(__edge);
+                        }
+                    }.bind(this)
 
-            d3.select(this)
-                .attr('shadowed', d.selected ? '' : 'mouseover')
-                .attr('class', d.selected ? 'nodes nodes_selected' : 'nodes');
+                    xmlhttp.open("GET", "/addEdge?edge=" + JSON.stringify(__edge), true);
+                    xmlhttp.send();
+                    __conncet_line.remove();
+                }
+            }else{
+                if (d.hasOwnProperty('selected')){
+                    d.selected = !d.selected;
+                }
+                else{
+                    d.selected = true;
+                }
+    
+                d3.select(this)
+                    .attr('shadowed', d.selected ? '' : 'mouseover')
+                    .attr('class', d.selected ? 'nodes nodes_selected' : 'nodes');
+            }
         })
         .on("mouseover", function(d){
             d3.select(this)
@@ -396,6 +466,9 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .style('stroke', setEdgeColor)
         .attr('id', function(d){ return 'link_id_' + d.id})
         .on("click", function(d){
+            state.showCard(d, 1); //node:0 edge:1
+        })
+        .on("dblclick", function(d){
             state.showCard(d, 1); //node:0 edge:1
         })
         .on("mouseover", function(d){
@@ -454,7 +527,16 @@ D3ForceSimulation.showOrHideImage = function(){
         .attr("width", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 100 : 0} : 0);
 }
 
-  
+D3ForceSimulation.changeConnectMode = function(){
+    D3ForceSimulation.connectMode = !D3ForceSimulation.connectMode;
+    if (!D3ForceSimulation.connectMode){
+        let __conncet_line = D3ForceSimulation.svg.select('#conncet_line');
+        if (!__conncet_line.empty()){
+            __conncet_line.remove();
+        }
+    }
+}
+
 D3ForceSimulation.destroy = function(el) {
     // Any clean-up would go here
     // in this example there is nothing to do
