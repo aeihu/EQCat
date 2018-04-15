@@ -33,6 +33,8 @@ export default class VisualizationComponent extends React.Component {
                         onAddEdge={this.props.onAddEdge}
                         onMergeNode={this.props.onMergeNode}
                         onMergeEdge={this.props.onMergeEdge}
+                        onDeleteNode={this.props.onDeleteNode}
+                        onDeleteEdge={this.props.onDeleteEdge}
                     />
                 </Tab>
                 <Tab

@@ -63,63 +63,67 @@ export default class EditStyleComponent extends React.Component {
             }
 
             //////////////////////////////////////////////
-            __nodeChip.push(<Chip 
-                className="labelChip" 
-                labelStyle={{fontSize: '12px'}}
-                onClick={key != '*' ? 
-                    function(){
-                        if (this.state.mode != 1
-                            || this.state.name != key){
+            if (this.props.data.nodes[key].total > 0 || key == '*'){
+                __nodeChip.push(<Chip 
+                    className="labelChip" 
+                    labelStyle={{fontSize: '12px'}}
+                    onClick={key != '*' ? 
+                        function(){
+                            if (this.state.mode != 1
+                                || this.state.name != key){
 
-                            this.setState(function(prevState, props) {
-                                prevState.mode = 1; // 0:empty 1:node 2:edge
-                                prevState.name = key;
-                                
-                                return prevState;
-                            });
+                                this.setState(function(prevState, props) {
+                                    prevState.mode = 1; // 0:empty 1:node 2:edge
+                                    prevState.name = key;
+                                    
+                                    return prevState;
+                                });
+                            }
+                        }.bind(this) 
+                        :
+                        null}
+                    >
+                        {key != '*' ?
+                            <Avatar src={D3ForceSimulation.getNodeStyle(key).icon} 
+                                style={
+                                    {
+                                        width:'23px', 
+                                        height:'23px', 
+                                        marginLeft:'6px', 
+                                        borderRadius:'0%', 
+                                        backgroundColor:'#00000000'}} />
+                            : ''
                         }
-                    }.bind(this) 
-                    :
-                    null}
-                >
-                    {key != '*' ?
-                        <Avatar src={D3ForceSimulation.getNodeStyle(key).icon} 
-                            style={
-                                {
-                                    width:'23px', 
-                                    height:'23px', 
-                                    marginLeft:'6px', 
-                                    borderRadius:'0%', 
-                                    backgroundColor:'#00000000'}} />
-                        : ''
-                    }
-                    {key + '(' + this.props.data.nodes[key].total + ')'}
-                </Chip>);
+                        {key + '(' + this.props.data.nodes[key].total + ')'}
+                    </Chip>);
+            }
         }
 
         let __edgeChip = [];
         for (let key in this.props.data.edges){
-            __edgeChip.push(<Chip 
-                className="edgeChip" 
-                labelStyle={{fontSize: '12px'}}
-                onClick={key != '*' ? 
-                    function(){
-                        if (this.state.mode != 2
-                            || this.state.name != key){
+            if (this.props.data.edges[key] > 0 || key == '*'){
+                __edgeChip.push(<Chip 
+                    className="edgeChip" 
+                    labelStyle={{fontSize: '12px'}}
+                    onClick={key != '*' ? 
+                        function(){
+                            if (this.state.mode != 2
+                                || this.state.name != key){
 
-                            this.setState(function(prevState, props) {
-                                prevState.mode = 2; // 0:empty 1:node 2:edge
-                                prevState.name = key;
-                                
-                                return prevState;
-                            });
-                        }
-                    }.bind(this) 
-                    :
-                    null}
-                >
-                    {key + '(' + this.props.data.edges[key] + ')'}
-                </Chip>);
+                                this.setState(function(prevState, props) {
+                                    prevState.mode = 2; // 0:empty 1:node 2:edge
+                                    prevState.name = key;
+                                    
+                                    return prevState;
+                                });
+                            }
+                        }.bind(this) 
+                        :
+                        null}
+                    >
+                        {key + '(' + this.props.data.edges[key] + ')'}
+                    </Chip>);
+            }
         }
         
         return (

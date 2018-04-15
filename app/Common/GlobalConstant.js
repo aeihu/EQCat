@@ -5,7 +5,7 @@ const GlobalConstant = {
     labelList: [],
     propertyList: [],
     relationshipTypeList: [],
-    templatesList: {}
+    templateList: {}
 }
 
 module.exports = GlobalConstant;

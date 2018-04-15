@@ -56,17 +56,25 @@
             filter: drop-shadow(0px 0px 2px OrangeRed); 
         }
 
-        .nodes[shadowed='adjacent'] {
-            filter: drop-shadow(0px 0px 2px Magenta);
+        .nodes[shadowed='source'] {
+            filter: drop-shadow(0px 0px 2px Yellow  );
         }
 
+        .nodes[shadowed='target'] {
+            filter: drop-shadow(0px 0px 2px Magenta);
+        }
 		.links{
             font-family: simsun;
             filter: drop-shadow(rgba(0, 0, 0, 0) 0px 0px);
         }
 
         .links[shadowed='true'] {
-            filter: drop-shadow(0px 0px 2px red);
+            filter: drop-shadow(0px 0px 2px RoyalBlue);
+        }
+
+        .links_selected{
+            /* filter: drop-shadow(0px 0px 2px MidnightBlue); */
+            filter: drop-shadow(Tomato 3px 2px);
         }
 
         .tooltip{

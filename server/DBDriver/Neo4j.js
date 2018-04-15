@@ -182,8 +182,18 @@ export default class Neo4j
         this.runStatement(__statement, node.properties.merge, res);
     }
     
-    deleteNode(node, res){
-        let __statement = 'Match (n) where id(n)=' + node.id + ' delete n';
+    deleteNodes(nodes, res){
+        let __statement = 'Match (n)-[r]-() where ';
+        
+        for (let i=0; i<nodes.length; i++){
+            if (i > 0){
+                __statement += ' and '
+            }
+
+            __statement += 'id(n)=' + nodes[i];
+        }
+        __statement += ' delete n,r return n,r';
+
         console.log(__statement);
         this.runStatement(__statement, node.properties.merge, res);
     }
@@ -239,6 +249,21 @@ export default class Neo4j
         }
         console.log(__statement);
         this.runStatement(__statement, edge.hasOwnProperty('target') ? edge.properties : edge.properties.merge, res);
+    }
+    
+    deleteEdges(edges, res){
+        //match ()-[r]-() where id(r)=514 delete r return r
+        let __statement = 'match ()-[r]-() where ';
+        for (let i=0; i<edges.length; i++){
+            if (i > 0){
+                __statement += ' and '
+            }
+
+            __statement += 'id(r)=' + edges[i];
+        }
+        __statement += ' delete r';
+        console.log(__statement);
+        this.runStatement(__statement, {}, res);
     }
 
     runStatement(statement, param, res)

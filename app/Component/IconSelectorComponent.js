@@ -59,6 +59,7 @@ export default class IconSelectorComponent extends React.Component {
         for (let i=0; i<this.state.icons.length; i++){
             __iconList.push(
                 <IconButton 
+                    hoveredStyle={{backgroundColor:'SkyBlue'}}
                     onClick={function(event) {
                         this.icon = this.state.icons[i];
                         this.props.onChange(this.icon);

@@ -145,7 +145,7 @@ export default class EditEdgeComponent extends React.Component {
                     open={this.state.iconMenu.open}
                     anchorEl={this.state.iconMenu.anchorEl}
                     anchorOrigin={{horizontal:"left", vertical:"top"}}
-                    targetOrigin={{horizontal:"left", vertical:"bottom"}}
+                    targetOrigin={{horizontal:"left", vertical:"top"}}
                     onRequestClose={function() {
                         this.setState(function(prevState, props) {
                             prevState.iconMenu.open = false;

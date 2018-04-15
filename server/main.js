@@ -143,6 +143,19 @@ app.get('/mergeNode?:node', function (req, res) {
 	}
 });
 
+app.get('/deleteNode?:nodes', function (req, res) {
+	console.log(req.query.nodes);
+	
+	try{
+		let __json = JSON.parse(req.query.nodes);
+		DBDriver.deleteNodes(__json, res);
+	}	
+	catch (err){
+		console.log(err);
+		res.send('error');
+	}
+});
+
 app.get('/addEdge?:edge', function (req, res) {
 	console.log(req.query.edge);
 	
@@ -162,6 +175,19 @@ app.get('/mergeEdge?:edge', function (req, res) {
 	try{
 		let __json = JSON.parse(req.query.edge);
 		DBDriver.mergeSingleEdge(__json, res);
+	}	
+	catch (err){
+		console.log(err);
+		res.send('error');
+	}
+});
+
+app.get('/deleteEdge?:edges', function (req, res) {
+	console.log(req.query.edges);
+	
+	try{
+		let __json = JSON.parse(req.query.edges);
+		DBDriver.deleteEdges(__json, res);
 	}	
 	catch (err){
 		console.log(err);

@@ -34,18 +34,15 @@ D3ForceSimulation.create = function(el, props, state) {
         .attr("xmlns", "http://www.w3.org/2000/svg")
         .call(d3.drag()
                 .on("start", function (){
-                    console.log('dragstarted');
                     D3ForceSimulation.tx = d3.event.x;
                     D3ForceSimulation.ty = d3.event.y;
                 })
                 .on("drag", function (){
-                    console.log('dragged');
                     D3ForceSimulation.svg.attr("transform", 
                         'translate(' + (D3ForceSimulation.x - (D3ForceSimulation.tx - d3.event.x)) + ',' 
                         + (D3ForceSimulation.y - (D3ForceSimulation.ty - d3.event.y)) + ')')
                 })
                 .on("end", function (){
-                    console.log('end');
                     D3ForceSimulation.x = D3ForceSimulation.x - (D3ForceSimulation.tx - d3.event.x);
                     D3ForceSimulation.y = D3ForceSimulation.y - (D3ForceSimulation.ty - d3.event.y);
                 }))
@@ -93,7 +90,6 @@ D3ForceSimulation.create = function(el, props, state) {
 
 D3ForceSimulation.dragstarted = function dragstarted(d) {
     if (!D3ForceSimulation.connectMode){
-        console.log(D3ForceSimulation.connectMode)
         if (!d3.event.active) {
             D3ForceSimulation.simulation.alphaTarget(0.3).restart();
         }
@@ -154,7 +150,7 @@ function setIcon(d) {
 function setNodeText(d) { 
     if (d.labels.length > 0){
         if (D3ForceSimulation.getNodeStyle(d.labels[0]).caption != '<id>'){
-            return D3ForceSimulation.getNodeStyle(d.labels[0]).caption;
+            return d.properties[D3ForceSimulation.getNodeStyle(d.labels[0]).caption];
         }
     }
 
@@ -300,11 +296,53 @@ D3ForceSimulation.setStyle = function(state, type, val) {
     }
 }
 
+D3ForceSimulation.ScreenMoveTo = function(d){
+    let __el;
+    if (d.hasOwnProperty('ptx')){
+        D3ForceSimulation.x = 650 - (d.psx + (d.ptx - d.psx) / 2);
+        D3ForceSimulation.y = 300 - (d.psy + (d.pty - d.psy) / 2);
+        __el = D3ForceSimulation.svg.select('#link_id_' + d.id);
+        __el.select('text')
+            .transition().duration(85)
+            .style('font-size', '24px')
+            .transition().duration(85)
+            .style('font-size', '14px')
+    }else{
+        D3ForceSimulation.x = 650 - d.x;
+        D3ForceSimulation.y = 300 - d.y;
+        __el = D3ForceSimulation.svg.select('#node_id_' + d.id);
+        __el.select('#node_image_id_'+d.id)
+            .transition().duration(85)
+            .attr('width', d.size + 20)
+            .attr('height', d.size + 20)
+            .attr('transform','translate(' + -(d.size / 2 + 10) + ','+ -(d.size / 2 + 10) +')')
+            .transition().duration(85)
+            .attr('width', d.size)
+            .attr('height', d.size)
+            .attr('transform','translate(' + -(d.size / 2) + ','+ -(d.size / 2 ) +')')
+    }
+
+    D3ForceSimulation.svg.attr("transform", 
+    'translate(' + D3ForceSimulation.x + ',' + D3ForceSimulation.y +')');
+}
+
 D3ForceSimulation.update = function(el, props, state) {
     // Re-compute the scales, and render the data points
     // var scales = this._scales(el, state.domain);
     this._drawNodesAndEdges(el, props, state);
 };
+
+D3ForceSimulation.Unselect = function(d){
+    let __el;
+    d.selected = false;
+    if (d.hasOwnProperty('ptx')){
+        __el = D3ForceSimulation.svg.select('#link_id_' + d.id);
+        __el.attr('class', 'links');
+    }else{
+        __el = D3ForceSimulation.svg.select('#node_id_' + d.id);
+        __el.attr('class', 'nodes');
+    }
+}
 
 D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     let __data = props.data
@@ -367,9 +405,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .on("click", function(d){
             if (D3ForceSimulation.connectMode){
                 let __conncet_line = D3ForceSimulation.svg.select('#conncet_line');
-                console.log('aaaaaaaaaaaa')
                 if (__conncet_line.empty()){
-                    console.log('bbbbbbbbbbbbbbbb')
                     let dsadsa = D3ForceSimulation.svg
                         .append('line')
                         .attr('id', 'conncet_line')
@@ -380,7 +416,6 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                         .attr('source', d.id)
                         .style('marker-end', 'url(#marker_arrow)')
                         .style('stroke', 'rgb(0, 0, 0)');
-                        console.log(dsadsa)
                 }else{
                     let __edge = {
                         source: __conncet_line.attr('source'),
@@ -393,7 +428,6 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                         if (xmlhttp.readyState==4 && xmlhttp.status==200){
                             console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
                             let __edge = JSON.parse(xmlhttp.responseText);
-                            console.log('ssssssssssssssssssssssssssssssssssssssss')
                             console.log(__edge)
                             props.onAddEdge(__edge);
                         }
@@ -414,18 +448,30 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                 d3.select(this)
                     .attr('shadowed', d.selected ? '' : 'mouseover')
                     .attr('class', d.selected ? 'nodes nodes_selected' : 'nodes');
+                
+                state.selectNode(d);
             }
         })
         .on("mouseover", function(d){
             d3.select(this)
                 .attr('shadowed', 'mouseover');
             
-            if (d.hasOwnProperty('edges')){
-                for (let i = 0; i < d.edges.length; i++){
-                    D3ForceSimulation.svg.select('#node_id_' + (d.edges[i].target.id == d.id ? d.edges[i].source.id : d.edges[i].target.id))
-                        .attr('shadowed', 'adjacent');
+            if (d.hasOwnProperty('sourceEdges')){
+                for (let i = 0; i < d.sourceEdges.length; i++){
+                    D3ForceSimulation.svg.select('#node_id_' + d.sourceEdges[i].target.id)
+                        .attr('shadowed', 'target');
                     
-                    D3ForceSimulation.svg.select('#link_id_' + d.edges[i].id)
+                    D3ForceSimulation.svg.select('#link_id_' + d.sourceEdges[i].id)
+                        .attr('shadowed', true);
+                }
+            }
+
+            if (d.hasOwnProperty('targetEdges')){
+                for (let i = 0; i < d.targetEdges.length; i++){
+                    D3ForceSimulation.svg.select('#node_id_' + d.targetEdges[i].source.id)
+                        .attr('shadowed', 'source');
+                    
+                    D3ForceSimulation.svg.select('#link_id_' + d.targetEdges[i].id)
                         .attr('shadowed', true);
                 }
             }
@@ -434,12 +480,24 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
             d3.select(this)
                 .attr('shadowed', '');
 
-            for (let i = 0; i < d.edges.length; i++){
-                D3ForceSimulation.svg.select('#node_id_' + (d.edges[i].target.id == d.id ? d.edges[i].source.id : d.edges[i].target.id))
-                    .attr('shadowed', '');
+            if (d.hasOwnProperty('sourceEdges')){
+                for (let i = 0; i < d.sourceEdges.length; i++){
+                    D3ForceSimulation.svg.select('#node_id_' + d.sourceEdges[i].target.id)
+                        .attr('shadowed', '');
 
-                D3ForceSimulation.svg.select('#link_id_' + d.edges[i].id)
-                    .attr('shadowed', false);
+                    D3ForceSimulation.svg.select('#link_id_' + d.sourceEdges[i].id)
+                        .attr('shadowed', false);
+                }
+            }
+
+            if (d.hasOwnProperty('targetEdges')){
+                for (let i = 0; i < d.targetEdges.length; i++){
+                    D3ForceSimulation.svg.select('#node_id_' + d.targetEdges[i].source.id)
+                        .attr('shadowed', '');
+
+                    D3ForceSimulation.svg.select('#link_id_' + d.targetEdges[i].id)
+                        .attr('shadowed', false);
+                }
             }
         })
         .attr("id", function(d){return 'node_id_' + d.id})
@@ -465,8 +523,29 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     __link
         .style('stroke', setEdgeColor)
         .attr('id', function(d){ return 'link_id_' + d.id})
+        .attr('class', function(d){ 
+            if (!d.hasOwnProperty('selected')){
+                d['selected'] = false;
+            }
+
+            return d.selected ? 'links links_selected' : 'links'
+        })
         .on("click", function(d){
-            state.showCard(d, 1); //node:0 edge:1
+            if (D3ForceSimulation.connectMode){
+            }else{
+                if (d.hasOwnProperty('selected')){
+                    d.selected = !d.selected;
+                }
+                else{
+                    d['selected'] = true;
+                }
+    
+                d3.select(this)
+                    .attr('shadowed', d.selected)
+                    .attr('class', d.selected ? 'links links_selected' : 'links');
+                
+                state.selectEdge(d);
+            }
         })
         .on("dblclick", function(d){
             state.showCard(d, 1); //node:0 edge:1
