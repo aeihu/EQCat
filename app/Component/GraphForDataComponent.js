@@ -4,6 +4,9 @@ import CardComponent from './CardComponent';
 import {D3ForceSimulation} from './D3ForceSimulation';
 import EditStyleComponent from './EditStyleComponent';
 import GlobalConstant from '../Common/GlobalConstant';
+import Chip from 'material-ui/Chip';
+import Avatar from 'material-ui/Avatar';
+import Clear from 'material-ui/svg-icons/content/clear';
 
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
@@ -22,6 +25,9 @@ import ContentRemoveCircleOutline from 'material-ui/svg-icons/content/remove-cir
 import ImageEdit from 'material-ui/svg-icons/image/edit';
 import EditorDialogsComponent from './EditorDialogsComponent';
 import AutoComplete from 'material-ui/AutoComplete';
+import ImagePanoramaFishEye from 'material-ui/svg-icons/image/panorama-fish-eye';
+import CommunicationCallMade from 'material-ui/svg-icons/communication/call-made';
+import ActionDelete from 'material-ui/svg-icons/action/delete';
 
 import Popover from 'material-ui/Popover/Popover';
 import { SketchPicker } from 'react-color';
@@ -38,6 +44,8 @@ export default class GraphForDataComponent extends React.Component {
                 edges:[],
             },
             showCard: this.showCard,
+            selectNode: this.selectNode,
+            selectEdge: this.selectEdge,
             menu: {
                 open: false,
                 x: 0,
@@ -47,7 +55,15 @@ export default class GraphForDataComponent extends React.Component {
             tooltip:{
                 connectMode: false,
                 showedImage: false,
-                relationshipType: ''
+                relationshipType: '',
+                selected:{
+                    nodes:[],
+                    edges:[],
+                    nodesEl: null,
+                    edgesEl: null,
+                    nodesOpen: false,
+                    edgesOpen: false,
+                },
             }
         };
     }
@@ -72,6 +88,36 @@ export default class GraphForDataComponent extends React.Component {
             return prevState;
         });
     }.bind(this)
+
+    selectNode = function(d){
+        this.updateFlag = false;
+        this.setState(function(prevState, props) {
+            for (let i=0; i<prevState.tooltip.selected.nodes.length; i++){
+                if (d.id == prevState.tooltip.selected.nodes[i].id){
+                    prevState.tooltip.selected.nodes.splice(i, 1);
+                    return prevState;
+                }
+            }
+
+            prevState.tooltip.selected.nodes.push(d);
+            return prevState;
+        });
+    }.bind(this);
+    
+    selectEdge = function(d){
+        this.updateFlag = false;
+        this.setState(function(prevState, props) {
+            for (let i=0; i<prevState.tooltip.selected.edges.length; i++){
+                if (d.id == prevState.tooltip.selected.edges[i].id){
+                    prevState.tooltip.selected.edges.splice(i, 1);
+                    return prevState;
+                }
+            }
+
+            prevState.tooltip.selected.edges.push(d);
+            return prevState;
+        });
+    }.bind(this);
 
     showCard = function(d, mode) {
         let __mode = mode == 0 ? 'nodes' : 'edges';
@@ -100,6 +146,112 @@ export default class GraphForDataComponent extends React.Component {
             }
         }
     }.bind(this)
+////////////////////////////////////////////
+//
+////////////////////////////////////////////
+
+    deleteNodes = function(nodes){
+        let __nodes = [];
+        for (let i=0; i<nodes.length; i++){
+            __nodes.push(nodes[i].id);
+        }
+
+        if (__nodes.length > 0){
+            let xmlhttp = new XMLHttpRequest()
+            
+            xmlhttp.onreadystatechange = function(){
+                if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                    console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+                    let __nodes = JSON.parse(xmlhttp.responseText);
+                    console.log('ssssssssssssssssssssssssssssssssssssssss')
+                    
+                    this.props.onDeleteNode(__nodes);
+                    this.updateFlag = true;
+                    this.setState(function(prevState, props) {
+                        let __b = false;
+                        for (let i=0; i<nodes.length; i++){
+                            for (let j=prevState.tooltip.selected.nodes.length-1; j>=0; j--){
+                                if (prevState.tooltip.selected.nodes[j].id == nodes[i].id){
+                                    for (let k=prevState.tooltip.selected.edges.length-1; k>=0; k--){
+                                        __b = false;
+                                        for (let l=nodes[i].sourceEdges.length-1; l>=0; l--){
+                                            if (nodes[i].sourceEdges[l].id == prevState.tooltip.selected.edges[k]){
+                                                prevState.tooltip.selected.edges.splice(k, 1);
+                                                __b = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (__b){
+                                            continue;
+                                        }
+
+                                        for (let l=nodes[i].targetEdges.length-1; l>=0; l--){
+                                            if (nodes[i].targetEdges[l].id == prevState.tooltip.selected.edges[k]){
+                                                prevState.tooltip.selected.edges.splice(k, 1);
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    prevState.tooltip.selected.nodes.splice(j, 1);
+                                    break;
+                                }
+                            }
+                        }
+
+                        prevState.tooltip.selected.nodesOpen = prevState.tooltip.selected.nodes.length > 0;
+                        return prevState;
+                    });
+                }
+            }.bind(this)
+            
+            xmlhttp.open("GET", "/deleteNode?nodes=" + JSON.stringify(__nodes), true);
+            xmlhttp.send();
+        }
+    }.bind(this)
+
+    deleteEdges = function(edges){
+		let __edges = [];
+		for (let i=0; i<edges.length; i++){
+            __edges.push(edges[i].id);
+		}
+
+		if (__edges.length > 0){
+			let xmlhttp = new XMLHttpRequest()
+			
+			xmlhttp.onreadystatechange = function(){
+				if (xmlhttp.readyState==4 && xmlhttp.status==200){
+					console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+					let __json = JSON.parse(xmlhttp.responseText);
+					console.log('ssssssssssssssssssssssssssssssssssssssss')
+                    console.log(__edges)
+                    
+                    this.props.onDeleteEdge(__edges);
+                    this.updateFlag = true;
+                    this.setState(function(prevState, props) {
+                        for (let i=0; i<__edges.length; i++){
+                            for (let j=prevState.tooltip.selected.edges.length-1; j>=0; j--){
+                                if (prevState.tooltip.selected.edges[j].id == __edges[i]){
+                                    prevState.tooltip.selected.edges.splice(j, 1);
+                                    break;
+                                }
+                            }
+                        }
+
+                        prevState.tooltip.selected.edgesOpen = prevState.tooltip.selected.edges.length > 0;
+                        return prevState;
+                    });
+				}
+            }.bind(this)
+            
+			xmlhttp.open("GET", "/deleteEdge?edges=" + JSON.stringify(__edges), true);
+			xmlhttp.send();
+		}
+    }.bind(this)
+////////////////////////////////////////////
+//
+////////////////////////////////////////////
 
     componentDidMount()
     {
@@ -117,7 +269,7 @@ export default class GraphForDataComponent extends React.Component {
 
     componentDidUpdate()
     {
-        console.log('bb');
+        console.log('11sbb');
 
         if(this.updateFlag){
             let el = ReactDOM.findDOMNode();
@@ -162,14 +314,16 @@ export default class GraphForDataComponent extends React.Component {
                     isNew={true}
                     open={this.state.open}
                     onChangeData={this.props.onAddNode}
-                    onRequestClose={()=> {this.setState(function(prevState, props) {
-                        prevState.open = false;
-                        return prevState;
+                    onRequestClose={()=> {
+                        this.updateFlag = false;
+                        this.setState(function(prevState, props) {
+                            prevState.open = false;
+                            return prevState;
                     })}}
                 />
                 <div style={{display: 'flex', flexDirection: 'row', flex:'1 1 auto', width:'100%'}}>
                     <div id="displayContent" 
-                        style={{backgroundColor: '#EEEEEE', width:'100%', flex:'1 1 auto'}} 
+                        style={{backgroundColor: 'Gainsboro', width:'100%', flex:'1 1 auto'}} 
                         onContextMenu={this.handleClick}>
                         {__cardElements}
                         <div id='menuInDisplayContent' 
@@ -219,12 +373,14 @@ export default class GraphForDataComponent extends React.Component {
                                         hintText="Relationship Type"
                                         searchText={this.state.tooltip.relationshipType}
                                         onUpdateInput={(searchText)=>{
+                                            this.updateFlag = false;
                                             this.setState(function(prevState, props) {
                                                 prevState.tooltip.relationshipType = searchText;
                                                 return prevState;
                                             });
                                         }}
                                         onNewRequest={(value)=>{
+                                            this.updateFlag = false;
                                             this.setState(function(prevState, props) {
                                                 prevState.tooltip.relationshipType = value;
                                                 return prevState;
@@ -244,58 +400,358 @@ export default class GraphForDataComponent extends React.Component {
                             ''
                         }
                     </div>
-                    <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', justifyContent:'space-between'}} >
-                        <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto'}} >
-                            <IconButton 
-                                style={this.state.tooltip.connectMode ? {backgroundColor:'YellowGreen', borderBottom: '1px solid #ddd'} : {borderBottom: '1px solid #ddd'}}
-                                hoveredStyle={{backgroundColor:'SkyBlue'}}
-                                onClick={() => {this.setState(function(prevState, props) {
+                    <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto'}} >
+                        <IconButton 
+                            tooltip="Connect Mode"
+                            style={this.state.tooltip.connectMode ? {backgroundColor:'YellowGreen', borderBottom: '1px solid #ddd'} : {borderBottom: '1px solid #ddd'}}
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            onClick={() => {this.setState(function(prevState, props) {
+                                this.updateFlag = false;
+                                D3ForceSimulation.changeConnectMode();
+                                prevState.tooltip.connectMode = D3ForceSimulation.connectMode;
+                                return prevState;
+                            })}}
+                        >
+                            <SocialShare />
+                        </IconButton>
+                        <IconButton 
+                            tooltip="Show Image"
+                            style={this.state.tooltip.showedImage ? {backgroundColor:'YellowGreen', borderBottom: '1px solid #ddd'} : {borderBottom: '1px solid #ddd'}}
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            onClick={() => {this.setState(function(prevState, props) {
+                                this.updateFlag = false;
+                                D3ForceSimulation.showOrHideImage();
+                                prevState.tooltip.showedImage = D3ForceSimulation.showedImage;
+                                return prevState;
+                            })}}
+                        >
+                            <ImageFilter />
+                        </IconButton>
+                        <IconButton 
+                            style={{borderBottom: '1px solid #ddd',}}
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            tooltip="New Node"
+                            onClick={()=> {this.setState(function(prevState, props) {
+                                this.updateFlag = false;
+                                prevState.open = true;
+                                return prevState;
+                            })}}
+                        >
+                            <ImageControlPoint />
+                        </IconButton>
+                        <IconButton 
+                            tooltip="Nodes"
+                            id='iconButton_selectedNodes'
+                            style={{borderBottom: '1px solid #ddd',}}
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            onClick={()=>{
+                                if (this.state.tooltip.selected.nodes.length > 0){
                                     this.updateFlag = false;
-                                    D3ForceSimulation.changeConnectMode();
-                                    prevState.tooltip.connectMode = D3ForceSimulation.connectMode;
-                                    return prevState;
-                                })}}
-                            >
-                                <SocialShare />
-                            </IconButton>
-                            <IconButton 
-                                style={this.state.tooltip.showedImage ? {backgroundColor:'YellowGreen', borderBottom: '1px solid #ddd'} : {borderBottom: '1px solid #ddd'}}
-                                hoveredStyle={{backgroundColor:'SkyBlue'}}
-                                onClick={() => {this.setState(function(prevState, props) {
+                                    this.setState(function(prevState, props) {
+                                        prevState.tooltip.selected.nodesOpen = true;
+                                        prevState.tooltip.selected.nodesEl = document.getElementById('iconButton_selectedNodes');
+                                        return prevState;
+                                    });
+                                }
+                            }}>
+                            <ImagePanoramaFishEye />
+                        </IconButton>
+                        <IconButton 
+                            id='iconButton_selectedEdges'
+                            style={{borderBottom: '1px solid #ddd',}}
+                            tooltip="Relationships"
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            onClick={()=>{
+                                if (this.state.tooltip.selected.edges.length > 0){
                                     this.updateFlag = false;
-                                    D3ForceSimulation.showOrHideImage();
-                                    prevState.tooltip.showedImage = D3ForceSimulation.showedImage;
+                                    this.setState(function(prevState, props) {
+                                        prevState.tooltip.selected.edgesOpen = true;
+                                        prevState.tooltip.selected.edgesEl = document.getElementById('iconButton_selectedEdges');
+                                        return prevState;
+                                    });
+                                }
+                            }}>
+                            <CommunicationCallMade />
+                        </IconButton>
+                        <IconButton 
+                            tooltip="Delete"
+                            style={{borderBottom: '1px solid #ddd',}}
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            onClick={()=>{console.log(this.props.data)}}>
+                            <ContentRemoveCircleOutline />
+                        </IconButton>
+                        
+                        {/* /////////////////////////////////////////
+                        //  selected nodes
+                        ///////////////////////////////////////// */}
+                        <Popover
+                            open={this.state.tooltip.selected.nodesOpen}
+                            anchorEl={this.state.tooltip.selected.nodesEl}
+                            anchorOrigin={{horizontal:"left",vertical:"center"}}
+                            targetOrigin={{horizontal:"right",vertical:"top"}}
+                            onRequestClose={function () {
+                                this.updateFlag = false;
+                                this.setState(function(prevState, props) {
+                                    prevState.tooltip.selected.nodesOpen = false;
                                     return prevState;
-                                })}}
-                            >
-                                <ImageFilter />
-                            </IconButton>
-                        </div>
-                        <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto'}} >
-                            <IconButton 
-                                style={{borderTop: '1px solid #ddd',}}
-                                hoveredStyle={{backgroundColor:'SkyBlue'}}
-                                //onMouseOver={()=>{console.log('phi')}}
-                                onClick={()=> {this.setState(function(prevState, props) {
-                                    prevState.open = true;
+                                });
+                            }.bind(this)}
+                        >
+                            <Menu desktop={true}>
+                                <IconButton 
+                                    style={{
+                                        padding:'0px',
+                                        width: '24px',
+                                        height: '24px'
+                                    }}
+                                    iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
+                                    onClick={() =>{
+                                        this.updateFlag = false;
+                                        this.setState(function(prevState, props) {
+                                            for (let i=prevState.tooltip.selected.nodes.length-1; i>=0; i--){
+                                                D3ForceSimulation.Unselect(prevState.tooltip.selected.nodes[i]);
+                                                prevState.tooltip.selected.nodes.splice(i, 1);
+                                            }
+                                            prevState.tooltip.selected.nodesOpen = false;
+                                            return prevState;
+                                        });
+                                    }}
+                                >
+                                    <ActionDelete />
+                                </IconButton>
+                                {this.state.tooltip.selected.nodes.map((node, index)=>(
+                                    <div
+                                        style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        paddingRight: '8px',
+                                        borderRadius: '10px',
+                                        backgroundColor: 'Gainsboro',
+                                        margin: '3px',
+                                        height: '20px'
+                                    }}>
+                                        <Avatar src={D3ForceSimulation.getNodeStyle(node.labels[0]).icon} 
+                                            style={{
+                                                width:'23px', 
+                                                height:'23px', 
+                                                marginLeft:'6px', 
+                                                borderRadius:'0%', 
+                                                backgroundColor:'#00000000'}} 
+                                        />
+                                        <span 
+                                            onClick={()=>D3ForceSimulation.ScreenMoveTo(node)}
+                                            style={{fontSize: '12px', marginRight: '10px', cursor:'pointer'}}
+                                        >
+                                            {node.labels[0] + ' {id:'+ node.id + ', ' + 
+                                                    D3ForceSimulation.getNodeStyle(node.labels[0]).caption + ':' +
+                                                    node.properties[D3ForceSimulation.getNodeStyle(node.labels[0]).caption]+'}'}
+                                        </span>
+                                        
+                                        <IconButton 
+                                            style={{
+                                                padding:'0px',
+                                                width: '24px',
+                                                height: '24px'
+                                            }}
+                                            iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
+                                            onClick={()=>this.showCard(node, 0)}
+                                        >
+                                            <RemoveRedEye />
+                                        </IconButton>
+                                        <IconButton 
+                                            style={{
+                                                padding:'0px',
+                                                width: '24px',
+                                                height: '24px'
+                                            }}
+                                            iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
+                                            onClick={()=>this.deleteNodes([node])}
+                                        >
+                                            <ContentRemoveCircleOutline />
+                                        </IconButton>
+                                        <IconButton 
+                                            style={{
+                                                padding:'0px',
+                                                width: '24px',
+                                                height: '24px'
+                                            }}
+                                            iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
+                                            onClick={() =>{
+                                                this.updateFlag = false;
+                                                this.setState(function(prevState, props) {
+                                                    for (let i=0; i<prevState.tooltip.selected.nodes.length; i++){
+                                                        if (prevState.tooltip.selected.nodes[i].id == node.id){
+                                                            prevState.tooltip.selected.nodes.splice(i, 1);
+                                                            break;
+                                                        }
+                                                    }
+                                                    D3ForceSimulation.Unselect(node);
+                                                    prevState.tooltip.selected.nodesOpen = prevState.tooltip.selected.nodes.length > 0;
+                                                    return prevState;
+                                                });
+                                            }}
+                                        >
+                                            <Clear style={{height: '24px', width: '24px',}} />
+                                        </IconButton>
+                                    </div>
+                                ))}
+                            </Menu>
+                        </Popover>
+
+                        {/* /////////////////////////////////////////
+                        //  selected edges
+                        ///////////////////////////////////////// */}
+                        <Popover
+                            open={this.state.tooltip.selected.edgesOpen}
+                            anchorEl={this.state.tooltip.selected.edgesEl}
+                            anchorOrigin={{horizontal:"left",vertical:"center"}}
+                            targetOrigin={{horizontal:"right",vertical:"top"}}
+                            onRequestClose={function () {
+                                this.updateFlag = false;
+                                this.setState(function(prevState, props) {
+                                    prevState.tooltip.selected.edgesOpen = false;
                                     return prevState;
-                                })}}
-                            >
-                                <ImageControlPoint />
-                            </IconButton>
-                            <IconButton 
-                                style={{borderTop: '1px solid #ddd',}}
-                                hoveredStyle={{backgroundColor:'SkyBlue'}}
-                                onClick={D3ForceSimulation.showOrHideImage}>
-                                <ImageEdit />
-                            </IconButton>
-                            <IconButton 
-                                style={{borderTop: '1px solid #ddd',}}
-                                hoveredStyle={{backgroundColor:'SkyBlue'}}
-                                onClick={D3ForceSimulation.showOrHideImage}>
-                                <ContentRemoveCircleOutline />
-                            </IconButton>
-                        </div>
+                                });
+                            }.bind(this)}
+                        >
+                            <Menu desktop={true}>
+                                <IconButton 
+                                    style={{
+                                        padding:'0px',
+                                        width: '24px',
+                                        height: '24px'
+                                    }}
+                                    iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
+                                    onClick={() =>{
+                                        this.updateFlag = false;
+                                        this.setState(function(prevState, props) {
+                                            for (let i=prevState.tooltip.selected.edges.length-1; i>=0; i--){
+                                                D3ForceSimulation.Unselect(prevState.tooltip.selected.edges[i]);
+                                                prevState.tooltip.selected.edges.splice(i, 1);
+                                            }
+                                            prevState.tooltip.selected.edgesOpen = false;
+                                            return prevState;
+                                        });
+                                    }}
+                                >
+                                    <ActionDelete />
+                                </IconButton>
+                                {this.state.tooltip.selected.edges.map((edge, index)=>(
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            paddingRight: '8px',
+                                            borderRadius: '3px',
+                                            backgroundColor: 'Gainsboro',
+                                            margin: '3px',
+                                            height: '20px'
+                                    }}>
+                                        <span 
+                                            onClick={()=>{D3ForceSimulation.ScreenMoveTo(edge);}}
+                                            style={{fontSize: '12px', marginRight: '10px', cursor:'pointer'}}
+                                        >
+                                            {edge.type + ' {id:'+ edge.id +'}'}
+                                        </span>
+
+                                        <IconButton 
+                                            style={{
+                                                padding:'0px',
+                                                width: '24px',
+                                                height: '24px'
+                                            }}
+                                            iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
+                                            onClick={()=>this.showCard(edge, 1)}
+                                        >
+                                            <RemoveRedEye />
+                                        </IconButton>
+                                        <IconButton 
+                                            style={{
+                                                padding:'0px',
+                                                width: '24px',
+                                                height: '24px'
+                                            }}
+                                            iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
+                                            onClick={()=>this.deleteEdges([edge])}
+                                        >
+                                            <ContentRemoveCircleOutline />
+                                        </IconButton>
+                                        <IconButton 
+                                            style={{
+                                                padding:'0px',
+                                                width: '24px',
+                                                height: '24px'
+                                            }}
+                                            iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
+                                            onClick={() =>{
+                                                this.updateFlag = false;
+                                                this.setState(function(prevState, props) {
+                                                    for (let i=0; i<prevState.tooltip.selected.edges.length; i++){
+                                                        if (prevState.tooltip.selected.edges[i].id == edge.id){
+                                                            prevState.tooltip.selected.edges.splice(i, 1);
+                                                            break;
+                                                        }
+                                                    }
+                                                    D3ForceSimulation.Unselect(edge);
+                                                    prevState.tooltip.selected.edgesOpen = prevState.tooltip.selected.edges.length > 0;
+                                                    return prevState;
+                                                });
+                                            }}
+                                        >
+                                            <Clear style={{height: '24px', width: '24px',}} />
+                                        </IconButton>
+                                    </div>
+                                ))}
+                            </Menu>
+                        </Popover>
+
+                        {/* /////////////////////////////////////////
+                        //  Badge nodes
+                        ///////////////////////////////////////// */}
+                        {this.state.tooltip.selected.nodes.length > 0 ?
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    padding: '0 2px 0 2px',
+                                    borderRadius: '5px',
+                                    backgroundColor: 'tomato',
+                                    height: '13px',
+                                    fontSize: '12px',
+                                    textAlign: 'center',
+                                    top: '147px',
+                                    right: '1px',
+                                    color: 'beige',
+                                    fontFamily: 'Roboto, sans-serif'
+                                }}>
+                                {this.state.tooltip.selected.nodes.length}
+                            </div>
+                            :
+                            ''
+                        }
+
+                        {/* /////////////////////////////////////////
+                        //  Badge edges
+                        ///////////////////////////////////////// */}
+                        {this.state.tooltip.selected.edges.length > 0 ?
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    padding: '0 2px 0 2px',
+                                    borderRadius: '5px',
+                                    backgroundColor: 'tomato',
+                                    height: '13px',
+                                    fontSize: '12px',
+                                    textAlign: 'center',
+                                    top: '195px',
+                                    right: '1px',
+                                    color: 'beige',
+                                    fontFamily: 'Roboto, sans-serif'
+                                }}>
+                                {this.state.tooltip.selected.edges.length}
+                            </div>
+                            :
+                            ''
+                        }
                     </div>
                 </div>
                 <EditStyleComponent 
