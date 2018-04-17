@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import GlobalConstant from '../Common/GlobalConstant';
+import GlobalFunction from '../Common/GlobalFunction';
 
 export const D3ForceSimulation = {};
 
@@ -183,21 +184,39 @@ function drawLine(d)
 {
     let __x = d.source.x-d.target.x;
     let __y = d.source.y-d.target.y;
-    let __sOffset = d.source.size * 0.5;
-    let __tOffset = d.target.size * 0.5;
-    let __jdDushu = Math.abs(Math.atan(__x/__y));
+    let __sR = d.source.size * 0.5 + 5;
+    let __tR = d.target.size * 0.5 + 10;
+    
+    let __jdDushu = GlobalFunction.MathAngle(d.target.x, d.target.y, d.source.x, d.source.y);
     let __sin = Math.sin(__jdDushu);
     let __cos = Math.cos(__jdDushu);
 
-    let __sx = __jdDushu > 0.755 ? __sOffset : __sOffset * __sin;
-    let __sy = __jdDushu <= 0.755 ? __sOffset : __sOffset * __cos;
-    let __tx = __jdDushu > 0.755 ? __tOffset + 5 : __tOffset * __sin;
-    let __ty = __jdDushu <= 0.755 ? __tOffset : __tOffset * __cos;
+    d.sx = d.source.x - __sR * __cos;
+    d.sy = d.source.y - __sR * __sin;
+    d.tx = d.target.x + __tR * __cos;
+    d.ty = d.target.y + __tR * __sin;
 
-    d.sx = d.source.x + (__x > 0 ? -__sx : __sx);
-    d.sy = d.source.y + (__y > 0 ? -__sy : __sy);
-    d.tx = d.target.x + (__x > 0 ? __tx : -__tx);
-    d.ty = d.target.y + (__y > 0 ? __ty : -__ty);
+
+    if (d.floor != 0){
+        //1.5578977136721246
+        // let lcx = __x * 0.5 + d.target.x;
+        // let lcy = __y * 0.5 + d.target.y;
+        d.fx = (__x * 0.5 + d.target.x) - d.floor * Math.cos(__jdDushu + 1.5689874350398076);
+        d.fy = (__y * 0.5 + d.target.y) - d.floor * Math.sin(__jdDushu + 1.5689874350398076);
+
+        //0.08726646
+        // __sin = Math.sin(__jdDushu + 0.08726646 * d.floor * 0.05);
+        // __cos = Math.cos(__jdDushu + 0.08726646 * d.floor * 0.05);
+        d.sx = d.source.x - __sR * Math.cos(__jdDushu + 0.1396263 * d.floor * 0.05);
+        d.sy = d.source.y - __sR * Math.sin(__jdDushu + 0.1396263 * d.floor * 0.05);
+        d.tx = d.target.x + __tR * Math.cos(__jdDushu + 0.1396263 * d.floor * -0.05);
+        d.ty = d.target.y + __tR * Math.sin(__jdDushu + 0.1396263 * d.floor * -0.05);
+    }else{
+        d.sx = d.source.x - __sR * __cos;
+        d.sy = d.source.y - __sR * __sin;
+        d.tx = d.target.x + __tR * __cos;
+        d.ty = d.target.y + __tR * __sin;
+    }
 
     d.psx = __x < 0 ? (d.source.x - __x * 0.333333) : (d.target.x + __x * 0.333333);
     d.psy = __x < 0 ? (d.source.y - __y * 0.333333) : (d.target.y + __y * 0.333333);
@@ -323,7 +342,7 @@ D3ForceSimulation.ScreenMoveTo = function(d){
     }
 
     D3ForceSimulation.svg.attr("transform", 
-    'translate(' + D3ForceSimulation.x + ',' + D3ForceSimulation.y +')');
+        'translate(' + D3ForceSimulation.x + ',' + D3ForceSimulation.y +')');
 }
 
 D3ForceSimulation.update = function(el, props, state) {
@@ -355,8 +374,8 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         
     let __node = __updataForNode
         .enter()
-        .append("g")
-        .attr("class", 'nodes');
+        .append("g");
+        //.attr("class", 'nodes');
         
     __updataForNode.exit().remove();
 
@@ -376,8 +395,8 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     
     let __link = __updataForLink
         .enter()
-        .append("g")
-        .attr("class", "links");
+        .append("g");
+        //.attr("class", "links");
     
     __link.append("defs")
         .append("path")
@@ -385,6 +404,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
 
     __link.append("path")
         .attr("class", 'link_path')
+        .style('fill', 'none')
         .style('marker-end', 'url(#marker_arrow)'); 
     
     __link.append("text")
@@ -399,6 +419,13 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     __link = __link.merge(__updataForLink); 
 
     __node
+        .attr('class', function(d){ 
+            if (!d.hasOwnProperty('selected')){
+                d['selected'] = false;
+            }
+
+            return d.selected ? 'nodes nodes_selected' : 'nodes'
+        })
         .on("dblclick", function(d){
             state.showCard(d, 0); //node:0 edge:1
         })
@@ -406,7 +433,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
             if (D3ForceSimulation.connectMode){
                 let __conncet_line = D3ForceSimulation.svg.select('#conncet_line');
                 if (__conncet_line.empty()){
-                    let dsadsa = D3ForceSimulation.svg
+                    D3ForceSimulation.svg
                         .append('line')
                         .attr('id', 'conncet_line')
                         .attr('x1', d.x)
@@ -520,6 +547,10 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .attr("height", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 100 : 0} : 0)
         .attr("width", D3ForceSimulation.showedImage ? (d)=>{ return isPreviewImageInNode(d) ? 100 : 0} : 0);
 
+    let __tmplinks= {
+        //12:34 : []
+    };
+
     __link
         .style('stroke', setEdgeColor)
         .attr('id', function(d){ return 'link_id_' + d.id})
@@ -557,8 +588,27 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .on("mouseout", function(d){
             D3ForceSimulation.svg.select('#link_id_' + d.id)
                 .attr('shadowed', false);
+        })
+        .each((d)=>{
+            d['STID'] = d.target > d.source ? d.source + ':' + d.target : d.target + ':' + d.source;
+            if (!__tmplinks.hasOwnProperty(d['STID'])){
+                __tmplinks[d['STID']] = [];
+            }
+
+            __tmplinks[d['STID']].push(d);
         });
 
+    for (let key in __tmplinks){
+        if (__tmplinks[key].length > 1){
+            let tmp = 1;
+            for (let i=0; i<__tmplinks[key].length; i++){
+                tmp = 1 + i;
+                __tmplinks[key][i]['floor'] = 20 * (tmp % 2 == 1 ? Math.ceil(tmp/2) : -Math.ceil(tmp/2));
+            }
+        }else{
+            __tmplinks[key][0]['floor'] = 0;
+        }
+    }
 
     let __defsInLink = __link.select('.defs_path')
         .attr('id', (d) => {return 'defs_path_id_'+ d.id});
@@ -578,8 +628,13 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
 
         __link.each(drawLine);
 
-        __pathInLink.attr("d", function(d) {return 'M' + d.sx + ',' + d.sy
-                    +' L' + d.tx + ',' + d.ty});
+         __pathInLink.attr("d", 
+            function(d) {
+                return d.floor == 0 ?
+                    'M' + d.sx + ',' + d.sy +' L' + d.tx + ',' + d.ty
+                    :
+                    'M' + d.sx + ',' + d.sy +' Q'+ d.fx + ',' + d.fy + ' ' + d.tx + ',' + d.ty
+            });
         
         __defsInLink.attr("d", 
             (d) => {

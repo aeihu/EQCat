@@ -43,9 +43,35 @@ const GetTemplate = function() {
     xmlhttp.send();
 }.bind(this)
 
+const MathAngle = function (x1, y1, x2, y2)
+{
+    let __result;
+    let __xx, __yy;
+
+    __xx = x2 - x1;
+    __yy = y2 - y1;
+
+    if (__xx == 0.0){
+        __result = Math.PI / 2.0;
+    }else{
+        __result = Math.atan(Math.abs(__yy / __xx));
+    }
+
+    if ((__xx < 0.0) && (__yy >= 0.0)){
+        __result = Math.PI - __result;
+    }else if ((__xx < 0.0) && (__yy < 0.0)){
+        __result = Math.PI + __result;
+    }else if ((__xx >= 0.0) && (__yy < 0.0)){
+        __result = Math.PI * 2.0 - __result;
+    }
+
+    return __result;
+}
+
 const GlobalFunction = {
     ArrayEquals: ArrayEquals,
     GetTemplate: GetTemplate,
+    MathAngle: MathAngle,
 }
 
 module.exports = GlobalFunction;

@@ -195,7 +195,7 @@ export default class Neo4j
         __statement += ' delete n,r return n,r';
 
         console.log(__statement);
-        this.runStatement(__statement, node.properties.merge, res);
+        this.runStatement(__statement, {}, res);
     }
     
     addSingleEdge(edge, res)
