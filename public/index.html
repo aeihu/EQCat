@@ -65,16 +65,23 @@
         }
 		.links{
             font-family: simsun;
-            filter: drop-shadow(rgba(0, 0, 0, 0) 0px 0px);
+            /* filter: drop-shadow(rgba(0, 0, 0, 0) 0px 0px); */
         }
 
-        .links[shadowed='true'] {
-            filter: drop-shadow(0px 0px 2px RoyalBlue);
+        .defs_path {
+            opacity: 0;
+            stroke: #6ac6ff;
         }
 
-        .links_selected{
+        .defs_path[shadowed='true'] {
+            opacity: 0.45;
+            stroke: #6ac6ff;
+        }
+
+        .defs_path_selected{
             /* filter: drop-shadow(0px 0px 2px MidnightBlue); */
-            filter: drop-shadow(Tomato 3px 2px);
+            opacity: 0.45;
+            stroke: Tomato;
         }
 
         .tooltip{

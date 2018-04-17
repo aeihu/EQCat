@@ -81,9 +81,9 @@ D3ForceSimulation.create = function(el, props, state) {
         .attr('d', 'M2,2 L2,11 L10,6 L2,2')
 
     this.simulation = d3.forceSimulation()
-        .force("link", d3.forceLink().id(function(d) { return d.id; }).strength(0.5))
-        .force("charge", d3.forceManyBody().strength(-5200))
-        // /.force("collide", d3.forceCollide().strength())
+        .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(220))
+        .force("charge", d3.forceManyBody().strength(1))
+        .force("collide", d3.forceCollide().radius(50))
         .force("center", d3.forceCenter(300, 300));
 
     //this.update(el, props, state);
@@ -159,7 +159,7 @@ function setNodeText(d) {
 }
 
 function setNodeSize(d) { 
-    d.size = d.labels.length > 0 ? D3ForceSimulation.getNodeStyle(d.labels[0]).size : 35;
+    d.size = d.labels.length > 0 ? D3ForceSimulation.getNodeStyle(d.labels[0]).size : 50;
     let __offset = -d.size / 2;
 
     D3ForceSimulation.svg.select('#node_image_id_'+d.id)
@@ -207,10 +207,10 @@ function drawLine(d)
         //0.08726646
         // __sin = Math.sin(__jdDushu + 0.08726646 * d.floor * 0.05);
         // __cos = Math.cos(__jdDushu + 0.08726646 * d.floor * 0.05);
-        d.sx = d.source.x - __sR * Math.cos(__jdDushu + 0.1396263 * d.floor * 0.05);
-        d.sy = d.source.y - __sR * Math.sin(__jdDushu + 0.1396263 * d.floor * 0.05);
-        d.tx = d.target.x + __tR * Math.cos(__jdDushu + 0.1396263 * d.floor * -0.05);
-        d.ty = d.target.y + __tR * Math.sin(__jdDushu + 0.1396263 * d.floor * -0.05);
+        d.sx = d.source.x - __sR * Math.cos(__jdDushu + 0.2396263 * d.floor * 0.05);
+        d.sy = d.source.y - __sR * Math.sin(__jdDushu + 0.2396263 * d.floor * 0.05);
+        d.tx = d.target.x + __tR * Math.cos(__jdDushu + 0.2396263 * d.floor * -0.05);
+        d.ty = d.target.y + __tR * Math.sin(__jdDushu + 0.2396263 * d.floor * -0.05);
     }else{
         d.sx = d.source.x - __sR * __cos;
         d.sy = d.source.y - __sR * __sin;
@@ -218,10 +218,17 @@ function drawLine(d)
         d.ty = d.target.y + __tR * __sin;
     }
 
-    d.psx = __x < 0 ? (d.source.x - __x * 0.333333) : (d.target.x + __x * 0.333333);
-    d.psy = __x < 0 ? (d.source.y - __y * 0.333333) : (d.target.y + __y * 0.333333);
-    d.ptx = __x < 0 ? d.tx : d.sx;
-    d.pty = __x < 0 ? d.ty : d.sy;
+    if (__x < 0){
+        d.psx = d.sx;
+        d.psy = d.sy;
+        d.ptx = d.tx;
+        d.pty = d.ty;
+    }else{
+        d.psx = d.tx;
+        d.psy = d.ty;
+        d.ptx = d.sx;
+        d.pty = d.sy;
+    }
 }
 
 D3ForceSimulation.getNodeStyle = function(label){
@@ -397,18 +404,20 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .enter()
         .append("g");
         //.attr("class", "links");
-    
-    __link.append("defs")
-        .append("path")
-        .attr("class", 'defs_path');
 
+    __link.append("path")
+        .attr("class", 'defs_path')
+        .style('stroke-width', '10')
+        .style('fill', 'none');
+    
     __link.append("path")
         .attr("class", 'link_path')
         .style('fill', 'none')
         .style('marker-end', 'url(#marker_arrow)'); 
-    
+        
     __link.append("text")
         .style('font-size', '14px')
+        .attr('xml:space', 'preserve')
         .append('textPath');
 
     __updataForLink.exit().remove();
@@ -488,7 +497,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                     D3ForceSimulation.svg.select('#node_id_' + d.sourceEdges[i].target.id)
                         .attr('shadowed', 'target');
                     
-                    D3ForceSimulation.svg.select('#link_id_' + d.sourceEdges[i].id)
+                    D3ForceSimulation.svg.select('#defs_path_id_' + d.sourceEdges[i].id)
                         .attr('shadowed', true);
                 }
             }
@@ -498,7 +507,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                     D3ForceSimulation.svg.select('#node_id_' + d.targetEdges[i].source.id)
                         .attr('shadowed', 'source');
                     
-                    D3ForceSimulation.svg.select('#link_id_' + d.targetEdges[i].id)
+                    D3ForceSimulation.svg.select('#defs_path_id_' + d.targetEdges[i].id)
                         .attr('shadowed', true);
                 }
             }
@@ -512,7 +521,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                     D3ForceSimulation.svg.select('#node_id_' + d.sourceEdges[i].target.id)
                         .attr('shadowed', '');
 
-                    D3ForceSimulation.svg.select('#link_id_' + d.sourceEdges[i].id)
+                    D3ForceSimulation.svg.select('#defs_path_id_' + d.sourceEdges[i].id)
                         .attr('shadowed', false);
                 }
             }
@@ -522,7 +531,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                     D3ForceSimulation.svg.select('#node_id_' + d.targetEdges[i].source.id)
                         .attr('shadowed', '');
 
-                    D3ForceSimulation.svg.select('#link_id_' + d.targetEdges[i].id)
+                    D3ForceSimulation.svg.select('#defs_path_id_' + d.targetEdges[i].id)
                         .attr('shadowed', false);
                 }
             }
@@ -555,11 +564,23 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .style('stroke', setEdgeColor)
         .attr('id', function(d){ return 'link_id_' + d.id})
         .attr('class', function(d){ 
+            let __sid = typeof d.source == 'object' ? d.source.id : d.source;
+            let __tid = typeof d.target == 'object' ? d.target.id : d.target;
+            d['STID'] = __tid > __sid ? __sid + ':' + __tid : __tid + ':' + __sid;
+            if (!__tmplinks.hasOwnProperty(d['STID'])){
+                __tmplinks[d['STID']] = [];
+            }
+
+            __tmplinks[d['STID']].push(d);
+
             if (!d.hasOwnProperty('selected')){
                 d['selected'] = false;
             }
 
-            return d.selected ? 'links links_selected' : 'links'
+            D3ForceSimulation.svg.select('#defs_path_id_' + d.id)
+                .attr('class', d.selected ? 'defs_path defs_path_selected' : 'defs_path');
+
+            return 'links'
         })
         .on("click", function(d){
             if (D3ForceSimulation.connectMode){
@@ -571,9 +592,9 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                     d['selected'] = true;
                 }
     
-                d3.select(this)
+                D3ForceSimulation.svg.select('#defs_path_id_' + d.id)
                     .attr('shadowed', d.selected)
-                    .attr('class', d.selected ? 'links links_selected' : 'links');
+                    .attr('class', d.selected ? 'defs_path defs_path_selected' : 'defs_path');
                 
                 state.selectEdge(d);
             }
@@ -582,20 +603,12 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
             state.showCard(d, 1); //node:0 edge:1
         })
         .on("mouseover", function(d){
-            D3ForceSimulation.svg.select('#link_id_' + d.id)
+            D3ForceSimulation.svg.select('#defs_path_id_' + d.id)
                 .attr('shadowed', true);
         })
         .on("mouseout", function(d){
-            D3ForceSimulation.svg.select('#link_id_' + d.id)
+            D3ForceSimulation.svg.select('#defs_path_id_' + d.id)
                 .attr('shadowed', false);
-        })
-        .each((d)=>{
-            d['STID'] = d.target > d.source ? d.source + ':' + d.target : d.target + ':' + d.source;
-            if (!__tmplinks.hasOwnProperty(d['STID'])){
-                __tmplinks[d['STID']] = [];
-            }
-
-            __tmplinks[d['STID']].push(d);
         });
 
     for (let key in __tmplinks){
@@ -618,7 +631,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     
     let __textpathInLink = __link.select('textPath')
         .attr('xlink:href', (d) => {return '#defs_path_id_'+ d.id})
-        .text((d) => {return d.type;});
+        .text((d) => {return '       ' + d.type;});
     
     function ticked() {
         __node
@@ -638,14 +651,17 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         
         __defsInLink.attr("d", 
             (d) => {
-                return 'M' + d.psx + ',' + d.psy
-                    +' L' + d.ptx + ',' + d.pty});
+                return d.floor == 0 ?
+                    'M' + d.psx + ',' + d.psy +' L' + d.ptx + ',' + d.pty
+                    :
+                    'M' + d.psx + ',' + d.psy +' Q'+ d.fx + ',' + d.fy + ' ' + d.ptx + ',' + d.pty
+            });
     }
     
     this.simulation
         .nodes(__data.nodes)
         .on("tick", ticked);
-        
+
     this.simulation
         .force("link")
         .links(__data.edges);

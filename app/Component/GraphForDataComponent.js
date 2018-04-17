@@ -165,8 +165,9 @@ export default class GraphForDataComponent extends React.Component {
                     let __nodes = JSON.parse(xmlhttp.responseText);
                     console.log('ssssssssssssssssssssssssssssssssssssssss')
                     
-                    this.props.onDeleteNode(__nodes);
                     this.updateFlag = true;
+                    this.props.onDeleteNode(__nodes);
+                    this.updateFlag = false;
                     this.setState(function(prevState, props) {
                         let __b = false;
                         for (let i=0; i<nodes.length; i++){
@@ -227,8 +228,9 @@ export default class GraphForDataComponent extends React.Component {
 					console.log('ssssssssssssssssssssssssssssssssssssssss')
                     console.log(__edges)
                     
-                    this.props.onDeleteEdge(__edges);
                     this.updateFlag = true;
+                    this.props.onDeleteEdge(__edges);
+                    this.updateFlag = false;
                     this.setState(function(prevState, props) {
                         for (let i=0; i<__edges.length; i++){
                             for (let j=prevState.tooltip.selected.edges.length-1; j>=0; j--){

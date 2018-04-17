@@ -135,7 +135,13 @@ class App extends React.Component {
                                 }
                             }
                             
-                            __row.push(JSON.stringify(v[key].properties, null, 2));
+                            __row.push(JSON.stringify(
+                                {
+                                    id: v[key].id,
+                                    labels: v[key].labels,
+                                    properties: v[key].properties
+                                }
+                                , null, 2));
                         }else if (v[key].hasOwnProperty("id") 
                             && v[key].hasOwnProperty("type") 
                             && v[key].hasOwnProperty("properties")
@@ -161,7 +167,13 @@ class App extends React.Component {
                                 __count.edges['*']++;
                             }
 
-                            __row.push(JSON.stringify(v[key].properties, null, 2));
+                            __row.push(JSON.stringify(
+                                {
+                                    id: v[key].id,
+                                    type: v[key].type,
+                                    properties: v[key].properties
+                                }
+                                , null, 2));
                         }else{
                             __row.push(v[key]);
                         }
@@ -392,9 +404,6 @@ class App extends React.Component {
                 for (let i=0; i<prevState.data.graph.nodes.length; i++){
                     if (__source){
                         if (prevState.data.graph.nodes[i].id == record['r'].source){
-                            console.log('delete target edge in node')
-                            console.log(prevState.data.graph.nodes[i].id)
-                            console.log(record['r'].target)
                             for (let j=0; j<prevState.data.graph.nodes[i].sourceEdges.length; j++){
                                 if (prevState.data.graph.nodes[i].sourceEdges[j].id == record['r'].id){
                                     prevState.data.graph.nodes[i].sourceEdges.splice(j, 1);
@@ -407,9 +416,6 @@ class App extends React.Component {
 
                     if (__target){
                         if (prevState.data.graph.nodes[i].id == record['r'].target){
-                            console.log('delete source edge in node')
-                            console.log(prevState.data.graph.nodes[i].id)
-                            console.log(record['r'].source)
                             for (let j=0; j<prevState.data.graph.nodes[i].targetEdges.length; j++){
                                 if (prevState.data.graph.nodes[i].targetEdges[j].id == record['r'].id){
                                     prevState.data.graph.nodes[i].targetEdges.splice(j, 1);
@@ -425,16 +431,17 @@ class App extends React.Component {
                     }
                 }
                 
-                if (__countEdge[record['r'].type] == 1){
-                    delete __countEdge[record['r'].type];
-                }else{
-                    __countEdge[record['r'].type]--;
-                }
-
-                __countEdge['*']--;
                 for (let i=0; i<this.state.data.graph.edges.length; i++){
                     if (prevState.data.graph.edges[i].id == record['r'].id){
                         prevState.data.graph.edges.splice(i, 1);
+                        
+                        if (__countEdge[record['r'].type] == 1){
+                            delete __countEdge[record['r'].type];
+                        }else{
+                            __countEdge[record['r'].type]--;
+                        }
+
+                        __countEdge['*']--;
                         break;
                     }
                 }
