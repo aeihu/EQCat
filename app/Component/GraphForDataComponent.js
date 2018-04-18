@@ -120,7 +120,7 @@ export default class GraphForDataComponent extends React.Component {
     }.bind(this);
 
     showCard = function(d, mode) {
-        let __mode = mode == 0 ? 'nodes' : 'edges';
+        let __mode = mode == GlobalConstant.mode.node ? 'nodes' : 'edges';
         for (let index in this.state.cards[__mode]){
             if (this.state.cards[__mode][index].id == d.id){
                 return;
@@ -135,7 +135,7 @@ export default class GraphForDataComponent extends React.Component {
     }.bind(this);
 
     hideCard = function(id, mode) {
-        let __mode = mode == 0 ? 'nodes' : 'edges';
+        let __mode = mode == GlobalConstant.mode.node ? 'nodes' : 'edges';
         for (let index in this.state.cards[__mode]){
             if (this.state.cards[__mode][index].id == id){
                 this.updateFlag = false;
@@ -293,14 +293,14 @@ export default class GraphForDataComponent extends React.Component {
                 __cardElements.push(
                     key == 'nodes' ?
                         <CardComponent 
-                            mode={0} // node:0  edge:1
+                            mode={GlobalConstant.mode.node} // node:0  edge:1
                             data={this.state.cards[key][i]} 
                             closeCard={this.hideCard} 
                             onMerge={this.props.onMergeNode}
                         />
                         :
                         <CardComponent 
-                            mode={1} // node:0  edge:1
+                            mode={GlobalConstant.mode.edge} // node:0  edge:1
                             data={this.state.cards[key][i]} 
                             closeCard={this.hideCard} 
                             onMerge={this.props.onMergeEdge}
@@ -312,7 +312,7 @@ export default class GraphForDataComponent extends React.Component {
         return (
             <div style={{display: 'flex', flexDirection: 'column', height: '100%', width:'100%'}} >
                 <EditorDialogsComponent 
-                    mode={0}
+                    mode={GlobalConstant.mode.node}
                     isNew={true}
                     open={this.state.open}
                     onChangeData={this.props.onAddNode}

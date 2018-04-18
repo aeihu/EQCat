@@ -22,7 +22,7 @@ export default class EditEdgeComponent extends React.Component {
     caption = '';
 
     setIcon = function (icon){
-        if (typeof this.props.onCaptionChange === 'function'){
+        if (typeof this.props.onIconChange === 'function'){
             this.icon = icon;
             this.props.onIconChange(icon);
         }
@@ -83,6 +83,7 @@ export default class EditEdgeComponent extends React.Component {
 
         return (
             <div style={{
+                height: '32px',
                 display: 'flex', 
                 flexDirection: 'row', 
                 flex:'0 0 auto',
@@ -121,7 +122,8 @@ export default class EditEdgeComponent extends React.Component {
                 <span>Size:</span>
                 <TextField 
                     id={'value1'}
-                    style={{width:'85px'}}
+                    style={{width:'50px', height:'32px'}}
+                    inputStyle={{fontSize: '12px'}}
                     onChange={(event, newValue) =>
                         {
                             this.size = newValue;
@@ -138,14 +140,14 @@ export default class EditEdgeComponent extends React.Component {
                     value={this.size}
                 />
 
-                <span>Caption:</span>
+                <span style={{marginLeft:'12px'}}>Caption:</span>
                 {__captionChip}
 
                 <Popover
                     open={this.state.iconMenu.open}
                     anchorEl={this.state.iconMenu.anchorEl}
-                    anchorOrigin={{horizontal:"left", vertical:"top"}}
-                    targetOrigin={{horizontal:"left", vertical:"top"}}
+                    anchorOrigin={{horizontal:"right", vertical:"top"}}
+                    targetOrigin={{horizontal:"left", vertical:"bottom"}}
                     onRequestClose={function() {
                         this.setState(function(prevState, props) {
                             prevState.iconMenu.open = false;

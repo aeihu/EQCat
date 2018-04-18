@@ -48,6 +48,7 @@ D3ForceSimulation.create = function(el, props, state) {
                     D3ForceSimulation.y = D3ForceSimulation.y - (D3ForceSimulation.ty - d3.event.y);
                 }))
         .on("mousemove", function(d){
+            //console.log(d3.event)
             if (D3ForceSimulation.connectMode){
                 let __conncet_line = D3ForceSimulation.svg.select('#conncet_line');
                 if (!__conncet_line.empty()){
@@ -207,10 +208,10 @@ function drawLine(d)
         //0.08726646
         // __sin = Math.sin(__jdDushu + 0.08726646 * d.floor * 0.05);
         // __cos = Math.cos(__jdDushu + 0.08726646 * d.floor * 0.05);
-        d.sx = d.source.x - __sR * Math.cos(__jdDushu + 0.2396263 * d.floor * 0.05);
-        d.sy = d.source.y - __sR * Math.sin(__jdDushu + 0.2396263 * d.floor * 0.05);
-        d.tx = d.target.x + __tR * Math.cos(__jdDushu + 0.2396263 * d.floor * -0.05);
-        d.ty = d.target.y + __tR * Math.sin(__jdDushu + 0.2396263 * d.floor * -0.05);
+        d.sx = d.source.x - __sR * Math.cos(__jdDushu + 0.2596263 * d.floor * 0.05);
+        d.sy = d.source.y - __sR * Math.sin(__jdDushu + 0.2596263 * d.floor * 0.05);
+        d.tx = d.target.x + __tR * Math.cos(__jdDushu + 0.2596263 * d.floor * -0.05);
+        d.ty = d.target.y + __tR * Math.sin(__jdDushu + 0.2596263 * d.floor * -0.05);
     }else{
         d.sx = d.source.x - __sR * __cos;
         d.sy = d.source.y - __sR * __sin;
@@ -255,7 +256,7 @@ D3ForceSimulation.getEdgeStyle = function(type){
 
 D3ForceSimulation.setStyle = function(state, type, val) {
     switch (state.mode){
-        case 1:
+        case GlobalConstant.mode.node:
             if (!this.NEStyles.nodes.hasOwnProperty(state.name)){
                 this.NEStyles.nodes[state.name] = {
                     icon: GlobalConstant.defaultIcon,
@@ -277,7 +278,7 @@ D3ForceSimulation.setStyle = function(state, type, val) {
                 switch (type){
                     case 'icon':
                         this.NEStyles.nodes[state.name].icon = val;
-                        __node.select('image')
+                        __node.select('.node_icon')
                             .attr("xlink:href", setIcon);
                         break;
                     case 'caption':
@@ -296,7 +297,7 @@ D3ForceSimulation.setStyle = function(state, type, val) {
                 }
             }
             break;
-        case 2:
+        case GlobalConstant.mode.edge:
             if (!this.NEStyles.edges.hasOwnProperty(state.name)){
                 this.NEStyles.edges[state.name] = {
                     color: '#000000'

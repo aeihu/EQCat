@@ -11,7 +11,7 @@ export default class EditStyleComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            mode: 0, // 0:empty 1:node 2:edge
+            mode: GlobalConstant.mode.node,
             name: '',
         }
     }  
@@ -69,11 +69,11 @@ export default class EditStyleComponent extends React.Component {
                     labelStyle={{fontSize: '12px'}}
                     onClick={key != '*' ? 
                         function(){
-                            if (this.state.mode != 1
+                            if (this.state.mode != GlobalConstant.mode.node
                                 || this.state.name != key){
 
                                 this.setState(function(prevState, props) {
-                                    prevState.mode = 1; // 0:empty 1:node 2:edge
+                                    prevState.mode = GlobalConstant.mode.node;
                                     prevState.name = key;
                                     
                                     return prevState;
@@ -107,11 +107,11 @@ export default class EditStyleComponent extends React.Component {
                     labelStyle={{fontSize: '12px'}}
                     onClick={key != '*' ? 
                         function(){
-                            if (this.state.mode != 2
+                            if (this.state.mode != GlobalConstant.mode.edge
                                 || this.state.name != key){
 
                                 this.setState(function(prevState, props) {
-                                    prevState.mode = 2; // 0:empty 1:node 2:edge
+                                    prevState.mode = GlobalConstant.mode.edge; // 0:empty 1:node 2:edge
                                     prevState.name = key;
                                     
                                     return prevState;
@@ -134,7 +134,7 @@ export default class EditStyleComponent extends React.Component {
                 <div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
                     {__edgeChip}
                 </div>
-                {this.state.mode == 1 ? ///////////////////  editMode  /////////////////////////
+                {this.state.mode == GlobalConstant.mode.node ? ///////////////////  editMode  /////////////////////////
                     <EditNodeComponent 
                         size={D3ForceSimulation.getNodeStyle(this.state.name).size}
                         caption={D3ForceSimulation.getNodeStyle(this.state.name).caption}
@@ -144,7 +144,7 @@ export default class EditStyleComponent extends React.Component {
                         onIconChange={this.setIconInBar}
                         onCaptionChange={this.setCaptionInBar}
                         onSizeChange={this.setSizeInBar} />
-                : this.state.mode == 2 ?
+                : this.state.mode == GlobalConstant.mode.edge ?
                     <EditEdgeComponent 
                         color={D3ForceSimulation.getEdgeStyle(this.state.name).color}
                         data={this.props.data.edges} 

@@ -53,7 +53,7 @@ export default class EditorDialogsComponent extends React.Component {
 	
 	updateInputForLabel = (searchText, index) => {
 		this.setState(function(prevState, props) {
-			if (props.mode == 0){
+			if (props.mode == GlobalConstant.mode.node){
 				prevState.labels[index] = searchText;
 			}else{
 				prevState.type = searchText;
@@ -65,7 +65,7 @@ export default class EditorDialogsComponent extends React.Component {
 
 	newRequestForLabel = (value, index) => {
 		this.setState(function(prevState, props) {
-			if (props.mode == 0){
+			if (props.mode == GlobalConstant.mode.node){
 				prevState.labels[index] = value;
 			}else{
 				prevState.type = value;
@@ -426,7 +426,7 @@ export default class EditorDialogsComponent extends React.Component {
 		}else{
 			if (newProps.data != null){
 				this.setState(function(prevState, props) {
-					if (props.mode == 0){
+					if (props.mode == GlobalConstant.mode.node){
 						prevState.labels = [...newProps.data.labels];
 					}else{
 						prevState.type = newProps.data.type;
@@ -494,7 +494,7 @@ export default class EditorDialogsComponent extends React.Component {
 	}
 	
 	render() {
-		let __submit = this.props.mode == 1 ? this.mergeEdge : this.props.isNew ? this.addNode : this.mergeNode;
+		let __submit = this.props.mode == GlobalConstant.mode.edge ? this.mergeEdge : this.props.isNew ? this.addNode : this.mergeNode;
 		const __actions = [
 			<FlatButton
 				label="Cancel"
@@ -510,7 +510,7 @@ export default class EditorDialogsComponent extends React.Component {
 		];
 
 		let __chips = [];
-		if (this.props.mode == 0){
+		if (this.props.mode == GlobalConstant.mode.node){
 			for (let i = 0; i < this.state.labels.length; i++){
 				__chips.push(
 					<div
@@ -892,17 +892,17 @@ export default class EditorDialogsComponent extends React.Component {
 		
 		return (
 			<Dialog
-				title={this.props.isNew ? "New Node" : this.props.mode == 0 ? "Edit Node" : "Edit Relationship"}
+				title={this.props.isNew ? "New Node" : this.props.mode == GlobalConstant.mode.node ? "Edit Node" : "Edit Relationship"}
 				actions={__actions}
 				modal={false}
 				open={this.props.open}
 				onRequestClose={this.props.onRequestClose}
 				autoScrollBodyContent={true}
 			>
-				<h2>{this.props.mode == 0 ? 'Labels' : 'Type'}</h2>
+				<h2>{this.props.mode == GlobalConstant.mode.node ? 'Labels' : 'Type'}</h2>
 				<div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto'}} >
 					{__chips}
-					{this.props.mode == 0 ?
+					{this.props.mode == GlobalConstant.mode.node ?
 						<IconButton 
 							tooltip="Add Label"
 							style={{

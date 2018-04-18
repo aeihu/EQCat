@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardActions, CardHeader, CardMedia, CardTitle, CardText } from 'material-ui/Card';
 import FlatButton from 'material-ui/FlatButton';
 import Draggable from 'react-draggable';
+import * as d3 from 'd3';
 
 import MenuItem from 'material-ui/MenuItem';
 import DropDownMenu from 'material-ui/DropDownMenu';
@@ -105,7 +106,7 @@ export default class CardComponent extends React.Component {
         }
 
         let __chips = [];
-        if (this.props.mode == 0){
+        if (this.props.mode == GlobalConstant.mode.node){
             for (let i = 0; i <  this.props.data.labels.length; i++){
                 __chips.push(
                     <Chip 
@@ -135,7 +136,7 @@ export default class CardComponent extends React.Component {
         }
     
         return (
-            <Draggable handle="strong" bounds="parent">
+            <Draggable handle="strong" bounds="parent" defaultPosition={{x: d3.event.pageX, y: d3.event.pageY}}>
                 <Paper style={{
                     position:"absolute", 
                     width:"553px"}} 
@@ -154,7 +155,7 @@ export default class CardComponent extends React.Component {
                     />
                     <strong>
                         <AppBar 
-                            title={this.props.mode == 0 ? 'Node: ID' + this.props.data.id : 'Edge: ID' + this.props.data.id}
+                            title={this.props.mode == GlobalConstant.mode.node ? 'Node: ID' + this.props.data.id : 'Edge: ID' + this.props.data.id}
                             titleStyle={{lineHeight:'24px', height:'26px'}}
                             iconElementLeft={
                                 <IconButton 
@@ -187,7 +188,7 @@ export default class CardComponent extends React.Component {
                                     prevState.open = true;
                                     return prevState;
                                     })}}
-                            style={this.props.mode == 0 ? {height:'26px'} : {height:'26px', backgroundColor:'DarkSalmon'}}
+                            style={this.props.mode == GlobalConstant.mode.node ? {height:'26px'} : {height:'26px', backgroundColor:'DarkSalmon'}}
                             iconStyleLeft={{
                                 marginTop: '0px',
                                 height: '24px',

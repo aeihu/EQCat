@@ -32,6 +32,7 @@ export default class EditEdgeComponent extends React.Component {
 
         return (
             <div style={{
+                height: '32px',
                 display: 'flex', 
                 flexDirection: 'row', 
                 flex:'0 0 auto',
