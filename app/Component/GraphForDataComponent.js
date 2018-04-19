@@ -300,7 +300,7 @@ export default class GraphForDataComponent extends React.Component {
             prevState.dialog.data = data;
             return prevState;
         })
-    }
+    }.bind(this)
 
     render() {
         let __cardElements=[];
@@ -339,12 +339,12 @@ export default class GraphForDataComponent extends React.Component {
                             : 
                             this.props.onMergeEdge
                         }
-                    onRequestClose={()=> {
+                    onRequestClose={function () {
                         this.updateFlag = false;
                         this.setState(function(prevState, props) {
-                            prevState.open = false;
+                            prevState.dialog.open = false;
                             return prevState;
-                    })}}
+                    })}.bind(this)}
                 />
                 <div style={{display: 'flex', flexDirection: 'row', flex:'1 1 auto', width:'100%'}}>
                     <div id="displayContent" 
@@ -456,7 +456,7 @@ export default class GraphForDataComponent extends React.Component {
                             style={{borderBottom: '1px solid #ddd',}}
                             hoveredStyle={{backgroundColor:'SkyBlue'}}
                             tooltip="New Node"
-                            onClick={()=> showDialog({}, -1)}
+                            onClick={function() {this.showDialog({}, -1)}.bind(this)}
                         >
                             <ImageControlPoint />
                         </IconButton>

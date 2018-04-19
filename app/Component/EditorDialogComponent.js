@@ -51,6 +51,37 @@ export default class EditorDialogComponent extends React.Component {
 		};
 	}
 
+	errorList = '';
+	checkName = function (str, item){
+		item += ','
+		if (str == ''){
+			this.errorList += this.errorList.indexOf(item) < 0 ? item : '';
+			return "It can't empty";
+		}
+		
+		//!@#%^&*()-=+{}[];:'"\|,.<>?/~`
+		let __tmp = ' !@#%^&*()-=+{}[];:"\|,.<>?/~`' + "'";
+		for (let i=0; i<__tmp.length; i++){
+			if (str.indexOf(__tmp[i]) > 0){
+				this.errorList += this.errorList.indexOf(item) < 0 ? item : '';
+				return "It's invalid string";
+			}
+		}
+
+		__tmp = '0123456789';
+		for (let i=0; i<__tmp.length; i++){
+			if (str[0] == __tmp[i]){
+				this.errorList += this.errorList.indexOf(item) < 0 ? item : '';
+				return "It's invalid string";
+			}
+		}
+
+		if (this.errorList.indexOf(item) >= 0){
+			this.errorList = this.errorList.replace(item, "");
+		}
+
+		return '';
+	}
 	
 	updateInputForLabel = (searchText, index) => {
 		this.setState(function(prevState, props) {
@@ -410,7 +441,7 @@ export default class EditorDialogComponent extends React.Component {
     componentWillReceiveProps(newProps)
     {
 		this.errorList = '';
-		if (this.props.isNew){
+		if (newProps.mode == -1){
 			this.setState(function(prevState, props) {
 				prevState.labels = [];
 				prevState.properties=[];
@@ -423,105 +454,71 @@ export default class EditorDialogComponent extends React.Component {
 				return prevState;
 			});
 		}else{
-			if (newProps.data != null){
-				this.setState(function(prevState, props) {
-					if (props.mode != GlobalConstant.mode.edge){
-						prevState.labels = [...newProps.data.labels];
-					}else{
-						prevState.type = newProps.data.type;
-					}
-					
-					//{key:1,type:'String',value:'1'}
-					prevState.properties=[];
-					prevState.images = [];
-					prevState.memo = {
-						key: GlobalConstant.memoOfProperty,
-						value: '',
-						type: 'string'
-					};
+			this.setState(function(prevState, props) {
+				if (props.mode != GlobalConstant.mode.edge){
+					prevState.labels = [...newProps.data.labels];
+				}else{
+					prevState.type = newProps.data.type;
+				}
+				
+				//{key:1,type:'String',value:'1'}
+				prevState.properties=[];
+				prevState.images = [];
+				prevState.memo = {
+					key: GlobalConstant.memoOfProperty,
+					value: '',
+					type: 'string'
+				};
 
-					for (let key in newProps.data.properties){
-						switch (key){
-							case GlobalConstant.imagesOfProperty:
-								prevState.images = [...newProps.data.properties[key]];
-								break;
-							case GlobalConstant.memoOfProperty:
-								prevState.memo.value = newProps.data.properties[key];
-								break;
-							default:{
-								let __type = typeof newProps.data.properties[key];
-								if (__type == 'object'){
-									__type = "listString";
-									if (newProps.data.properties[key].length > 0){
-										switch (typeof newProps.data.properties[key][0]){
-											case 'string':
-												__type = "listString";
-												break;
-											case 'number':
-												__type = "listNumber";
-												break;
-											case 'boolean':
-												__type = "listBoolean";
-												break;
-										}
+				for (let key in newProps.data.properties){
+					switch (key){
+						case GlobalConstant.imagesOfProperty:
+							prevState.images = [...newProps.data.properties[key]];
+							break;
+						case GlobalConstant.memoOfProperty:
+							prevState.memo.value = newProps.data.properties[key];
+							break;
+						default:{
+							let __type = typeof newProps.data.properties[key];
+							if (__type == 'object'){
+								__type = "listString";
+								if (newProps.data.properties[key].length > 0){
+									switch (typeof newProps.data.properties[key][0]){
+										case 'string':
+											__type = "listString";
+											break;
+										case 'number':
+											__type = "listNumber";
+											break;
+										case 'boolean':
+											__type = "listBoolean";
+											break;
 									}
 								}
-
-								prevState.properties.push({
-									key: key,
-									value: typeof newProps.data.properties[key] == 'object' ? 
-										[...newProps.data.properties[key]]
-										:
-										newProps.data.properties[key],
-									type: __type
-								});
 							}
+
+							prevState.properties.push({
+								key: key,
+								value: typeof newProps.data.properties[key] == 'object' ? 
+									[...newProps.data.properties[key]]
+									:
+									newProps.data.properties[key],
+								type: __type
+							});
 						}
 					}
+				}
 
-					prevState.properties.push(prevState.memo);
-					prevState.properties.push({
-						key: GlobalConstant.imagesOfProperty,
-						value: prevState.images,
-						type: 'listString'
-					});
-					
-					return prevState;
+				prevState.properties.push(prevState.memo);
+				prevState.properties.push({
+					key: GlobalConstant.imagesOfProperty,
+					value: prevState.images,
+					type: 'listString'
 				});
-			}
+				
+				return prevState;
+			});
 		}
-	}
-
-	errorList = '';
-	checkName = function (str, item){
-		item += ','
-		if (str == ''){
-			this.errorList += this.errorList.indexOf(item) < 0 ? item : '';
-			return "It can't empty";
-		}
-		
-		//!@#%^&*()-=+{}[];:'"\|,.<>?/~`
-		let __tmp = ' !@#%^&*()-=+{}[];:"\|,.<>?/~`' + "'";
-		for (let i=0; i<__tmp.length; i++){
-			if (str.indexOf(__tmp[i]) > 0){
-				this.errorList += this.errorList.indexOf(item) < 0 ? item : '';
-				return "It's invalid string";
-			}
-		}
-
-		__tmp = '0123456789';
-		for (let i=0; i<__tmp.length; i++){
-			if (str[0] == __tmp[i]){
-				this.errorList += this.errorList.indexOf(item) < 0 ? item : '';
-				return "It's invalid string";
-			}
-		}
-
-		if (this.errorList.indexOf(item) >= 0){
-			this.errorList = this.errorList.replace(item, "");
-		}
-
-		return '';
 	}
 	
 	render() {
