@@ -18,7 +18,6 @@ import NavigationClose from 'material-ui/svg-icons/navigation/close';
 import Paper from 'material-ui/Paper';
 import {D3ForceSimulation} from './D3ForceSimulation';
 import Avatar from 'material-ui/Avatar';
-import EditorDialogsComponent from './EditorDialogsComponent';
 import { Carousel } from 'react-responsive-carousel';
 import styles from 'react-responsive-carousel/lib/styles/carousel.min.css';
 import GlobalConstant from '../Common/GlobalConstant';
@@ -27,10 +26,6 @@ import ImageEdit from 'material-ui/svg-icons/image/edit';
 export default class CardComponent extends React.Component {
     constructor(props) {
         super(props);
-		this.state = {
-            //mode: 0, // node:0  edge:1
-			open: false
-		};
     }
 
     render() {
@@ -150,17 +145,6 @@ export default class CardComponent extends React.Component {
                     width:"553px"}} 
                     zDepth={1}
                 >
-                    <EditorDialogsComponent
-                        mode={this.props.mode}
-                        isNew={false}
-                        data={this.props.data}
-                        open={this.state.open}
-                        onChangeData={this.props.onMerge}
-                        onRequestClose={()=> {this.setState(function(prevState, props) {
-                            prevState.open = false;
-                            return prevState;
-                        })}}
-                    />
                     <strong>
                         <AppBar 
                             title={this.props.mode == GlobalConstant.mode.node ? 'Node: ID' + this.props.data.id : 'Edge: ID' + this.props.data.id}
@@ -190,12 +174,13 @@ export default class CardComponent extends React.Component {
                                     />
                                 </IconButton>}
                             onLeftIconButtonClick={function(event){
-                                    this.props.closeCard(this.props.data.id, this.props.mode);
-                                }.bind(this)}
-                            onRightIconButtonClick={()=> {this.setState(function(prevState, props) {
-                                    prevState.open = true;
-                                    return prevState;
-                                    })}}
+                                    this.props.onClose(this.props.data.id, this.props.mode);
+                                }.bind(this)
+                            }
+                            onRightIconButtonClick={function(event){
+                                    this.props.onShowDialog(this.props.data, this.props.mode);
+                                }.bind(this)
+                            }
                             style={this.props.mode == GlobalConstant.mode.node ? {height:'26px'} : {height:'26px', backgroundColor:'DarkSalmon'}}
                             iconStyleLeft={{
                                 marginTop: '0px',

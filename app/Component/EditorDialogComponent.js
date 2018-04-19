@@ -35,7 +35,7 @@ import ToggleCheckBox from 'material-ui/svg-icons/toggle/check-box';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 import { Base64 } from 'js-base64';
 	
-export default class EditorDialogsComponent extends React.Component {
+export default class EditorDialogComponent extends React.Component {
     constructor(props) {
         super(props);
 		this.state = {
@@ -54,7 +54,7 @@ export default class EditorDialogsComponent extends React.Component {
 	
 	updateInputForLabel = (searchText, index) => {
 		this.setState(function(prevState, props) {
-			if (props.mode == GlobalConstant.mode.node){
+			if (props.mode != GlobalConstant.mode.edge){
 				prevState.labels[index] = searchText;
 			}else{
 				prevState.type = searchText;
@@ -66,7 +66,7 @@ export default class EditorDialogsComponent extends React.Component {
 
 	newRequestForLabel = (value, index) => {
 		this.setState(function(prevState, props) {
-			if (props.mode == GlobalConstant.mode.node){
+			if (props.mode != GlobalConstant.mode.edge){
 				prevState.labels[index] = value;
 			}else{
 				prevState.type = value;
@@ -409,6 +409,7 @@ export default class EditorDialogsComponent extends React.Component {
 	
     componentWillReceiveProps(newProps)
     {
+		this.errorList = '';
 		if (this.props.isNew){
 			this.setState(function(prevState, props) {
 				prevState.labels = [];
@@ -424,7 +425,7 @@ export default class EditorDialogsComponent extends React.Component {
 		}else{
 			if (newProps.data != null){
 				this.setState(function(prevState, props) {
-					if (props.mode == GlobalConstant.mode.node){
+					if (props.mode != GlobalConstant.mode.edge){
 						prevState.labels = [...newProps.data.labels];
 					}else{
 						prevState.type = newProps.data.type;
@@ -491,35 +492,69 @@ export default class EditorDialogsComponent extends React.Component {
 		}
 	}
 
-	checkLabel = function (label){
-		if (!label.trim() == ''){
-			return "Label can't empty";
+	errorList = '';
+	checkName = function (str, item){
+		item += ','
+		if (str == ''){
+			this.errorList += this.errorList.indexOf(item) < 0 ? item : '';
+			return "It can't empty";
 		}
-//1: $@!#%^&*
-//!@#%^&*
-		//if ()
+		
+		//!@#%^&*()-=+{}[];:'"\|,.<>?/~`
+		let __tmp = ' !@#%^&*()-=+{}[];:"\|,.<>?/~`' + "'";
+		for (let i=0; i<__tmp.length; i++){
+			if (str.indexOf(__tmp[i]) > 0){
+				this.errorList += this.errorList.indexOf(item) < 0 ? item : '';
+				return "It's invalid string";
+			}
+		}
+
+		__tmp = '0123456789';
+		for (let i=0; i<__tmp.length; i++){
+			if (str[0] == __tmp[i]){
+				this.errorList += this.errorList.indexOf(item) < 0 ? item : '';
+				return "It's invalid string";
+			}
+		}
+
+		if (this.errorList.indexOf(item) >= 0){
+			this.errorList = this.errorList.replace(item, "");
+		}
 
 		return '';
 	}
 	
 	render() {
-		let __submit = this.props.mode == GlobalConstant.mode.edge ? this.mergeEdge : this.props.isNew ? this.addNode : this.mergeNode;
 		const __actions = [
+			<FlatButton
+				label="Submit"
+				primary={true}
+				keyboardFocused={true}
+				onClick={()=>{
+					if (this.errorList == ''){
+						switch(this.props.mode){
+							case GlobalConstant.mode.edge:
+								this.mergeEdge();
+								break;
+							case GlobalConstant.mode.node:
+								this.mergeNode();
+								break;
+							default:
+								this.addNode();
+								break;
+						}
+					}
+				}}
+			/>,
 			<FlatButton
 				label="Cancel"
 				primary={true}
 				onClick={this.props.onRequestClose}
 			/>,
-			<FlatButton
-				label="Submit"
-				primary={true}
-				keyboardFocused={true}
-				onClick={__submit}
-			/>,
 		];
 
 		let __chips = [];
-		if (this.props.mode == GlobalConstant.mode.node){
+		if (this.props.mode != GlobalConstant.mode.edge){
 			for (let i = 0; i < this.state.labels.length; i++){
 				__chips.push(
 					<div
@@ -543,7 +578,7 @@ export default class EditorDialogsComponent extends React.Component {
 						/>
 						<AutoComplete
 							//floatingLabelText="Label"
-							//errorText={this.state.labels[i] == '' ? "Label can't empty"}
+							errorText={this.checkName(this.state.labels[i], 'L'+i)}
 							searchText={this.state.labels[i]}
 							onUpdateInput={(searchText)=>this.updateInputForLabel(searchText, i)}
 							onNewRequest={(value)=>this.newRequestForLabel(value, i)}
@@ -591,7 +626,7 @@ export default class EditorDialogsComponent extends React.Component {
 					height: '25px'
 				}}>
 					<AutoComplete
-						//floatingLabelText="Label"
+						errorText={this.checkName(this.state.type, 'T')}
 						searchText={this.state.type}
 						onUpdateInput={this.updateInputForLabel}
 						onNewRequest={this.newRequestForLabel}
@@ -617,20 +652,20 @@ export default class EditorDialogsComponent extends React.Component {
 					display: 'flex', 
 					flexDirection: 'row', 
 					alignItems: 'flex-end',
-					flexWrap: 'wrap',}} >
-					<div>
-						<AutoComplete
-							hintText='Key'
-							searchText={this.state.properties[i].key}
-							onUpdateInput={(searchText) => this.updateInputForPropertyKey(searchText, i)}
-							onNewRequest={(chosenRequest) => this.newRequestForPropertyKey(chosenRequest, i)}
-							dataSource={GlobalConstant.propertyList}
-							filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
-							// openOnFocus={false}
-							maxSearchResults={6}
-						/>
-						<strong style={{margin: '4px'}} >{':'}</strong>
-					</div>
+					flexWrap: 'wrap',}} 
+				>
+					<AutoComplete
+						errorText={this.checkName(this.state.properties[i].key, 'P'+i)}
+						hintText='Key'
+						searchText={this.state.properties[i].key}
+						onUpdateInput={(searchText) => this.updateInputForPropertyKey(searchText, i)}
+						onNewRequest={(chosenRequest) => this.newRequestForPropertyKey(chosenRequest, i)}
+						dataSource={GlobalConstant.propertyList}
+						filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
+						style={{height:'48px'}}
+						maxSearchResults={6}
+					/>
+					<strong style={{margin: '4px'}} >{':'}</strong>
                     {this.state.properties[i].type == 'boolean' ?
 						<Checkbox
 							label=""
@@ -902,17 +937,17 @@ export default class EditorDialogsComponent extends React.Component {
 		
 		return (
 			<Dialog
-				title={this.props.isNew ? "New Node" : this.props.mode == GlobalConstant.mode.node ? "Edit Node" : "Edit Relationship"}
+				title={this.props.mode == -1 ? "New Node" : this.props.mode == GlobalConstant.mode.node ? "Edit Node" : "Edit Relationship"}
 				actions={__actions}
 				modal={true}
 				open={this.props.open}
 				onRequestClose={this.props.onRequestClose}
 				autoScrollBodyContent={true}
 			>
-				<h2>{this.props.mode == GlobalConstant.mode.node ? 'Labels' : 'Type'}</h2>
+				<h2>{this.props.mode != GlobalConstant.mode.edge ? 'Labels' : 'Type'}</h2>
 				<div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto'}} >
 					{__chips}
-					{this.props.mode == GlobalConstant.mode.node ?
+					{this.props.mode != GlobalConstant.mode.edge ?
 						<IconButton 
 							tooltip="Add Label"
 							style={{

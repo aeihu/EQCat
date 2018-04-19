@@ -23,7 +23,7 @@ import ImageFilter from 'material-ui/svg-icons/image/filter';
 import SocialShare from 'material-ui/svg-icons/social/share';
 import ContentRemoveCircleOutline from 'material-ui/svg-icons/content/remove-circle-outline';
 import ImageEdit from 'material-ui/svg-icons/image/edit';
-import EditorDialogsComponent from './EditorDialogsComponent';
+import EditorDialogComponent from './EditorDialogComponent';
 import AutoComplete from 'material-ui/AutoComplete';
 import ImagePanoramaFishEye from 'material-ui/svg-icons/image/panorama-fish-eye';
 import CommunicationCallMade from 'material-ui/svg-icons/communication/call-made';
@@ -38,7 +38,11 @@ export default class GraphForDataComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            open: false,
+            dialog:{
+                data: {},
+                open: false,
+                mode: -1
+            },
             cards:{
                 nodes:[
                     //{data:xxx , x:xxx, y:xxx}
@@ -288,19 +292,28 @@ export default class GraphForDataComponent extends React.Component {
         // D3ForceSimulation.destroy(el);
     }
 
+    showDialog = function(data, mode){
+        this.setState(function(prevState, props) {
+            this.updateFlag = false;
+            prevState.dialog.open = true;
+            prevState.dialog.mode = mode;
+            prevState.dialog.data = data;
+            return prevState;
+        })
+    }
+
     render() {
         let __cardElements=[];
         for (let key in this.state.cards){
             for (let i = 0; i < this.state.cards[key].length; i++){
-                console.log(i+'MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM');
                 __cardElements.push(
                     <CardComponent 
                         x={this.state.cards[key][i].x}
                         y={this.state.cards[key][i].y}
                         mode={key == 'nodes' ? GlobalConstant.mode.node : GlobalConstant.mode.edge}
                         data={this.state.cards[key][i].data} 
-                        closeCard={this.hideCard} 
-                        onMerge={key == 'nodes' ? this.props.onMergeNode : this.props.onMergeEdge}
+                        onClose={this.hideCard} 
+                        onShowDialog={this.showDialog}
                         onDrag={(event, data)=>{
                             this.setState(function(prevState, props) {
                                 prevState.cards[key][i].x = data.x;
@@ -314,11 +327,18 @@ export default class GraphForDataComponent extends React.Component {
         
         return (
             <div style={{display: 'flex', flexDirection: 'column', height: '100%', width:'100%'}} >
-                <EditorDialogsComponent 
-                    mode={GlobalConstant.mode.node}
-                    isNew={true}
-                    open={this.state.open}
-                    onChangeData={this.props.onAddNode}
+                <EditorDialogComponent 
+                    mode={this.state.dialog.mode}
+                    open={this.state.dialog.open}
+                    data={this.state.dialog.data}
+                    onChangeData={this.state.dialog.mode < 0 ? 
+                        this.props.onAddNode 
+                        : 
+                        this.state.dialog.mode == GlobalConstant.mode.node ?
+                            this.props.onMergeNode 
+                            : 
+                            this.props.onMergeEdge
+                        }
                     onRequestClose={()=> {
                         this.updateFlag = false;
                         this.setState(function(prevState, props) {
@@ -436,11 +456,7 @@ export default class GraphForDataComponent extends React.Component {
                             style={{borderBottom: '1px solid #ddd',}}
                             hoveredStyle={{backgroundColor:'SkyBlue'}}
                             tooltip="New Node"
-                            onClick={()=> {this.setState(function(prevState, props) {
-                                this.updateFlag = false;
-                                prevState.open = true;
-                                return prevState;
-                            })}}
+                            onClick={()=> showDialog({}, -1)}
                         >
                             <ImageControlPoint />
                         </IconButton>
