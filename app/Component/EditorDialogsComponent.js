@@ -33,6 +33,7 @@ import ContentFontDownload from 'material-ui/svg-icons/content/font-download';
 import SocialPoll from 'material-ui/svg-icons/social/poll';
 import ToggleCheckBox from 'material-ui/svg-icons/toggle/check-box';
 import ContentAdd from 'material-ui/svg-icons/content/add';
+import { Base64 } from 'js-base64';
 	
 export default class EditorDialogsComponent extends React.Component {
     constructor(props) {
@@ -198,9 +199,7 @@ export default class EditorDialogsComponent extends React.Component {
 			}
 		}.bind(this)
 
-		console.log(this.state)
-		console.log(__node)
-		xmlhttp.open("GET", "/addNode?node=" + JSON.stringify(__node), true);
+		xmlhttp.open("GET", '/addNode?node="' + Base64.encodeURI(JSON.stringify(__node)) + '"', true);
 		xmlhttp.send();
 	}.bind(this)
 	
@@ -327,7 +326,7 @@ export default class EditorDialogsComponent extends React.Component {
 				}
 			}.bind(this)
 
-			xmlhttp.open("GET", "/mergeEdge?edge=" + JSON.stringify(__edge), true);
+			xmlhttp.open("GET", '/mergeEdge?edge="' + Base64.encodeURI(JSON.stringify(__edge)) + '"', true);
 			xmlhttp.send();
 		}
 	}.bind(this)
@@ -389,7 +388,7 @@ export default class EditorDialogsComponent extends React.Component {
 				}
 			}.bind(this)
 
-			xmlhttp.open("GET", "/mergeNode?node=" + JSON.stringify(__node), true);
+			xmlhttp.open("GET", '/mergeNode?node="' + Base64.encodeURI(JSON.stringify(__node)) + '"', true);
 			xmlhttp.send();
 		}
 	}.bind(this)
@@ -410,7 +409,6 @@ export default class EditorDialogsComponent extends React.Component {
 	
     componentWillReceiveProps(newProps)
     {
-		console.log(newProps)
 		if (this.props.isNew){
 			this.setState(function(prevState, props) {
 				prevState.labels = [];
@@ -492,6 +490,17 @@ export default class EditorDialogsComponent extends React.Component {
 			}
 		}
 	}
+
+	checkLabel = function (label){
+		if (!label.trim() == ''){
+			return "Label can't empty";
+		}
+//1: $@!#%^&*
+//!@#%^&*
+		//if ()
+
+		return '';
+	}
 	
 	render() {
 		let __submit = this.props.mode == GlobalConstant.mode.edge ? this.mergeEdge : this.props.isNew ? this.addNode : this.mergeNode;
@@ -534,6 +543,7 @@ export default class EditorDialogsComponent extends React.Component {
 						/>
 						<AutoComplete
 							//floatingLabelText="Label"
+							//errorText={this.state.labels[i] == '' ? "Label can't empty"}
 							searchText={this.state.labels[i]}
 							onUpdateInput={(searchText)=>this.updateInputForLabel(searchText, i)}
 							onNewRequest={(value)=>this.newRequestForLabel(value, i)}
@@ -894,7 +904,7 @@ export default class EditorDialogsComponent extends React.Component {
 			<Dialog
 				title={this.props.isNew ? "New Node" : this.props.mode == GlobalConstant.mode.node ? "Edit Node" : "Edit Relationship"}
 				actions={__actions}
-				modal={false}
+				modal={true}
 				open={this.props.open}
 				onRequestClose={this.props.onRequestClose}
 				autoScrollBodyContent={true}

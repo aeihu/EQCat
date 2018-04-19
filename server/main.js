@@ -2,6 +2,7 @@ import Neo4j from './DBDriver/Neo4j';
 import fs from 'fs';
 import muilter from'./Util/Multer';
 import path from'path';
+import { Base64 } from 'js-base64';
 
 var templates = {};
 var styles = {};
@@ -66,25 +67,8 @@ app.get('/', function (req, res) {
 	res.sendfile("index.html");
 });
 
-var cb0 = function (req, res, next) {
-    console.log('CBdd0');
-    next();
-}
-  
-var cb1 = function (req, res, next) {
-    console.log('CB1');
-    next();
-}
-  
-var cb2 = function (req, res) {
-    res.send('Hello from C!');
-}
-  
-app.get('/example/c', [cb0, cb1, cb2]);
-
 app.get('/example?:cypher', function (req, res) {
-  console.log(req.query.cypher);
-  DBDriver.runStatement(req.query.cypher, {}, res);
+	DBDriver.runStatement(Base64.decode(req.query.cypher), {}, res);
 });
 
 app.get('/template', function (req, res) {
@@ -118,10 +102,8 @@ app.get('/template/save?:template', function (req, res) {
 });
 
 app.get('/addNode?:node', function (req, res) {
-	console.log(req.query.node);
-	
 	try{
-		let __json = JSON.parse(req.query.node);
+		let __json = JSON.parse(Base64.decode(req.query.node));
 		DBDriver.addSingleNode(__json, res);
 	}	
 	catch (err){
@@ -131,10 +113,8 @@ app.get('/addNode?:node', function (req, res) {
 });
 
 app.get('/mergeNode?:node', function (req, res) {
-	console.log(req.query.node);
-	
 	try{
-		let __json = JSON.parse(req.query.node);
+		let __json = JSON.parse(Base64.decode(req.query.node));
 		DBDriver.mergeSingleNode(__json, res);
 	}	
 	catch (err){
@@ -144,10 +124,8 @@ app.get('/mergeNode?:node', function (req, res) {
 });
 
 app.get('/deleteNode?:nodes', function (req, res) {
-	console.log(req.query.nodes);
-	
 	try{
-		let __json = JSON.parse(req.query.nodes);
+		let __json = JSON.parse(Base64.decode(req.query.nodes));
 		DBDriver.deleteNodes(__json, res);
 	}	
 	catch (err){
@@ -157,10 +135,8 @@ app.get('/deleteNode?:nodes', function (req, res) {
 });
 
 app.get('/addEdge?:edge', function (req, res) {
-	console.log(req.query.edge);
-	
 	try{
-		let __json = JSON.parse(req.query.edge);
+		let __json = JSON.parse(Base64.decode(req.query.edge));
 		DBDriver.addSingleEdge(__json, res);
 	}	
 	catch (err){
@@ -170,10 +146,8 @@ app.get('/addEdge?:edge', function (req, res) {
 });
 
 app.get('/mergeEdge?:edge', function (req, res) {
-	console.log(req.query.edge);
-	
 	try{
-		let __json = JSON.parse(req.query.edge);
+		let __json = JSON.parse(Base64.decode(req.query.edge));
 		DBDriver.mergeSingleEdge(__json, res);
 	}	
 	catch (err){
@@ -183,10 +157,8 @@ app.get('/mergeEdge?:edge', function (req, res) {
 });
 
 app.get('/deleteEdge?:edges', function (req, res) {
-	console.log(req.query.edges);
-	
 	try{
-		let __json = JSON.parse(req.query.edges);
+		let __json = JSON.parse(Base64.decode(req.query.edges));
 		DBDriver.deleteEdges(__json, res);
 	}	
 	catch (err){

@@ -436,8 +436,8 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
 
             return d.selected ? 'nodes nodes_selected' : 'nodes'
         })
-        .on("dblclick", function(d){
-            state.showCard(d, 0); //node:0 edge:1
+        .on("dblclick", function(d){console.log(d3.event)
+            state.showCard(d, {mode: GlobalConstant.mode.node, x: d3.event.clientX-80, y: d3.event.clientY-100}); 
         })
         .on("click", function(d){
             if (D3ForceSimulation.connectMode){
@@ -470,7 +470,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                         }
                     }.bind(this)
 
-                    xmlhttp.open("GET", "/addEdge?edge=" + JSON.stringify(__edge), true);
+                    xmlhttp.open("GET", '/addEdge?edge="' + Base64.encodeURI(JSON.stringify(__edge)) + '"', true);
                     xmlhttp.send();
                     __conncet_line.remove();
                 }
@@ -601,7 +601,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
             }
         })
         .on("dblclick", function(d){
-            state.showCard(d, 1); //node:0 edge:1
+            state.showCard(d, {mode: GlobalConstant.mode.edge, x: d3.event.clientX-80, y: d3.event.clientY-100}); 
         })
         .on("mouseover", function(d){
             D3ForceSimulation.svg.select('#defs_path_id_' + d.id)

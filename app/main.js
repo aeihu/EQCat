@@ -233,7 +233,7 @@ class App extends React.Component {
             }
         }.bind(this)
 
-        xmlhttp.open("GET","/example?cypher=" + statement, true);
+        xmlhttp.open("GET", '/example?cypher="' + Base64.encodeURI(statement) + '"', true);
         xmlhttp.send();
 
         this.setState(function(prevState, props) {

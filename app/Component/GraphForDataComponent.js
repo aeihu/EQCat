@@ -40,7 +40,9 @@ export default class GraphForDataComponent extends React.Component {
         this.state = {
             open: false,
             cards:{
-                nodes:[],
+                nodes:[
+                    //{data:xxx , x:xxx, y:xxx}
+                ],
                 edges:[],
             },
             showCard: this.showCard,
@@ -119,17 +121,17 @@ export default class GraphForDataComponent extends React.Component {
         });
     }.bind(this);
 
-    showCard = function(d, mode) {
-        let __mode = mode == GlobalConstant.mode.node ? 'nodes' : 'edges';
+    showCard = function(d, para) {
+        let __mode = para.mode == GlobalConstant.mode.node ? 'nodes' : 'edges';
         for (let index in this.state.cards[__mode]){
-            if (this.state.cards[__mode][index].id == d.id){
+            if (this.state.cards[__mode][index].data.id == d.id){
                 return;
             }
         }
 
         this.updateFlag = false;
         this.setState(function(prevState, props) {
-            prevState.cards[__mode].push(d);
+            prevState.cards[__mode].push({data:d, x:para.x, y:para.y});
             return prevState;
         });
     }.bind(this);
@@ -137,7 +139,7 @@ export default class GraphForDataComponent extends React.Component {
     hideCard = function(id, mode) {
         let __mode = mode == GlobalConstant.mode.node ? 'nodes' : 'edges';
         for (let index in this.state.cards[__mode]){
-            if (this.state.cards[__mode][index].id == id){
+            if (this.state.cards[__mode][index].data.id == id){
                 this.updateFlag = false;
                 this.setState(function(prevState, props) {
                     prevState.cards[__mode].splice(index, 1);
@@ -207,7 +209,7 @@ export default class GraphForDataComponent extends React.Component {
                 }
             }.bind(this)
             
-            xmlhttp.open("GET", "/deleteNode?nodes=" + JSON.stringify(__nodes), true);
+			xmlhttp.open("GET", '/deleteNode?nodes="' + Base64.encodeURI(JSON.stringify(__nodes)) + '"', true);
             xmlhttp.send();
         }
     }.bind(this)
@@ -247,7 +249,7 @@ export default class GraphForDataComponent extends React.Component {
 				}
             }.bind(this)
             
-			xmlhttp.open("GET", "/deleteEdge?edges=" + JSON.stringify(__edges), true);
+			xmlhttp.open("GET", '/deleteEdge?edges="' + Base64.encodeURI(JSON.stringify(__edges)) + '"', true);
 			xmlhttp.send();
 		}
     }.bind(this)
@@ -290,21 +292,22 @@ export default class GraphForDataComponent extends React.Component {
         let __cardElements=[];
         for (let key in this.state.cards){
             for (let i = 0; i < this.state.cards[key].length; i++){
+                console.log(i+'MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM');
                 __cardElements.push(
-                    key == 'nodes' ?
-                        <CardComponent 
-                            mode={GlobalConstant.mode.node} // node:0  edge:1
-                            data={this.state.cards[key][i]} 
-                            closeCard={this.hideCard} 
-                            onMerge={this.props.onMergeNode}
-                        />
-                        :
-                        <CardComponent 
-                            mode={GlobalConstant.mode.edge} // node:0  edge:1
-                            data={this.state.cards[key][i]} 
-                            closeCard={this.hideCard} 
-                            onMerge={this.props.onMergeEdge}
-                        />
+                    <CardComponent 
+                        x={this.state.cards[key][i].x}
+                        y={this.state.cards[key][i].y}
+                        mode={key == 'nodes' ? GlobalConstant.mode.node : GlobalConstant.mode.edge}
+                        data={this.state.cards[key][i].data} 
+                        closeCard={this.hideCard} 
+                        onMerge={key == 'nodes' ? this.props.onMergeNode : this.props.onMergeEdge}
+                        onDrag={(event, data)=>{
+                            this.setState(function(prevState, props) {
+                                prevState.cards[key][i].x = data.x;
+                                prevState.cards[key][i].y = data.y;
+                                return prevState;
+                            })}}
+                    />
                 );
             }
         }
@@ -556,7 +559,7 @@ export default class GraphForDataComponent extends React.Component {
                                                 height: '24px'
                                             }}
                                             iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
-                                            onClick={()=>this.showCard(node, 0)}
+                                            onClick={()=>this.showCard(node, {mode: GlobalConstant.mode.node, x: index * 30, y: index * 30})}
                                         >
                                             <RemoveRedEye />
                                         </IconButton>
@@ -663,7 +666,7 @@ export default class GraphForDataComponent extends React.Component {
                                                 height: '24px'
                                             }}
                                             iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
-                                            onClick={()=>this.showCard(edge, 1)}
+                                            onClick={()=>this.showCard(edge, {mode: GlobalConstant.mode.edge, x: index * 30, y: index * 30})}
                                         >
                                             <RemoveRedEye />
                                         </IconButton>

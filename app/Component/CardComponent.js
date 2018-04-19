@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, CardActions, CardHeader, CardMedia, CardTitle, CardText } from 'material-ui/Card';
 import FlatButton from 'material-ui/FlatButton';
 import Draggable from 'react-draggable';
-import * as d3 from 'd3';
 
 import MenuItem from 'material-ui/MenuItem';
 import DropDownMenu from 'material-ui/DropDownMenu';
@@ -136,7 +135,16 @@ export default class CardComponent extends React.Component {
         }
     
         return (
-            <Draggable handle="strong" bounds="parent" defaultPosition={{x: d3.event.pageX, y: d3.event.pageY}}>
+            <Draggable 
+                handle="strong" 
+                bounds="parent" 
+                position={{x: this.props.x, y: this.props.y}}
+                onDrag={this.props.onDrag}
+                style={{
+                    transition: 'transform 0s ease 0s'
+                }}
+                //defaultPosition={{x: this.props.x, y: this.props.y}}
+            >
                 <Paper style={{
                     position:"absolute", 
                     width:"553px"}} 
