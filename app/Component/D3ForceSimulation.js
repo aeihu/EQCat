@@ -255,7 +255,7 @@ D3ForceSimulation.getEdgeStyle = function(type){
 }
 
 D3ForceSimulation.setStyle = function(state, type, val) {
-    switch (state.mode){
+    switch (state.parameter.mode){
         case GlobalConstant.mode.node:
             if (!this.NEStyles.nodes.hasOwnProperty(state.name)){
                 this.NEStyles.nodes[state.name] = {

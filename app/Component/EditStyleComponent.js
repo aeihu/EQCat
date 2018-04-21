@@ -11,20 +11,19 @@ export default class EditStyleComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            mode: GlobalConstant.mode.node,
+            parameter: {},
             name: '',
         }
     }  
 
     setIconInBar = function (icon){
         D3ForceSimulation.setStyle(this.state, 'icon', icon);
-        this.setState(function(prevState, props) {
-            return prevState;
-        });
+        this.props.onChange();
     }.bind(this)
 
     setColorInBar = function (hex){
         D3ForceSimulation.setStyle(this.state, 'color', hex);
+        this.props.onChange();
     }.bind(this)
 
     setCaptionInBar = function (propertyName){
@@ -54,6 +53,14 @@ export default class EditStyleComponent extends React.Component {
     //     xmlhttp.send();
     // }.bind(this)
 
+    componentWillMount()
+    {
+        this.setState(function(prevState, props) {
+            this.state.parameter = props.parameter;
+            return prevState;
+        })
+    }
+
     render() {
         let __nodeChip = [];
         for (let key in this.props.data.nodes){
@@ -69,11 +76,11 @@ export default class EditStyleComponent extends React.Component {
                     labelStyle={{fontSize: '12px'}}
                     onClick={key != '*' ? 
                         function(){
-                            if (this.state.mode != GlobalConstant.mode.node
+                            if (this.state.parameter.mode != GlobalConstant.mode.node
                                 || this.state.name != key){
 
                                 this.setState(function(prevState, props) {
-                                    prevState.mode = GlobalConstant.mode.node;
+                                    prevState.parameter.mode = GlobalConstant.mode.node;
                                     prevState.name = key;
                                     
                                     return prevState;
@@ -85,13 +92,14 @@ export default class EditStyleComponent extends React.Component {
                     >
                         {key != '*' ?
                             <Avatar src={D3ForceSimulation.getNodeStyle(key).icon} 
-                                style={
-                                    {
+                                style={{
                                         width:'23px', 
                                         height:'23px', 
                                         marginLeft:'6px', 
                                         borderRadius:'0%', 
-                                        backgroundColor:'#00000000'}} />
+                                        backgroundColor:'#00000000'
+                                }} 
+                            />
                             : ''
                         }
                         {key + '(' + this.props.data.nodes[key].total + ')'}
@@ -107,11 +115,11 @@ export default class EditStyleComponent extends React.Component {
                     labelStyle={{fontSize: '12px'}}
                     onClick={key != '*' ? 
                         function(){
-                            if (this.state.mode != GlobalConstant.mode.edge
+                            if (this.state.parameter.mode != GlobalConstant.mode.edge
                                 || this.state.name != key){
 
                                 this.setState(function(prevState, props) {
-                                    prevState.mode = GlobalConstant.mode.edge; // 0:empty 1:node 2:edge
+                                    prevState.parameter.mode = GlobalConstant.mode.edge; // 0:empty 1:node 2:edge
                                     prevState.name = key;
                                     
                                     return prevState;
@@ -121,6 +129,18 @@ export default class EditStyleComponent extends React.Component {
                         :
                         null}
                     >
+                        {key != '*' ?
+                            <Avatar
+                                style={{
+                                    width:'18px', 
+                                    height:'18px', 
+                                    marginLeft:'6px', 
+                                    borderRadius:'0%', 
+                                    backgroundColor:D3ForceSimulation.getEdgeStyle(key).color
+                                }}
+                            />
+                            : ''
+                        }
                         {key + '(' + this.props.data.edges[key] + ')'}
                     </Chip>);
             }
@@ -134,7 +154,7 @@ export default class EditStyleComponent extends React.Component {
                 <div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
                     {__edgeChip}
                 </div>
-                {this.state.mode == GlobalConstant.mode.node ? ///////////////////  editMode  /////////////////////////
+                {this.state.parameter.mode == GlobalConstant.mode.node ? ///////////////////  editMode  /////////////////////////
                     <EditNodeComponent 
                         size={D3ForceSimulation.getNodeStyle(this.state.name).size}
                         caption={D3ForceSimulation.getNodeStyle(this.state.name).caption}
@@ -144,7 +164,7 @@ export default class EditStyleComponent extends React.Component {
                         onIconChange={this.setIconInBar}
                         onCaptionChange={this.setCaptionInBar}
                         onSizeChange={this.setSizeInBar} />
-                : this.state.mode == GlobalConstant.mode.edge ?
+                : this.state.parameter.mode == GlobalConstant.mode.edge ?
                     <EditEdgeComponent 
                         color={D3ForceSimulation.getEdgeStyle(this.state.name).color}
                         data={this.props.data.edges} 

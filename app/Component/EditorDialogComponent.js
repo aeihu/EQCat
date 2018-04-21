@@ -639,6 +639,17 @@ export default class EditorDialogComponent extends React.Component {
 					margin: '3px',
 					height: '25px'
 				}}>
+				
+					<Avatar
+						style={{
+                            width:'18px', 
+                            height:'18px', 
+                            marginLeft:'6px', 
+							marginRight:'6px', 
+                            borderRadius:'0%', 
+							backgroundColor:D3ForceSimulation.getEdgeStyle(this.state.type).color
+						}} 
+					/>
 					<AutoComplete
 						errorText={GlobalFunction.CheckName(this.state.type, 'T')}
 						searchText={this.state.type}

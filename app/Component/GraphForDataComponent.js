@@ -77,6 +77,10 @@ export default class GraphForDataComponent extends React.Component {
         edges:[],
     }
 
+    styleEditor = {
+        mode: -1
+    }
+
     handleClick = function(event) {
         // This prevents ghost click.
         event.preventDefault();
@@ -274,6 +278,7 @@ export default class GraphForDataComponent extends React.Component {
     componentWillReceiveProps(newProps)
     {
         this.updateFlag = true;
+        this.styleEditor.mode = -1;
     }
 
     componentDidUpdate()
@@ -343,7 +348,14 @@ export default class GraphForDataComponent extends React.Component {
                 <div style={{display: 'flex', flexDirection: 'row', flex:'1 1 auto', width:'100%'}}>
                     <div id="displayContent" 
                         style={{backgroundColor: 'Gainsboro', width:'100%', flex:'1 1 auto'}} 
-                        onContextMenu={this.handleClick}>
+                        onContextMenu={this.handleClick}
+                        onClick={function () {
+                            this.updateFlag = false;
+                            this.setState(function(prevState, props) {
+                                this.styleEditor.mode = -1;
+                                return prevState;
+                        })}.bind(this)}
+                    >
                         {__cardElements}
                         <div id='menuInDisplayContent' 
                             style={{
@@ -490,7 +502,7 @@ export default class GraphForDataComponent extends React.Component {
                             <CommunicationCallMade />
                         </IconButton>
                         <IconButton 
-                            tooltip="Delete"
+                            tooltip="Info"
                             style={{borderBottom: '1px solid #ddd',}}
                             hoveredStyle={{backgroundColor:'SkyBlue'}}
                             onClick={()=>{console.log(this.props.data)}}>
@@ -772,10 +784,13 @@ export default class GraphForDataComponent extends React.Component {
                 </div>
                 <EditStyleComponent 
                     data={this.props.data.count}
-                    onIconChange={this.setIconInBar}
-                    onCaptionChange={this.setCaptionInBar}
-                    onSizeChange={this.setSizeInBar}
-                    onChange={this.setColorInBar}
+                    parameter={this.styleEditor}
+                    onChange={function(){
+                        this.setState(function(prevState, props) {
+                            this.updateFlag = false;
+                            return prevState;
+                        });
+                    }.bind(this)}
                 />
             </div>
         )
