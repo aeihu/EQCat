@@ -26,11 +26,43 @@ import ImageEdit from 'material-ui/svg-icons/image/edit';
 export default class CardComponent extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+            card: {
+                data: null,
+                x: 0,
+                y: 0,
+            }
+        }
     }
+
+    componentWillMount()
+    {
+        this.setState(function(prevState, props) {
+            console.log('componentDidMount11')
+            this.state.card = props.data;
+            return prevState;
+        })
+    }
+
+    componentWillReceiveProps(newProps)
+    {
+        this.setState(function(prevState, props) {
+            this.state.card = newProps.data;
+            return prevState;
+        })
+    }
+
+    setPosition = function(event, data){
+        this.setState(function(prevState, props) {
+            this.state.card.x = data.x;
+            this.state.card.y = data.y;
+            return prevState;
+        })
+    }.bind(this)
 
     render() {
         let __properties = [];
-        for (let key in this.props.data.properties){
+        for (let key in this.state.card.data.properties){
             if (key != GlobalConstant.memoOfProperty && key != GlobalConstant.imagesOfProperty){
                 __properties.push(
                     <div style={{
@@ -43,7 +75,7 @@ export default class CardComponent extends React.Component {
                         margin: '6px 6px 6px 16px'
                         }}>
                         <span style={{fontSize: '14px', color:'LightSlateGray'}}>{key + ' :'}</span>
-                        {typeof this.props.data.properties[key] == 'object' ?
+                        {typeof this.state.card.data.properties[key] == 'object' ?
                             <div style={{
                                 width:'242px',
                                 display: 'flex', 
@@ -51,7 +83,7 @@ export default class CardComponent extends React.Component {
                                 flexDirection: 'row', 
                                 alignItems: 'center'}}
                             >
-                                {this.props.data.properties[key].map((value, index) => (
+                                {this.state.card.data.properties[key].map((value, index) => (
                                     <div
                                         style={{
                                             fontSize: '12px',
@@ -87,10 +119,10 @@ export default class CardComponent extends React.Component {
                             </div>
                             :
                             <span style={{fontSize: '16px', color:'Black'}}>
-                                {typeof this.props.data.properties[key] == 'boolean' ? 
-                                    this.props.data.properties[key] ? '√' : '×'
+                                {typeof this.state.card.data.properties[key] == 'boolean' ? 
+                                    this.state.card.data.properties[key] ? '√' : '×'
                                     :
-                                    this.props.data.properties[key]
+                                    this.state.card.data.properties[key]
                                 }
                             </span>
                         }
@@ -101,13 +133,13 @@ export default class CardComponent extends React.Component {
 
         let __chips = [];
         if (this.props.mode == GlobalConstant.mode.node){
-            for (let i = 0; i <  this.props.data.labels.length; i++){
+            for (let i = 0; i <  this.state.card.data.labels.length; i++){
                 __chips.push(
                     <Chip 
                         className="labelChip"
                         labelStyle={{fontSize: '12px'}}
                     >
-                        <Avatar src={D3ForceSimulation.getNodeStyle(this.props.data.labels[i]).icon} 
+                        <Avatar src={D3ForceSimulation.getNodeStyle(this.state.card.data.labels[i]).icon} 
                             style={
                                 {
                                     width:'23px', 
@@ -116,7 +148,7 @@ export default class CardComponent extends React.Component {
                                     borderRadius:'0%', 
                                     backgroundColor:'#00000000'}} 
                         />
-                        {this.props.data.labels[i]}
+                        {this.state.card.data.labels[i]}
                     </Chip>);
             }
         }else{
@@ -125,7 +157,7 @@ export default class CardComponent extends React.Component {
                     className="edgeChip"
                     labelStyle={{fontSize: '12px'}}
                 >
-                    {this.props.data.type}
+                    {this.state.card.data.type}
                 </Chip>);
         }
     
@@ -133,11 +165,9 @@ export default class CardComponent extends React.Component {
             <Draggable 
                 handle="strong" 
                 bounds="parent" 
-                position={{x: this.props.x, y: this.props.y}}
-                onDrag={this.props.onDrag}
-                style={{
-                    transition: 'transform 0s ease 0s'
-                }}
+                position={{x: this.state.card.x, y: this.state.card.y}}
+                onDrag={this.setPosition}
+                onStop={this.setPosition}
                 //defaultPosition={{x: this.props.x, y: this.props.y}}
             >
                 <Paper style={{
@@ -147,7 +177,7 @@ export default class CardComponent extends React.Component {
                 >
                     <strong>
                         <AppBar 
-                            title={this.props.mode == GlobalConstant.mode.node ? 'Node: ID' + this.props.data.id : 'Edge: ID' + this.props.data.id}
+                            title={this.props.mode == GlobalConstant.mode.node ? 'Node: ID' + this.state.card.data.id : 'Edge: ID' + this.state.card.data.id}
                             titleStyle={{lineHeight:'24px', height:'26px'}}
                             iconElementLeft={
                                 <IconButton 
@@ -174,11 +204,11 @@ export default class CardComponent extends React.Component {
                                     />
                                 </IconButton>}
                             onLeftIconButtonClick={function(event){
-                                    this.props.onClose(this.props.data.id, this.props.mode);
+                                    this.props.onClose(this.state.card.data.id, this.props.mode);
                                 }.bind(this)
                             }
                             onRightIconButtonClick={function(event){
-                                    this.props.onShowDialog(this.props.data, this.props.mode);
+                                    this.props.onShowDialog(this.state.card.data, this.props.mode);
                                 }.bind(this)
                             }
                             style={this.props.mode == GlobalConstant.mode.node ? {height:'26px'} : {height:'26px', backgroundColor:'DarkSalmon'}}
@@ -214,8 +244,8 @@ export default class CardComponent extends React.Component {
                             maxHeight: '450px',}}
                         >  
                             <div>
-                                {this.props.data.properties.hasOwnProperty(GlobalConstant.imagesOfProperty) ?
-                                    this.props.data.properties[GlobalConstant.imagesOfProperty].length > 0 ?
+                                {this.state.card.data.properties.hasOwnProperty(GlobalConstant.imagesOfProperty) ?
+                                    this.state.card.data.properties[GlobalConstant.imagesOfProperty].length > 0 ?
                                         <div 
                                             style={{
                                                 width:'230px',
@@ -230,7 +260,7 @@ export default class CardComponent extends React.Component {
                                                 showThumbs={false}
                                                 //centerMode={true}
                                             >
-                                                {this.props.data.properties[GlobalConstant.imagesOfProperty].map((img, index)=>(
+                                                {this.state.card.data.properties[GlobalConstant.imagesOfProperty].map((img, index)=>(
                                                     <div>
                                                     <img src={img}  />
                                                     </div>
@@ -245,11 +275,11 @@ export default class CardComponent extends React.Component {
                                 {__properties}
                             </div>
                             
-                            {this.props.data.properties.hasOwnProperty(GlobalConstant.memoOfProperty) ?
-                                this.props.data.properties[GlobalConstant.memoOfProperty].trim() != '' ?
+                            {this.state.card.data.properties.hasOwnProperty(GlobalConstant.memoOfProperty) ?
+                                this.state.card.data.properties[GlobalConstant.memoOfProperty].trim() != '' ?
                                     <div 
                                         dangerouslySetInnerHTML={{
-                                            __html: this.props.data.properties[GlobalConstant.memoOfProperty]
+                                            __html: this.state.card.data.properties[GlobalConstant.memoOfProperty]
                                         }}
                                         style={{
                                             border: '1px solid #ddd',

@@ -68,10 +68,34 @@ const MathAngle = function (x1, y1, x2, y2)
     return __result;
 }
 
+const CheckName = function (str){
+    if (str == ''){
+        return "It can't empty";
+    }
+    
+    //!@#%^&*()-=+{}[];:'"\|,.<>?/~`
+    let __tmp = ' !@#%^&*()-=+{}[];:"\|,.<>?/~`' + "'";
+    for (let i=0; i<__tmp.length; i++){
+        if (str.indexOf(__tmp[i]) > 0){
+            return "It's invalid string";
+        }
+    }
+
+    __tmp = '0123456789';
+    for (let i=0; i<__tmp.length; i++){
+        if (str[0] == __tmp[i]){
+            return "It's invalid string";
+        }
+    }
+
+    return '';
+}
+
 const GlobalFunction = {
     ArrayEquals: ArrayEquals,
     GetTemplate: GetTemplate,
     MathAngle: MathAngle,
+    CheckName: CheckName,
 }
 
 module.exports = GlobalFunction;

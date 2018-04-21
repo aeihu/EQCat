@@ -51,37 +51,45 @@ export default class EditorDialogComponent extends React.Component {
 		};
 	}
 
-	errorList = '';
-	checkName = function (str, item){
-		item += ','
-		if (str == ''){
-			this.errorList += this.errorList.indexOf(item) < 0 ? item : '';
-			return "It can't empty";
-		}
-		
-		//!@#%^&*()-=+{}[];:'"\|,.<>?/~`
-		let __tmp = ' !@#%^&*()-=+{}[];:"\|,.<>?/~`' + "'";
-		for (let i=0; i<__tmp.length; i++){
-			if (str.indexOf(__tmp[i]) > 0){
-				this.errorList += this.errorList.indexOf(item) < 0 ? item : '';
-				return "It's invalid string";
+	isCheckError = false;
+	checkSubmit = function(mode){
+		if (mode == GlobalConstant.mode.edge){
+			if (GlobalFunction.CheckName(this.state.type) != ''){
+				return false;
+			}
+		}else{
+			for (let i=0; i<this.state.labels.length; i++){
+				if (GlobalFunction.CheckName(this.state.labels[i]) != ''){
+					return false;
+				}
 			}
 		}
 
-		__tmp = '0123456789';
-		for (let i=0; i<__tmp.length; i++){
-			if (str[0] == __tmp[i]){
-				this.errorList += this.errorList.indexOf(item) < 0 ? item : '';
-				return "It's invalid string";
+		for (let i=0; i<this.state.properties.length; i++){
+			if (GlobalFunction.CheckName(this.state.properties[i].key) != ''){
+				return false;
+			}
+
+			if (this.state.properties[i].type == 'number'){
+				if (isNaN(this.state.properties[i].value)){
+					return false;
+				}
+			}else if (this.state.properties[i].type == 'listNumber'){
+				for (let j=0; j<this.state.properties[j].value.length; j++){
+					if (isNaN(this.state.properties[i].value[j])){
+						return false;
+					}
+				}
 			}
 		}
 
-		if (this.errorList.indexOf(item) >= 0){
-			this.errorList = this.errorList.replace(item, "");
-		}
+		return true;
+	}.bind(this)
 
-		return '';
-	}
+	closeDialog = function(){
+		this.props.onRequestClose();
+		this.isCheckError = false;
+	}.bind(this)
 	
 	updateInputForLabel = (searchText, index) => {
 		this.setState(function(prevState, props) {
@@ -226,7 +234,8 @@ export default class EditorDialogComponent extends React.Component {
 				console.log('ssssssssssssssssssssssssssssssssssssssss')
 				console.log(__node)
 				this.props.onChangeData(__node);
-				this.props.onRequestClose();
+				this.props.onMessage('Add node is success', 1);
+				this.closeDialog();
 			}
 		}.bind(this)
 
@@ -353,7 +362,8 @@ export default class EditorDialogComponent extends React.Component {
 					console.log('ssssssssssssssssssssssssssssssssssssssss')
 					console.log(__edge)
 					this.props.onChangeData(__edge, this.props.data.id);
-					this.props.onRequestClose();
+					this.props.onMessage('Merge edge is success', 1);
+					this.closeDialog();
 				}
 			}.bind(this)
 
@@ -415,7 +425,8 @@ export default class EditorDialogComponent extends React.Component {
 					console.log('ssssssssssssssssssssssssssssssssssssssss')
 					console.log(__node)
 					this.props.onChangeData(__node);
-					this.props.onRequestClose();
+					this.props.onMessage('Merge node is success', 1);
+					this.closeDialog();
 				}
 			}.bind(this)
 
@@ -440,7 +451,10 @@ export default class EditorDialogComponent extends React.Component {
 	
     componentWillReceiveProps(newProps)
     {
-		this.errorList = '';
+		if (this.isCheckError){
+			return;
+		}
+
 		if (newProps.mode == -1){
 			this.setState(function(prevState, props) {
 				prevState.labels = [];
@@ -528,7 +542,7 @@ export default class EditorDialogComponent extends React.Component {
 				primary={true}
 				keyboardFocused={true}
 				onClick={()=>{
-					if (this.errorList == ''){
+					if (this.checkSubmit(this.props.mode)){
 						switch(this.props.mode){
 							case GlobalConstant.mode.edge:
 								this.mergeEdge();
@@ -540,13 +554,16 @@ export default class EditorDialogComponent extends React.Component {
 								this.addNode();
 								break;
 						}
+					}else{
+						this.props.onMessage('There is invalid item', 0);
+						this.isCheckError = true;
 					}
 				}}
 			/>,
 			<FlatButton
 				label="Cancel"
 				primary={true}
-				onClick={this.props.onRequestClose}
+				onClick={this.closeDialog}
 			/>,
 		];
 
@@ -575,7 +592,7 @@ export default class EditorDialogComponent extends React.Component {
 						/>
 						<AutoComplete
 							//floatingLabelText="Label"
-							errorText={this.checkName(this.state.labels[i], 'L'+i)}
+							errorText={GlobalFunction.CheckName(this.state.labels[i], 'L'+i)}
 							searchText={this.state.labels[i]}
 							onUpdateInput={(searchText)=>this.updateInputForLabel(searchText, i)}
 							onNewRequest={(value)=>this.newRequestForLabel(value, i)}
@@ -623,7 +640,7 @@ export default class EditorDialogComponent extends React.Component {
 					height: '25px'
 				}}>
 					<AutoComplete
-						errorText={this.checkName(this.state.type, 'T')}
+						errorText={GlobalFunction.CheckName(this.state.type, 'T')}
 						searchText={this.state.type}
 						onUpdateInput={this.updateInputForLabel}
 						onNewRequest={this.newRequestForLabel}
@@ -652,7 +669,7 @@ export default class EditorDialogComponent extends React.Component {
 					flexWrap: 'wrap',}} 
 				>
 					<AutoComplete
-						errorText={this.checkName(this.state.properties[i].key, 'P'+i)}
+						errorText={GlobalFunction.CheckName(this.state.properties[i].key, 'P'+i)}
 						hintText='Key'
 						searchText={this.state.properties[i].key}
 						onUpdateInput={(searchText) => this.updateInputForPropertyKey(searchText, i)}
@@ -938,7 +955,7 @@ export default class EditorDialogComponent extends React.Component {
 				actions={__actions}
 				modal={true}
 				open={this.props.open}
-				onRequestClose={this.props.onRequestClose}
+				onRequestClose={this.closeDialog}
 				autoScrollBodyContent={true}
 			>
 				<h2>{this.props.mode != GlobalConstant.mode.edge ? 'Labels' : 'Type'}</h2>

@@ -174,7 +174,7 @@ function setNodeTextOffset(d) {
         return D3ForceSimulation.getNodeStyle(d.labels[0]).size / 2 + 10;
     }
 
-    return -27.5;
+    return 35;
 }
 
 function setEdgeColor(d) { 
@@ -454,24 +454,30 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                         .style('marker-end', 'url(#marker_arrow)')
                         .style('stroke', 'rgb(0, 0, 0)');
                 }else{
-                    let __edge = {
-                        source: __conncet_line.attr('source'),
-                        target: d.id,
-                        type: state.tooltip.relationshipType
-                    }
-                    let xmlhttp = new XMLHttpRequest()
-		
-                    xmlhttp.onreadystatechange = function(){
-                        if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                            console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-                            let __edge = JSON.parse(xmlhttp.responseText);
-                            console.log(__edge)
-                            props.onAddEdge(__edge);
+                    let __message = GlobalFunction.CheckName(state.tooltip.relationshipType);
+                    if (__message == ''){
+                        let __edge = {
+                            source: __conncet_line.attr('source'),
+                            target: d.id,
+                            type: state.tooltip.relationshipType
                         }
-                    }.bind(this)
+                        let xmlhttp = new XMLHttpRequest()
+            
+                        xmlhttp.onreadystatechange = function(){
+                            if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                                console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+                                let __edge = JSON.parse(xmlhttp.responseText);
+                                console.log(__edge)
+                                props.onAddEdge(__edge);
+                                props.onMessage('Add edge is success', 1);
+                            }
+                        }.bind(this)
 
-                    xmlhttp.open("GET", '/addEdge?edge="' + Base64.encodeURI(JSON.stringify(__edge)) + '"', true);
-                    xmlhttp.send();
+                        xmlhttp.open("GET", '/addEdge?edge="' + Base64.encodeURI(JSON.stringify(__edge)) + '"', true);
+                        xmlhttp.send();
+                    }else{
+                        props.onMessage(__message, 0);
+                    }
                     __conncet_line.remove();
                 }
             }else{

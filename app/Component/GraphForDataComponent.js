@@ -28,6 +28,7 @@ import AutoComplete from 'material-ui/AutoComplete';
 import ImagePanoramaFishEye from 'material-ui/svg-icons/image/panorama-fish-eye';
 import CommunicationCallMade from 'material-ui/svg-icons/communication/call-made';
 import ActionDelete from 'material-ui/svg-icons/action/delete';
+import NotificationPriorityHigh from 'material-ui/svg-icons/notification/priority-high';
 
 import Popover from 'material-ui/Popover/Popover';
 import { SketchPicker } from 'react-color';
@@ -42,12 +43,6 @@ export default class GraphForDataComponent extends React.Component {
                 data: {},
                 open: false,
                 mode: -1
-            },
-            cards:{
-                nodes:[
-                    //{data:xxx , x:xxx, y:xxx}
-                ],
-                edges:[],
             },
             showCard: this.showCard,
             selectNode: this.selectNode,
@@ -75,6 +70,12 @@ export default class GraphForDataComponent extends React.Component {
     }
 
     updateFlag = true;
+    cards = {
+        nodes:[
+            //{data:xxx , x:xxx, y:xxx}
+        ],
+        edges:[],
+    }
 
     handleClick = function(event) {
         // This prevents ghost click.
@@ -127,26 +128,26 @@ export default class GraphForDataComponent extends React.Component {
 
     showCard = function(d, para) {
         let __mode = para.mode == GlobalConstant.mode.node ? 'nodes' : 'edges';
-        for (let index in this.state.cards[__mode]){
-            if (this.state.cards[__mode][index].data.id == d.id){
+        for (let index in this.cards[__mode]){
+            if (this.cards[__mode][index].data.id == d.id){
                 return;
             }
         }
 
         this.updateFlag = false;
         this.setState(function(prevState, props) {
-            prevState.cards[__mode].push({data:d, x:para.x, y:para.y});
+            this.cards[__mode].push({data:d, x:para.x, y:para.y});
             return prevState;
         });
     }.bind(this);
 
     hideCard = function(id, mode) {
         let __mode = mode == GlobalConstant.mode.node ? 'nodes' : 'edges';
-        for (let index in this.state.cards[__mode]){
-            if (this.state.cards[__mode][index].data.id == id){
+        for (let index in this.cards[__mode]){
+            if (this.cards[__mode][index].data.id == id){
                 this.updateFlag = false;
                 this.setState(function(prevState, props) {
-                    prevState.cards[__mode].splice(index, 1);
+                    this.cards[__mode].splice(index, 1);
                     return prevState;
                 });
             }
@@ -277,7 +278,7 @@ export default class GraphForDataComponent extends React.Component {
 
     componentDidUpdate()
     {
-        console.log('11sbb');
+        console.log('bb');
 
         if(this.updateFlag){
             let el = ReactDOM.findDOMNode();
@@ -303,23 +304,15 @@ export default class GraphForDataComponent extends React.Component {
     }.bind(this)
 
     render() {
-        let __cardElements=[];
-        for (let key in this.state.cards){
-            for (let i = 0; i < this.state.cards[key].length; i++){
+        let __cardElements = [];
+        for (let key in this.cards){
+            for (let i = 0; i < this.cards[key].length; i++){
                 __cardElements.push(
                     <CardComponent 
-                        x={this.state.cards[key][i].x}
-                        y={this.state.cards[key][i].y}
                         mode={key == 'nodes' ? GlobalConstant.mode.node : GlobalConstant.mode.edge}
-                        data={this.state.cards[key][i].data} 
+                        data={this.cards[key][i]} 
                         onClose={this.hideCard} 
                         onShowDialog={this.showDialog}
-                        onDrag={(event, data)=>{
-                            this.setState(function(prevState, props) {
-                                prevState.cards[key][i].x = data.x;
-                                prevState.cards[key][i].y = data.y;
-                                return prevState;
-                            })}}
                     />
                 );
             }
@@ -345,6 +338,7 @@ export default class GraphForDataComponent extends React.Component {
                             prevState.dialog.open = false;
                             return prevState;
                     })}.bind(this)}
+                    onMessage={this.props.onMessage}
                 />
                 <div style={{display: 'flex', flexDirection: 'row', flex:'1 1 auto', width:'100%'}}>
                     <div id="displayContent" 
@@ -417,6 +411,7 @@ export default class GraphForDataComponent extends React.Component {
                                         maxSearchResults={6}
                                         style={{width:'190px'}} 
                                         textFieldStyle={{width:'190px'}} 
+                                        errorText={GlobalFunction.CheckName(this.state.tooltip.relationshipType)}
                                         //inputStyle={{fontSize: '12px'}}
                                     />
                                 </div>
@@ -499,7 +494,7 @@ export default class GraphForDataComponent extends React.Component {
                             style={{borderBottom: '1px solid #ddd',}}
                             hoveredStyle={{backgroundColor:'SkyBlue'}}
                             onClick={()=>{console.log(this.props.data)}}>
-                            <ContentRemoveCircleOutline />
+                            <NotificationPriorityHigh />
                         </IconButton>
                         
                         {/* /////////////////////////////////////////
