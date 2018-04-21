@@ -583,12 +583,7 @@ export default class EditorDialogComponent extends React.Component {
 					}}>
 						<Avatar
 							src={D3ForceSimulation.getNodeStyle(this.state.labels[i]).icon}
-							style={{
-								width:'23px', 
-								height:'23px', 
-								marginLeft:'6px', 
-								borderRadius:'0%', 
-								backgroundColor:'#00000000'}} 
+							className='labelAvatar'
 						/>
 						<AutoComplete
 							//floatingLabelText="Label"
@@ -641,12 +636,9 @@ export default class EditorDialogComponent extends React.Component {
 				}}>
 				
 					<Avatar
+                        className='edgeAvatar'
 						style={{
-                            width:'18px', 
-                            height:'18px', 
-                            marginLeft:'6px', 
 							marginRight:'6px', 
-                            borderRadius:'0%', 
 							backgroundColor:D3ForceSimulation.getEdgeStyle(this.state.type).color
 						}} 
 					/>

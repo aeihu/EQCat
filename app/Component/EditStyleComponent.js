@@ -92,13 +92,7 @@ export default class EditStyleComponent extends React.Component {
                     >
                         {key != '*' ?
                             <Avatar src={D3ForceSimulation.getNodeStyle(key).icon} 
-                                style={{
-                                        width:'23px', 
-                                        height:'23px', 
-                                        marginLeft:'6px', 
-                                        borderRadius:'0%', 
-                                        backgroundColor:'#00000000'
-                                }} 
+                                className='labelAvatar'
                             />
                             : ''
                         }
@@ -131,11 +125,8 @@ export default class EditStyleComponent extends React.Component {
                     >
                         {key != '*' ?
                             <Avatar
+                                className='edgeAvatar'
                                 style={{
-                                    width:'18px', 
-                                    height:'18px', 
-                                    marginLeft:'6px', 
-                                    borderRadius:'0%', 
                                     backgroundColor:D3ForceSimulation.getEdgeStyle(key).color
                                 }}
                             />

@@ -140,13 +140,7 @@ export default class CardComponent extends React.Component {
                         labelStyle={{fontSize: '12px'}}
                     >
                         <Avatar src={D3ForceSimulation.getNodeStyle(this.state.card.data.labels[i]).icon} 
-                            style={{
-                                width:'23px', 
-                                height:'23px', 
-                                marginLeft:'6px', 
-                                borderRadius:'0%', 
-                                backgroundColor:'#00000000'
-                            }} 
+                            className='labelAvatar'
                         />
                         {this.state.card.data.labels[i]}
                     </Chip>);
@@ -158,11 +152,8 @@ export default class CardComponent extends React.Component {
                     labelStyle={{fontSize: '12px'}}
                 >
                     <Avatar
+                        className='edgeAvatar'
                         style={{
-                            width:'18px', 
-                            height:'18px', 
-                            marginLeft:'6px', 
-                            borderRadius:'0%', 
                             backgroundColor:D3ForceSimulation.getEdgeStyle(this.state.card.data.type).color
                         }}
                     />
