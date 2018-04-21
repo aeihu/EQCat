@@ -15,7 +15,14 @@ class App extends React.Component {
         super(props);
         
         this.state = {
-            open: false,
+            snackbar:{
+                open: false,
+                message: '',
+                color: 'rgba(245, 0, 0, 0.87)',
+            },
+            progress:{
+                open: false,
+            },
             data: {
                 statement:'',
                 records:[],
@@ -50,12 +57,14 @@ class App extends React.Component {
         GlobalFunction.GetTemplate();
     }
 
-    handleClick = () => {
+    showSnackbar = function(message, type){
 		this.setState(function(prevState, props) {
-			prevState.snackOpen = true;
+			prevState.snackbar.open = true;
+            prevState.snackbar.message = message;
+            prevState.snackbar.color = type == 0 ? 'rgba(245, 0, 0, 0.87)' : 'rgba(106, 198, 255, 0.87)';
 			return prevState;
 		})
-    };
+    }.bind(this);
     
     runCypher = function(statement) {
         let xmlhttp = new XMLHttpRequest()
@@ -213,22 +222,15 @@ class App extends React.Component {
                 }
 
                 this.setState(function(prevState, props) {
-                    return {
-                        open: false,
-                        data: {
-                            statement: statement,
-                            records: __json,
-                            graph: {
-                                nodes: __nodes,
-                                edges: __edges,
-                                count: __count
-                            },
-                            table: {
-                                rows: __rows,
-                                columns: __columns
-                            }
-                        }
-                    }
+                    prevState.progress.open = false;
+                    prevState.data.statement = statement;
+                    prevState.data.records = __json;
+                    prevState.data.graph.nodes = __nodes;
+                    prevState.data.graph.edges = __edges;
+                    prevState.data.graph.count = __count;
+                    prevState.data.table.rows = __rows;
+                    prevState.data.table.columns = __columns;
+                    return prevState;
                 });
             }
         }.bind(this)
@@ -237,10 +239,8 @@ class App extends React.Component {
         xmlhttp.send();
 
         this.setState(function(prevState, props) {
-            return {
-                open: true,
-                data: prevState.data
-            }
+            prevState.progress.open = true
+            return prevState;
         });
     }.bind(this)
 
@@ -280,6 +280,7 @@ class App extends React.Component {
                     }
 
                     prevState.data.graph.nodes.push({
+                        id: node[0][keyName].id,
                         labels: node[0][keyName].labels,
                         properties: node[0][keyName].properties
                     });
@@ -601,7 +602,7 @@ class App extends React.Component {
         return (
             <MuiThemeProvider>
                 <Dialog
-                    open={this.state.open}
+                    open={this.state.progress.open}
                     modal={false}
                 >
                     <CircularProgress size={80} thickness={5} />
@@ -619,16 +620,18 @@ class App extends React.Component {
                         onMergeEdge={this.mergeEdge}
                         onDeleteNode={this.deleteNodes}
                         onDeleteEdge={this.deleteEdges}
+                        onMessage={this.showSnackbar}
                     />
                 </div>
                 
 				<Snackbar
-					open={this.state.snackOpen}
-					message="Event added to your calendar"
+                    bodyStyle={{backgroundColor: this.state.snackbar.color}}
+					open={this.state.snackbar.open}
+					message={this.state.snackbar.message}
 					autoHideDuration={4000}
 					onRequestClose={()=>{ 
 						this.setState(function(prevState, props) {
-							prevState.snackOpen = false;
+							prevState.snackbar.open = false;
 							return prevState;
 						})}}
 				/>
