@@ -82,7 +82,6 @@ export default class EditStyleComponent extends React.Component {
                                 this.setState(function(prevState, props) {
                                     prevState.parameter.mode = GlobalConstant.mode.node;
                                     prevState.name = key;
-                                    
                                     return prevState;
                                 });
                             }

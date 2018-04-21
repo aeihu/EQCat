@@ -369,6 +369,9 @@ export default class EditorDialogComponent extends React.Component {
 
 			xmlhttp.open("GET", '/mergeEdge?edge="' + Base64.encodeURI(JSON.stringify(__edge)) + '"', true);
 			xmlhttp.send();
+		}else{
+			this.props.onMessage('Merge node is success', 1);
+			this.closeDialog();
 		}
 	}.bind(this)
 
@@ -432,6 +435,9 @@ export default class EditorDialogComponent extends React.Component {
 
 			xmlhttp.open("GET", '/mergeNode?node="' + Base64.encodeURI(JSON.stringify(__node)) + '"', true);
 			xmlhttp.send();
+		}else{
+			this.props.onMessage('Merge node is success', 1);
+			this.closeDialog();
 		}
 	}.bind(this)
 

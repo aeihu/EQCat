@@ -4,6 +4,7 @@ import CardComponent from './CardComponent';
 import {D3ForceSimulation} from './D3ForceSimulation';
 import EditStyleComponent from './EditStyleComponent';
 import GlobalConstant from '../Common/GlobalConstant';
+import GlobalFunction from '../Common/GlobalFunction';
 import Chip from 'material-ui/Chip';
 import Avatar from 'material-ui/Avatar';
 import Clear from 'material-ui/svg-icons/content/clear';
