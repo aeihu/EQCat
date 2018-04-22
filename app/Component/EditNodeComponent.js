@@ -6,7 +6,7 @@ import Popover from 'material-ui/Popover/Popover';
 import IconSelectorComponent from './IconSelectorComponent';
 import Avatar from 'material-ui/Avatar';
 
-export default class EditEdgeComponent extends React.Component {
+export default class EditNodeComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {

@@ -3,6 +3,7 @@ import fs from 'fs';
 import muilter from'./Util/Multer';
 import path from'path';
 import { Base64 } from 'js-base64';
+import GlobalConstant from'../Common/GlobalConstant';
 
 var templates = {};
 var styles = {};
@@ -50,6 +51,13 @@ templates = ReadCongfigFile(templatePath);
 styles = ReadCongfigFile(stylePath);
 icons = GetIconList(iconPath);
 
+if (Object.keys(styles).length < 1){
+	styles = {
+		nodes:{},
+		edges:{}
+	}
+}
+
 console.log(icons);
 
 var express = require('express');
@@ -81,12 +89,46 @@ app.get('/template', function (req, res) {
 	res.jsonp(__result);
 });
 
-app.get('/style', function (req, res) {
+app.get('/getStyles', function (req, res) {
 	let __result = {
 		styles: styles,
 	}
 	
 	res.jsonp(__result);
+});
+
+app.get('/setStyle?:style', function (req, res) {
+	try{
+		let __json = JSON.parse(Base64.decode(req.query.style));
+		if (__json.mode == GlobalConstant.mode.node){
+			if (!styles.nodes.hasOwnProperty(__json.label)){
+				styles.nodes[__json.label] = {...GlobalConstant.defaultNodeStyle};
+			}
+
+			styles.nodes[__json.label][__json.property] = __json.value;
+		}else{
+			if (!styles.edges.hasOwnProperty(__json.type)){
+				styles.edges[__json.type] = {...GlobalConstant.defaultEdgeStyle};
+			}
+
+			styles.edges[__json.type][__json.property] = __json.value;
+		}
+
+		fs.writeFile(stylePath, JSON.stringify(styles, null, 2),
+			function(err, written, buffer){
+				if(err) {
+					console.log('写文件操作失败');
+				}else{
+					console.log('写文件操作成功')
+				}
+			}
+		);
+		res.send('success')
+	}	
+	catch (err){
+		console.log(err);
+		res.send('error');
+	}
 });
 
 app.get('/icon', function (req, res) {

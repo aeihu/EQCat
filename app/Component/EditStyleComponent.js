@@ -5,7 +5,7 @@ import {D3ForceSimulation} from './D3ForceSimulation';
 import Chip from 'material-ui/Chip';
 import Avatar from 'material-ui/Avatar';
 import FlatButton from 'material-ui/FlatButton';
-import GlobalConstant from '../Common/GlobalConstant';
+import GlobalConstant from '../../Common/GlobalConstant';
 
 export default class EditStyleComponent extends React.Component {
     constructor(props) {
@@ -16,42 +16,68 @@ export default class EditStyleComponent extends React.Component {
         }
     }  
 
+	sendSetStyle = function(style){
+        let xmlhttp = new XMLHttpRequest()
+        
+        xmlhttp.onreadystatechange = function(){
+            if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+                if (xmlhttp.responseText == 'success'){
+                    //do something
+                }
+            }
+        }.bind(this)
+
+        xmlhttp.open("GET", '/setStyle?style="' + Base64.encodeURI(JSON.stringify(style)) + '"', true);
+        xmlhttp.send();
+    }.bind(this)
+    
     setIconInBar = function (icon){
         D3ForceSimulation.setStyle(this.state, 'icon', icon);
         this.props.onChange();
-    }.bind(this)
-
-    setColorInBar = function (hex){
-        D3ForceSimulation.setStyle(this.state, 'color', hex);
-        this.props.onChange();
+        this.sendSetStyle({
+            mode: GlobalConstant.mode.node,
+            label: this.state.name,
+            property: 'icon',
+            value: icon
+        })
     }.bind(this)
 
     setCaptionInBar = function (propertyName){
         D3ForceSimulation.setStyle(this.state, 'caption', propertyName);
+        this.sendSetStyle({
+            mode: GlobalConstant.mode.node,
+            label: this.state.name,
+            property: 'caption',
+            value: propertyName
+        })
     }.bind(this)
 
     setSizeInBar = function (size){
         if (!isNaN(Number(size))){
             size = Number(size);
             D3ForceSimulation.setStyle(this.state, 'size', size);
+            this.sendSetStyle({
+                mode: GlobalConstant.mode.node,
+                label: this.state.name,
+                property: 'size',
+                value: size
+            })
         }
     }.bind(this)
 
-    // getStyles = function() {
-    //     let xmlhttp = new XMLHttpRequest()
-        
-    //     xmlhttp.onreadystatechange = function(){
-    //         if (xmlhttp.readyState==4 && xmlhttp.status==200){
-    //             console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-	// 			let __json = JSON.parse(xmlhttp.responseText);
-				
-    //             this.NEStyles = __json.styles;
-    //         }
-    //     }.bind(this)
+    ///////////////////////////////
 
-    //     xmlhttp.open("GET", "/style", true);
-    //     xmlhttp.send();
-    // }.bind(this)
+    setColorInBar = function (hex){
+        D3ForceSimulation.setStyle(this.state, 'color', hex);
+        this.props.onChange();
+        this.sendSetStyle({
+            mode: GlobalConstant.mode.edge,
+            type: this.state.name,
+            property: 'color',
+            value: hex
+        })
+    }.bind(this)
 
     componentWillMount()
     {
@@ -64,12 +90,6 @@ export default class EditStyleComponent extends React.Component {
     render() {
         let __nodeChip = [];
         for (let key in this.props.data.nodes){
-            if (key != '*'){
-                let __keys = Object.keys(this.props.data.nodes[key].propertiesList);
-                D3ForceSimulation.getNodeStyle(key).caption = __keys.length > 1 ? __keys[1] : __keys[0];
-            }
-
-            //////////////////////////////////////////////
             if (this.props.data.nodes[key].total > 0 || key == '*'){
                 __nodeChip.push(<Chip 
                     className="labelChip" 

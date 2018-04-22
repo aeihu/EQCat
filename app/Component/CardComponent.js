@@ -20,7 +20,7 @@ import {D3ForceSimulation} from './D3ForceSimulation';
 import Avatar from 'material-ui/Avatar';
 import { Carousel } from 'react-responsive-carousel';
 import styles from 'react-responsive-carousel/lib/styles/carousel.min.css';
-import GlobalConstant from '../Common/GlobalConstant';
+import GlobalConstant from '../../Common/GlobalConstant';
 import ImageEdit from 'material-ui/svg-icons/image/edit';
 
 export default class CardComponent extends React.Component {

@@ -7,8 +7,8 @@ import CypherBarComponent from './Component/CypherBarComponent'
 import CircularProgress from 'material-ui/CircularProgress';
 import Dialog from 'material-ui/Dialog';
 import Snackbar from 'material-ui/Snackbar';
-import GlobalConstant from './Common/GlobalConstant';
-import GlobalFunction from './Common/GlobalFunction';
+import GlobalConstant from '../Common/GlobalConstant';
+import GlobalFunction from '../Common/GlobalFunction';
 
 class App extends React.Component {
     constructor(props) {

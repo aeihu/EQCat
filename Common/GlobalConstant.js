@@ -9,7 +9,15 @@ const GlobalConstant = {
     labelList: [],
     propertyList: [],
     relationshipTypeList: [],
-    templateList: {}
+    templateList: {},
+    defaultNodeStyle: {
+        icon: 'icons/default/node.svg',
+        size: 50,
+        caption: '<id>'
+    },
+    defaultEdgeStyle: {
+        color: '#000000'
+    }
 }
 
 module.exports = GlobalConstant;

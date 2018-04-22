@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
-import GlobalConstant from '../Common/GlobalConstant';
-import GlobalFunction from '../Common/GlobalFunction';
+import GlobalConstant from '../../Common/GlobalConstant';
+import GlobalFunction from '../../Common/GlobalFunction';
 
 export const D3ForceSimulation = {};
 
@@ -26,6 +26,22 @@ D3ForceSimulation.NEStyles = {
         //}
     },
 };
+
+function getStyles() {
+    let xmlhttp = new XMLHttpRequest()
+    
+    xmlhttp.onreadystatechange = function(){
+        if (xmlhttp.readyState==4 && xmlhttp.status==200){
+            console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+            let __json = JSON.parse(xmlhttp.responseText);
+            D3ForceSimulation.NEStyles = __json.styles;
+            console.log(D3ForceSimulation.NEStyles)
+        }
+    }.bind(this)
+
+    xmlhttp.open("GET", "/getStyles", true);
+    xmlhttp.send();
+}
 
 D3ForceSimulation.create = function(el, props, state) {
     this.svg = d3.select("#displayContent")
@@ -87,6 +103,7 @@ D3ForceSimulation.create = function(el, props, state) {
         .force("collide", d3.forceCollide().radius(50))
         .force("center", d3.forceCenter(300, 300));
 
+    getStyles();
     //this.update(el, props, state);
 };
 
@@ -152,6 +169,7 @@ function setIcon(d) {
 function setNodeText(d) { 
     if (d.labels.length > 0){
         if (D3ForceSimulation.getNodeStyle(d.labels[0]).caption != '<id>'){
+            console.log(D3ForceSimulation.NEStyles)
             return d.properties[D3ForceSimulation.getNodeStyle(d.labels[0]).caption];
         }
     }
@@ -234,11 +252,7 @@ function drawLine(d)
 
 D3ForceSimulation.getNodeStyle = function(label){
     if (!this.NEStyles.nodes.hasOwnProperty(label)){
-        this.NEStyles.nodes[label] = {
-            icon: GlobalConstant.defaultIcon,
-            size: 50,
-            caption: 'name',
-        }
+        this.NEStyles.nodes[label] = {...GlobalConstant.defaultNodeStyle}
     }
 
     return this.NEStyles.nodes[label];
@@ -246,9 +260,7 @@ D3ForceSimulation.getNodeStyle = function(label){
 
 D3ForceSimulation.getEdgeStyle = function(type){
     if (!this.NEStyles.edges.hasOwnProperty(type)){
-        this.NEStyles.edges[type] = {
-            color: '#000000'
-        }
+        this.NEStyles.edges[type] = {...GlobalConstant.defaultEdgeStyle}
     }
 
     return this.NEStyles.edges[type];
@@ -258,11 +270,7 @@ D3ForceSimulation.setStyle = function(state, type, val) {
     switch (state.parameter.mode){
         case GlobalConstant.mode.node:
             if (!this.NEStyles.nodes.hasOwnProperty(state.name)){
-                this.NEStyles.nodes[state.name] = {
-                    icon: GlobalConstant.defaultIcon,
-                    size: 50,
-                    caption: 'name',
-                }
+                this.NEStyles.nodes[state.name] = {...GlobalConstant.defaultNodeStyle}
             }
 
             let __node = this.svg.selectAll(".nodes")
@@ -299,9 +307,7 @@ D3ForceSimulation.setStyle = function(state, type, val) {
             break;
         case GlobalConstant.mode.edge:
             if (!this.NEStyles.edges.hasOwnProperty(state.name)){
-                this.NEStyles.edges[state.name] = {
-                    color: '#000000'
-                }
+                this.NEStyles.edges[state.name] =  {...GlobalConstant.defaultEdgeStyle}
             }
             
             let __link = this.svg.selectAll(".links")
