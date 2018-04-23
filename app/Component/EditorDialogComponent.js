@@ -546,7 +546,7 @@ export default class EditorDialogComponent extends React.Component {
 			<FlatButton
 				label="Submit"
 				primary={true}
-				keyboardFocused={true}
+				//keyboardFocused={true}
 				onClick={()=>{
 					if (this.checkSubmit(this.props.mode)){
 						switch(this.props.mode){

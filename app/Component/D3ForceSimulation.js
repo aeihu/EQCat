@@ -365,15 +365,34 @@ D3ForceSimulation.update = function(el, props, state) {
 };
 
 D3ForceSimulation.Unselect = function(d){
-    let __el;
     d.selected = false;
     if (d.hasOwnProperty('ptx')){
-        __el = D3ForceSimulation.svg.select('#link_id_' + d.id);
-        __el.attr('class', 'links');
+        D3ForceSimulation.svg.select('#defs_path_id_' + d.id)
+            .attr('shadowed', d.selected)
+            .attr('class', 'defs_path');
     }else{
-        __el = D3ForceSimulation.svg.select('#node_id_' + d.id);
-        __el.attr('class', 'nodes');
+        D3ForceSimulation.svg.select('#node_id_' + d.id).attr('class', 'nodes');
     }
+}
+
+D3ForceSimulation.SelectAll = function(state){
+    this.svg
+        .selectAll(".nodes")
+        .each(function(d){
+            d['selected'] = true;
+            state.selectNode(d, false);
+        })
+        .attr('shadowed', '')
+        .attr('class', 'nodes nodes_selected');
+
+    this.svg
+        .selectAll(".links")
+        .each(function(d){
+            d['selected'] = true;
+            state.selectEdge(d, false);
+        })
+        .select('.defs_path')
+        .attr('class', 'defs_path defs_path_selected');
 }
 
 D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
@@ -497,7 +516,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                     .attr('shadowed', d.selected ? '' : 'mouseover')
                     .attr('class', d.selected ? 'nodes nodes_selected' : 'nodes');
                 
-                state.selectNode(d);
+                state.selectNode(d, true);
             }
         })
         .on("mouseover", function(d){
@@ -608,7 +627,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                     .attr('shadowed', d.selected)
                     .attr('class', d.selected ? 'defs_path defs_path_selected' : 'defs_path');
                 
-                state.selectEdge(d);
+                state.selectEdge(d, true);
             }
         })
         .on("dblclick", function(d){

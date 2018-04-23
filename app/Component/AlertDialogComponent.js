@@ -14,7 +14,7 @@ export default class AlertDialogComponent extends React.Component {
 			<FlatButton
 				label="OK"
 				primary={true}
-				keyboardFocused={true}
+				//keyboardFocused={true}
 				onClick={this.props.onAction}
 			/>,
 			<FlatButton

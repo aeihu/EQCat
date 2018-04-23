@@ -8,6 +8,7 @@ import GlobalFunction from '../../Common/GlobalFunction';
 import Chip from 'material-ui/Chip';
 import Avatar from 'material-ui/Avatar';
 import Clear from 'material-ui/svg-icons/content/clear';
+import NotificationDoNotDisturb from 'material-ui/svg-icons/notification/do-not-disturb';
 
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
@@ -16,13 +17,15 @@ import PersonAdd from 'material-ui/svg-icons/social/person-add';
 import ContentLink from 'material-ui/svg-icons/content/link';
 import Divider from 'material-ui/Divider';
 import ContentCopy from 'material-ui/svg-icons/content/content-copy';
+import ActionToll from 'material-ui/svg-icons/action/toll';
 import Download from 'material-ui/svg-icons/file/file-download';
 import Delete from 'material-ui/svg-icons/action/delete';
 import ImagePhotoLibrary from 'material-ui/svg-icons/image/photo-library';
 import ImageControlPoint from 'material-ui/svg-icons/image/control-point';
+import ActionDone from 'material-ui/svg-icons/action/done';
 import ImageFilter from 'material-ui/svg-icons/image/filter';
-import SocialShare from 'material-ui/svg-icons/social/share';
-import ContentRemoveCircleOutline from 'material-ui/svg-icons/content/remove-circle-outline';
+import SocialShare from 'material-ui/svg-icons/social/share';import ContentRemoveCircleOutline from 'material-ui/svg-icons/content/remove-circle-outline';
+import ActionVisibilityOff from 'material-ui/svg-icons/action/visibility-off';
 import ImageEdit from 'material-ui/svg-icons/image/edit';
 import EditorDialogComponent from './EditorDialogComponent';
 import AutoComplete from 'material-ui/AutoComplete';
@@ -101,12 +104,14 @@ export default class GraphForDataComponent extends React.Component {
         });
     }.bind(this)
 
-    selectNode = function(d){
+    selectNode = function(d, isUnselect){
         this.updateFlag = false;
         this.setState(function(prevState, props) {
             for (let i=0; i<prevState.tooltip.selected.nodes.length; i++){
                 if (d.id == prevState.tooltip.selected.nodes[i].id){
-                    prevState.tooltip.selected.nodes.splice(i, 1);
+                    if (isUnselect){
+                        prevState.tooltip.selected.nodes.splice(i, 1);
+                    }
                     return prevState;
                 }
             }
@@ -116,12 +121,14 @@ export default class GraphForDataComponent extends React.Component {
         });
     }.bind(this);
     
-    selectEdge = function(d){
+    selectEdge = function(d, isUnselect){
         this.updateFlag = false;
         this.setState(function(prevState, props) {
             for (let i=0; i<prevState.tooltip.selected.edges.length; i++){
                 if (d.id == prevState.tooltip.selected.edges[i].id){
-                    prevState.tooltip.selected.edges.splice(i, 1);
+                    if (isUnselect){
+                        prevState.tooltip.selected.edges.splice(i, 1);
+                    }
                     return prevState;
                 }
             }
@@ -372,6 +379,26 @@ export default class GraphForDataComponent extends React.Component {
 //
 ////////////////////////////////////////////
 
+    changeConnectMode = function(){
+        this.setState(function(prevState, props) {
+            this.updateFlag = false;
+            D3ForceSimulation.changeConnectMode();
+            prevState.tooltip.connectMode = D3ForceSimulation.connectMode;
+            prevState.menu.open = false;
+            return prevState;
+        })
+    }.bind(this)
+
+    showOrHideImage = function() {
+        this.setState(function(prevState, props) {
+            this.updateFlag = false;
+            D3ForceSimulation.showOrHideImage();
+            prevState.tooltip.showedImage = D3ForceSimulation.showedImage;
+            prevState.menu.open = false;
+            return prevState;
+        })
+    }.bind(this)
+
     componentDidMount()
     {
         console.log('aa');
@@ -483,13 +510,98 @@ export default class GraphForDataComponent extends React.Component {
                             }.bind(this)}
                             // animated={false}
                         >
-                            <Menu desktop={true}>
-                                <MenuItem primaryText="Preview" leftIcon={<RemoveRedEye />} />
-                                <MenuItem primaryText="Share" leftIcon={<PersonAdd />} />
-                                <MenuItem primaryText="Get links" leftIcon={<ContentLink />} />
+                            <Menu desktop={true}
+                                onChange={
+                                    function(event, value) {
+                                        switch (value){
+                                            case 'Show Views':{
+                                                this.setState(function(prevState, props) {
+                                                    prevState.menu.open = false;
+                                                    return prevState;
+                                                })
+
+                                                let __count = 0;
+                                                this.state.tooltip.selected.nodes.map((node, index)=>{
+                                                    this.showCard(node, {mode: GlobalConstant.mode.node, x: index * 30, y: index * 30})
+                                                    __count++;
+                                                })
+
+                                                this.state.tooltip.selected.edges.map((edge, index)=>{
+                                                    this.showCard(edge, {mode: GlobalConstant.mode.edge, x: __count * 30, y: __count * 30})
+                                                    __count++;
+                                                })
+                                                break;
+                                            }
+                                            case 'Hide Views':
+                                                this.updateFlag = false;
+                                                this.setState(function(prevState, props) {
+                                                    this.cards = {
+                                                        nodes:[],
+                                                        edges:[],
+                                                    };
+                                                    prevState.menu.open = false;
+                                                    return prevState;
+                                                });
+                                                break;
+                                            case 'New Node':
+                                                this.setState(function(prevState, props) {
+                                                    prevState.menu.open = false;
+                                                    return prevState;
+                                                })
+                                                this.showDialog({}, -1)
+                                                break;
+                                            case 'Connect Mode':
+                                                this.changeConnectMode();
+                                                break;
+                                            case 'Show Image':
+                                                this.showOrHideImage();
+                                                break;
+                                            case 'Select All':
+                                                D3ForceSimulation.SelectAll(this.state)
+                                                this.setState(function(prevState, props) {
+                                                    prevState.menu.open = false;
+                                                    return prevState;
+                                                })
+                                                break;
+                                            case 'Unselect All':
+                                                this.updateFlag = false;
+                                                this.setState(function(prevState, props) {
+                                                    for (let key in prevState.tooltip.selected){
+                                                        switch (key){
+                                                            case 'nodes':
+                                                            case 'edges':
+                                                                for (let i=prevState.tooltip.selected[key].length-1; i>=0; i--){
+                                                                    D3ForceSimulation.Unselect(prevState.tooltip.selected[key][i]);
+                                                                    prevState.tooltip.selected[key].splice(i, 1);
+                                                                }
+                                                                break;
+                                                        }
+                                                    }
+                                                    prevState.menu.open = false;
+                                                    return prevState;
+                                                });
+                                                break;
+                                        }
+                                    }.bind(this)
+                                }
+                            >
+                                <MenuItem value="New Node" primaryText="New Node" leftIcon={<ImageControlPoint />} />
                                 <Divider />
-                                <MenuItem primaryText="Make a copy" leftIcon={<ContentCopy />} />
-                                <MenuItem primaryText="Download" leftIcon={<Download />} />
+                                <MenuItem 
+                                    value="Connect Mode" 
+                                    primaryText="Connect Mode" 
+                                    leftIcon={<SocialShare />} 
+                                    rightIcon={this.state.tooltip.connectMode ? <ActionDone /> : ''} />
+                                <MenuItem 
+                                    value="Show Image" 
+                                    primaryText="Show Image" 
+                                    leftIcon={<ImageFilter />}
+                                    rightIcon={this.state.tooltip.showedImage ? <ActionDone /> : ''} />
+                                <Divider />
+                                <MenuItem value="Show Views" primaryText="Show Views" leftIcon={<RemoveRedEye />} />
+                                <MenuItem value="Hide Views" primaryText="Hide Views" leftIcon={<ActionVisibilityOff />} />
+                                <MenuItem value="Select All" primaryText="Select All" leftIcon={<ActionToll />} />
+                                <MenuItem value="Unselect All" primaryText="Unselect All" leftIcon={<NotificationDoNotDisturb />} />
                                 <Divider />
                                 <MenuItem primaryText="Remove" leftIcon={<Delete />} />
                             </Menu>
@@ -543,12 +655,7 @@ export default class GraphForDataComponent extends React.Component {
                             tooltip="Connect Mode"
                             style={this.state.tooltip.connectMode ? {backgroundColor:'YellowGreen', borderBottom: '1px solid #ddd'} : {borderBottom: '1px solid #ddd'}}
                             hoveredStyle={{backgroundColor:'SkyBlue'}}
-                            onClick={() => {this.setState(function(prevState, props) {
-                                this.updateFlag = false;
-                                D3ForceSimulation.changeConnectMode();
-                                prevState.tooltip.connectMode = D3ForceSimulation.connectMode;
-                                return prevState;
-                            })}}
+                            onClick={this.changeConnectMode}
                         >
                             <SocialShare />
                         </IconButton>
@@ -556,12 +663,7 @@ export default class GraphForDataComponent extends React.Component {
                             tooltip="Show Image"
                             style={this.state.tooltip.showedImage ? {backgroundColor:'YellowGreen', borderBottom: '1px solid #ddd'} : {borderBottom: '1px solid #ddd'}}
                             hoveredStyle={{backgroundColor:'SkyBlue'}}
-                            onClick={() => {this.setState(function(prevState, props) {
-                                this.updateFlag = false;
-                                D3ForceSimulation.showOrHideImage();
-                                prevState.tooltip.showedImage = D3ForceSimulation.showedImage;
-                                return prevState;
-                            })}}
+                            onClick={this.showOrHideImage}
                         >
                             <ImageFilter />
                         </IconButton>
