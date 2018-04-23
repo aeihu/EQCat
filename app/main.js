@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import TooltipComponent from './Component/TooltipComponent';
 import VisualizationComponent from './Component/VisualizationComponent'
+import AlertDialogComponent from './Component/AlertDialogComponent'
 import CypherBarComponent from './Component/CypherBarComponent'
 import CircularProgress from 'material-ui/CircularProgress';
 import Dialog from 'material-ui/Dialog';
@@ -15,6 +16,12 @@ class App extends React.Component {
         super(props);
         
         this.state = {
+            alert:{
+                open: false,
+                title: '',
+                message: '',
+                action: null
+            },
             snackbar:{
                 open: false,
                 message: '',
@@ -57,6 +64,23 @@ class App extends React.Component {
         GlobalFunction.GetTemplate();
     }
 
+    showAlert = function (title, message, action){
+		this.setState(function(prevState, props) {
+            prevState.alert.open = true;
+            prevState.alert.title = title;
+            prevState.alert.message = message;
+            prevState.alert.action = action;
+			return prevState;
+        })
+    }.bind(this)
+
+    hideAlert = function (){
+		this.setState(function(prevState, props) {
+            prevState.alert.open = false;
+			return prevState;
+        })
+    }.bind(this)
+
     showSnackbar = function(message, type){
 		this.setState(function(prevState, props) {
 			prevState.snackbar.open = true;
@@ -72,7 +96,7 @@ class App extends React.Component {
         xmlhttp.onreadystatechange = function(){
             if (xmlhttp.readyState==4 && xmlhttp.status==200){
                 console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-                let __json = JSON.parse(xmlhttp.responseText);
+                let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
                 let __nodes = [];
                 let __edges = [];
                 let __rows = [];
@@ -607,6 +631,13 @@ class App extends React.Component {
                 >
                     <CircularProgress size={80} thickness={5} />
                 </Dialog>
+                <AlertDialogComponent
+                    open={this.state.alert.open}
+                    title={this.state.alert.title}
+                    message={this.state.alert.message}
+                    onRequestClose={this.hideAlert}
+                    onAction={this.state.alert.action}
+                />
                 <div id="tooltip">
                     <TooltipComponent />
                 </div>
@@ -621,6 +652,7 @@ class App extends React.Component {
                         onDeleteNode={this.deleteNodes}
                         onDeleteEdge={this.deleteEdges}
                         onMessage={this.showSnackbar}
+                        onAlert={this.showAlert}
                     />
                 </div>
                 

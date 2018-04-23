@@ -33,7 +33,7 @@ function getStyles() {
     xmlhttp.onreadystatechange = function(){
         if (xmlhttp.readyState==4 && xmlhttp.status==200){
             console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-            let __json = JSON.parse(xmlhttp.responseText);
+            let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
             D3ForceSimulation.NEStyles = __json.styles;
             console.log(D3ForceSimulation.NEStyles)
         }
@@ -169,7 +169,6 @@ function setIcon(d) {
 function setNodeText(d) { 
     if (d.labels.length > 0){
         if (D3ForceSimulation.getNodeStyle(d.labels[0]).caption != '<id>'){
-            console.log(D3ForceSimulation.NEStyles)
             return d.properties[D3ForceSimulation.getNodeStyle(d.labels[0]).caption];
         }
     }
@@ -472,7 +471,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                         xmlhttp.onreadystatechange = function(){
                             if (xmlhttp.readyState==4 && xmlhttp.status==200){
                                 console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-                                let __edge = JSON.parse(xmlhttp.responseText);
+                                let __edge = JSON.parse(Base64.decode(xmlhttp.responseText));
                                 console.log(__edge)
                                 props.onAddEdge(__edge);
                                 props.onMessage('Add edge is success', 1);

@@ -1,4 +1,5 @@
 const neo4j = require('neo4j-driver').v1;
+import { Base64 } from 'js-base64';
 
 export default class Neo4j
 {
@@ -138,7 +139,6 @@ export default class Neo4j
         }
 
         __statement += '}) return n';
-
         console.log(__statement);
         this.runStatement(__statement, node.properties.merge, res);
     }
@@ -182,6 +182,21 @@ export default class Neo4j
         this.runStatement(__statement, node.properties.merge, res);
     }
     
+    preDeleteNodes(nodes, res){
+        let __statement = 'Match (n)-[r]-(m) where ';
+        
+        for (let i=0; i<nodes.length; i++){
+            if (i > 0){
+                __statement += ' and '
+            }
+
+            __statement += 'id(n)=' + nodes[i];
+        }
+        __statement += ' return n,r,m';
+        console.log(__statement);
+        this.runStatement(__statement, {}, res);
+    }
+
     deleteNodes(nodes, res){
         let __statement = 'Match (n)-[r]-() where ';
         
@@ -193,7 +208,6 @@ export default class Neo4j
             __statement += 'id(n)=' + nodes[i];
         }
         __statement += ' delete n,r return n,r';
-
         console.log(__statement);
         this.runStatement(__statement, {}, res);
     }
@@ -327,12 +341,12 @@ export default class Neo4j
                     }.bind(this));
 
                     console.log(__result);
-                    res.jsonp(__result);
+                    res.send(Base64.encodeURI(JSON.stringify(__result)));
                     __session.close();
                 }.bind(this))
                 .catch(function (error) {
                     console.log(error);
-                    res.jsonp(error);
+                    res.send(Base64.encodeURI(JSON.stringify(error)));
                     __session.close();
                 });
         }

@@ -161,6 +161,89 @@ export default class GraphForDataComponent extends React.Component {
 ////////////////////////////////////////////
 //
 ////////////////////////////////////////////
+    nodeToStrForMessage = function(node, isHtml){
+        let __labels = '';
+        for (let i=0; i<node.labels.length; i++){
+            __labels += ':'+node.labels[i];
+        }
+
+        let __property = ''
+        if (node.labels.length > 0){
+            let __caption = D3ForceSimulation.getNodeStyle(node.labels[0]).caption;
+            if (__caption != '<id>'){
+                if (node.properties.hasOwnProperty(__caption)){
+                    __property = ', ' + __caption + ':' + node.properties[__caption]
+                }else{
+                    for (let key in node.properties){
+                        __property = ', ' + key + ':' + node.properties[key]
+                        break;
+                    }
+                }
+            }
+        }
+
+        return isHtml ? '<i><b>(</b>'+ __labels + ' {id:' + node.id + __property + '}<b>)</b></i>'
+            : '(' + __labels + ' {id:' + node.id + __property + '})';
+    }
+
+    edgeToStrForMessage = function(edge, isHtml){
+        return isHtml ? '<i><b>[</b>:'+ edge.type+' {id:'+edge.id+'}<b>]</b></i>'
+            : '[:'+ edge.type + ' {id:' + edge.id + '}]';
+    }
+
+    preDeleteNodes = function(nodes){
+        this.updateFlag = false;
+        this.setState(function(prevState, props) {
+            let __nodes = [];
+            for (let i=0; i<nodes.length; i++){
+                __nodes.push(nodes[i].id);
+            }
+            
+            if (__nodes.length > 0){
+                let xmlhttp = new XMLHttpRequest()
+                
+                xmlhttp.onreadystatechange = function(){
+                    if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                        console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+                        let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
+                        let __message = 'You will delete ' + nodes.length + ' nodes and ' + __json.length + ' edges:<br/><b>Nodes:</b>';
+                        let __source;
+                        let __target;
+                        
+                        for (let i=0; i<nodes.length; i++){
+                            __message += '<br/>&emsp;<b>'+i+':</b>&emsp;' + this.nodeToStrForMessage(nodes[i], true);
+                        }
+
+                        __message += '<br/><br/><b>Edges:</b>'
+                        for (let i=0; i<__json.length; i++){
+                            if (__json[i].r.source == __json[i].n.id){
+                                __source = __json[i].n;
+                                __target = __json[i].m;
+                            }else{
+                                __source = __json[i].m;
+                                __target = __json[i].n;
+                            }
+                            
+                            __message += '<br/>&emsp;<b>'+i+':</b>&emsp;'+
+                               this.nodeToStrForMessage(__source, true)+
+                               '-'+
+                               this.edgeToStrForMessage(__json[i].r, true)+
+                               '->'+
+                               this.nodeToStrForMessage(__target, true);
+                        }
+                        
+                        this.props.onAlert('Delete Nodes', __message, ()=>this.deleteNodes(nodes))
+                    }
+                }.bind(this)
+                
+                xmlhttp.open("GET", '/preDeleteNode?nodes="' + Base64.encodeURI(JSON.stringify(__nodes)) + '"', true);
+                xmlhttp.send();
+            }
+
+            prevState.tooltip.selected.nodesOpen = false;
+            return prevState;
+        })
+    }
 
     deleteNodes = function(nodes){
         let __nodes = [];
@@ -174,7 +257,7 @@ export default class GraphForDataComponent extends React.Component {
             xmlhttp.onreadystatechange = function(){
                 if (xmlhttp.readyState==4 && xmlhttp.status==200){
                     console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-                    let __nodes = JSON.parse(xmlhttp.responseText);
+                    let __nodes = JSON.parse(Base64.decode(xmlhttp.responseText));
                     console.log('ssssssssssssssssssssssssssssssssssssssss')
                     
                     this.updateFlag = true;
@@ -224,6 +307,28 @@ export default class GraphForDataComponent extends React.Component {
         }
     }.bind(this)
 
+    perDeleteEdges = function(edges){
+        this.updateFlag = false;
+        this.setState(function(prevState, props) {
+            let __edges = [];
+            let __message = 'You will delete '+edges.length+' edges:<br/>';
+            for (let i=0; i<edges.length; i++){
+                __edges.push(edges[i].id);
+                
+                __message += '<br/>&emsp;<b>'+i+':</b>&emsp;'+
+                    this.nodeToStrForMessage(edges[i].source, true)+
+                    '-'+
+                    this.edgeToStrForMessage(edges[i], true)+
+                    '->'+
+                    this.nodeToStrForMessage(edges[i].target, true);
+            }
+
+            prevState.tooltip.selected.edgesOpen = false;
+            this.props.onAlert('Delete Edges', __message, ()=>this.deleteEdges(edges))
+            return prevState;
+        })
+    }
+
     deleteEdges = function(edges){
 		let __edges = [];
 		for (let i=0; i<edges.length; i++){
@@ -236,7 +341,7 @@ export default class GraphForDataComponent extends React.Component {
 			xmlhttp.onreadystatechange = function(){
 				if (xmlhttp.readyState==4 && xmlhttp.status==200){
 					console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-					let __json = JSON.parse(xmlhttp.responseText);
+					let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
 					console.log('ssssssssssssssssssssssssssssssssssssssss')
                     console.log(__edges)
                     
@@ -560,20 +665,13 @@ export default class GraphForDataComponent extends React.Component {
                                         height: '20px'
                                     }}>
                                         <Avatar src={D3ForceSimulation.getNodeStyle(node.labels[0]).icon} 
-                                            style={{
-                                                width:'23px', 
-                                                height:'23px', 
-                                                marginLeft:'6px', 
-                                                borderRadius:'0%', 
-                                                backgroundColor:'#00000000'}} 
+                                            className='labelAvatar'
                                         />
                                         <span 
                                             onClick={()=>D3ForceSimulation.ScreenMoveTo(node)}
                                             style={{fontSize: '12px', marginRight: '10px', cursor:'pointer'}}
                                         >
-                                            {node.labels[0] + ' {id:'+ node.id + ', ' + 
-                                                    D3ForceSimulation.getNodeStyle(node.labels[0]).caption + ':' +
-                                                    node.properties[D3ForceSimulation.getNodeStyle(node.labels[0]).caption]+'}'}
+                                            {this.nodeToStrForMessage(node, false)}
                                         </span>
                                         
                                         <IconButton 
@@ -594,7 +692,7 @@ export default class GraphForDataComponent extends React.Component {
                                                 height: '24px'
                                             }}
                                             iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
-                                            onClick={()=>this.deleteNodes([node])}
+                                            onClick={()=>this.preDeleteNodes([node])}
                                         >
                                             <ContentRemoveCircleOutline />
                                         </IconButton>
@@ -676,11 +774,18 @@ export default class GraphForDataComponent extends React.Component {
                                             margin: '3px',
                                             height: '20px'
                                     }}>
+                                        <Avatar 
+                                            className='edgeAvatar'
+                                            style={{
+                                                marginRight:'6px', 
+                                                backgroundColor:D3ForceSimulation.getEdgeStyle(edge.type).color
+                                            }}
+                                        />
                                         <span 
                                             onClick={()=>{D3ForceSimulation.ScreenMoveTo(edge);}}
                                             style={{fontSize: '12px', marginRight: '10px', cursor:'pointer'}}
                                         >
-                                            {edge.type + ' {id:'+ edge.id +'}'}
+                                            {this.edgeToStrForMessage(edge, false)}
                                         </span>
 
                                         <IconButton 
@@ -701,7 +806,7 @@ export default class GraphForDataComponent extends React.Component {
                                                 height: '24px'
                                             }}
                                             iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
-                                            onClick={()=>this.deleteEdges([edge])}
+                                            onClick={()=>this.perDeleteEdges([edge])}
                                         >
                                             <ContentRemoveCircleOutline />
                                         </IconButton>

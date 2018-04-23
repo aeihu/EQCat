@@ -31,7 +31,7 @@ const GetTemplate = function() {
     xmlhttp.onreadystatechange = function(){
         if (xmlhttp.readyState==4 && xmlhttp.status==200){
             console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-            let __json = JSON.parse(xmlhttp.responseText);
+            let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
             GlobalConstant.templateList = __json.templates;
             GlobalConstant.labelList = __json.labels;
             GlobalConstant.propertyList = __json.propertyKeys;

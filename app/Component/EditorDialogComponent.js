@@ -230,7 +230,7 @@ export default class EditorDialogComponent extends React.Component {
 		xmlhttp.onreadystatechange = function(){
 			if (xmlhttp.readyState==4 && xmlhttp.status==200){
 				console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-				let __node = JSON.parse(xmlhttp.responseText);
+				let __node = JSON.parse(Base64.decode(xmlhttp.responseText));
 				console.log('ssssssssssssssssssssssssssssssssssssssss')
 				console.log(__node)
 				this.props.onChangeData(__node);
@@ -358,7 +358,7 @@ export default class EditorDialogComponent extends React.Component {
 			xmlhttp.onreadystatechange = function(){
 				if (xmlhttp.readyState==4 && xmlhttp.status==200){
 					console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-					let __edge = JSON.parse(xmlhttp.responseText);
+					let __edge = JSON.parse(Base64.decode(xmlhttp.responseText));
 					console.log('ssssssssssssssssssssssssssssssssssssssss')
 					console.log(__edge)
 					this.props.onChangeData(__edge, this.props.data.id);
@@ -424,7 +424,7 @@ export default class EditorDialogComponent extends React.Component {
 			xmlhttp.onreadystatechange = function(){
 				if (xmlhttp.readyState==4 && xmlhttp.status==200){
 					console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-					let __node = JSON.parse(xmlhttp.responseText);
+					let __node = JSON.parse(Base64.decode(xmlhttp.responseText));
 					console.log('ssssssssssssssssssssssssssssssssssssssss')
 					console.log(__node)
 					this.props.onChangeData(__node);

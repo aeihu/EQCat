@@ -86,7 +86,8 @@ app.get('/template', function (req, res) {
 		propertyKeys: DBDriver._propertyKeys,
 		relationshipTypes: DBDriver._relationshipTypes,
 	}
-	res.jsonp(__result);
+	
+	res.send(Base64.encodeURI(JSON.stringify(__result)));
 });
 
 app.get('/getStyles', function (req, res) {
@@ -94,7 +95,7 @@ app.get('/getStyles', function (req, res) {
 		styles: styles,
 	}
 	
-	res.jsonp(__result);
+	res.send(Base64.encodeURI(JSON.stringify(__result)));
 });
 
 app.get('/setStyle?:style', function (req, res) {
@@ -136,7 +137,7 @@ app.get('/icon', function (req, res) {
 		icons: icons,
 	}
 	
-	res.jsonp(__result);
+	res.send(Base64.encodeURI(JSON.stringify(__result)));
 });
 
 app.get('/template/save?:template', function (req, res) {
@@ -158,6 +159,17 @@ app.get('/mergeNode?:node', function (req, res) {
 	try{
 		let __json = JSON.parse(Base64.decode(req.query.node));
 		DBDriver.mergeSingleNode(__json, res);
+	}	
+	catch (err){
+		console.log(err);
+		res.send('error');
+	}
+});
+
+app.get('/preDeleteNode?:nodes', function (req, res) {
+	try{
+		let __json = JSON.parse(Base64.decode(req.query.nodes));
+		DBDriver.preDeleteNodes(__json, res);
 	}	
 	catch (err){
 		console.log(err);
