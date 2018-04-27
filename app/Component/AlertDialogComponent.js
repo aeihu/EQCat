@@ -5,8 +5,6 @@ import FlatButton from 'material-ui/FlatButton';
 export default class AlertDialogComponent extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-        }
     }
 
     render() {
@@ -15,7 +13,10 @@ export default class AlertDialogComponent extends React.Component {
 				label="OK"
 				primary={true}
 				//keyboardFocused={true}
-				onClick={this.props.onAction}
+				onClick={()=>{
+					this.props.onAction();
+					this.props.onRequestClose();
+				}}
 			/>,
 			<FlatButton
 				label="Cancel"

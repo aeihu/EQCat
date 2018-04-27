@@ -187,27 +187,27 @@ export default class Neo4j
         
         for (let i=0; i<nodes.length; i++){
             if (i > 0){
-                __statement += ' and '
+                __statement += ' or '
             }
 
             __statement += 'id(n)=' + nodes[i];
         }
-        __statement += ' return n,r,m';
+        __statement += ' return DISTINCT n,r,m';
         console.log(__statement);
         this.runStatement(__statement, {}, res);
     }
 
     deleteNodes(nodes, res){
-        let __statement = 'Match (n)-[r]-() where ';
+        let __statement = 'Match (n) where ';
         
         for (let i=0; i<nodes.length; i++){
             if (i > 0){
-                __statement += ' and '
+                __statement += ' or '
             }
 
             __statement += 'id(n)=' + nodes[i];
         }
-        __statement += ' delete n,r return n,r';
+        __statement += ' detach delete n return n';
         console.log(__statement);
         this.runStatement(__statement, {}, res);
     }
@@ -270,12 +270,40 @@ export default class Neo4j
         let __statement = 'match ()-[r]-() where ';
         for (let i=0; i<edges.length; i++){
             if (i > 0){
-                __statement += ' and '
+                __statement += ' or '
             }
 
             __statement += 'id(r)=' + edges[i];
         }
         __statement += ' delete r';
+        console.log(__statement);
+        this.runStatement(__statement, {}, res);
+    }
+
+    deleteNodesAndEdges(json, res){
+        //OPTIONAL match (n) where id(n)=435 OPTIONAL match ()-[r]-() where id(r)=1185 detach delete n,r return DISTINCT n,r
+        let __statement = 'OPTIONAL match (n) where ';
+        
+        for (let i=0; i<json.nodes.length; i++){
+            if (i > 0){
+                __statement += ' or '
+            }
+
+            __statement += 'id(n)=' + json.nodes[i];
+        }
+
+        __statement += ' OPTIONAL match ()-[r]-() where '
+
+        for (let i=0; i<json.edges.length; i++){
+            if (i > 0){
+                __statement += ' or '
+            }
+
+            __statement += 'id(r)=' + json.edges[i];
+        }
+
+        __statement += ' detach delete n,r return DISTINCT n,r';
+
         console.log(__statement);
         this.runStatement(__statement, {}, res);
     }
@@ -292,6 +320,9 @@ export default class Neo4j
                 .run(statement, param)
                 .then(function (result) {
                     let __result = [];
+                    //console.log(result);
+                    console.log(result.summary.counters);
+                    console.log(result.summary.updateStatistics);
                     result.records.forEach(function (value, key, record) {
                         let __record = {};
                         for (let i = 0; i < value.length; i++){

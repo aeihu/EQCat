@@ -221,6 +221,20 @@ app.get('/deleteEdge?:edges', function (req, res) {
 	}
 });
 
+app.get('/deleteNE?:NE', function (req, res) {
+	try{
+		// console.log('Base64.decode(req.query.NE)')
+		// console.log(Base64.decode(req.query.NE))
+		// res.send('error');
+		let __json = JSON.parse(Base64.decode(req.query.NE));
+		DBDriver.deleteNodesAndEdges(__json, res);
+	}	
+	catch (err){
+		console.log(err);
+		res.send('error');
+	}
+});
+
 app.post('/upload_icon',  function (req, res) {
 	//console.log(req)
 	uploadIcon(req, res, function (err) {

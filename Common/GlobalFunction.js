@@ -76,7 +76,7 @@ const CheckName = function (str){
     //!@#%^&*()-=+{}[];:'"\|,.<>?/~`
     let __tmp = ' !@#%^&*()-=+{}[];:"\|,.<>?/~`' + "'";
     for (let i=0; i<__tmp.length; i++){
-        if (str.indexOf(__tmp[i]) > 0){
+        if (str.indexOf(__tmp[i]) >= 0){
             return "It's invalid string";
         }
     }

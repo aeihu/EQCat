@@ -382,95 +382,86 @@ class App extends React.Component {
         }
     }.bind(this)
 
-    deleteNodes = function(records){
+    deleteNodes = function(nodes){
         this.setState(function(prevState, props) {
             let prevNodeID = '';
             let __countNode = prevState.data.graph.count.nodes;
             let __countEdge = prevState.data.graph.count.edges;
 
-            records.map((record, index)=>{
-                if (record['n'].id != prevNodeID){
-                    for (let i=prevState.data.graph.nodes.length-1; i>=0; i--){
-                        if (prevState.data.graph.nodes[i].id == record['n'].id){
-                            let __label = '';
-                            for (let j=0; j<prevState.data.graph.nodes[i].labels.length; j++){
-                                __label = prevState.data.graph.nodes[i].labels[j];
-                                __countNode['*'].total--;
-                                
-                                if (__countNode[__label].total == 1){
-                                    delete __countNode[__label];
-                                }else{
-                                    __countNode[__label].total--;
-                                    for (let key in prevState.data.graph.nodes[i].properties){
-                                        if (key != GlobalConstant.imagesOfProperty &&
-                                            key != GlobalConstant.memoOfProperty){
-                                            if (__countNode[__label].propertiesList[key] == 1){
-                                                delete __countNode[__label].propertiesList[key];
-                                            }else{
-                                                __countNode[__label].propertiesList[key]--;
-                                            }
+            //////////////////////////////////
+            //  delete nodes
+            //////////////////////////////////
+            nodes.map((node, index)=>{
+                for (let i=prevState.data.graph.nodes.length-1; i>=0; i--){
+                    if (prevState.data.graph.nodes[i].id == node.id){
+                        let __label = '';
+                        for (let j=0; j<prevState.data.graph.nodes[i].labels.length; j++){
+                            __label = prevState.data.graph.nodes[i].labels[j];
+                            __countNode['*'].total--;
+                            
+                            if (__countNode[__label].total == 1){
+                                delete __countNode[__label];
+                            }else{
+                                __countNode[__label].total--;
+                                for (let key in prevState.data.graph.nodes[i].properties){
+                                    if (key != GlobalConstant.imagesOfProperty &&
+                                        key != GlobalConstant.memoOfProperty){
+                                        if (__countNode[__label].propertiesList[key] == 1){
+                                            delete __countNode[__label].propertiesList[key];
+                                        }else{
+                                            __countNode[__label].propertiesList[key]--;
                                         }
                                     }
                                 }
                             }
-                            prevState.data.graph.nodes.splice(i, 1);
-                            break;
                         }
-                    }
-                }
-                prevNodeID = record['n'].id;
-
-                //////////////////////////////////
-                //  delete source and target edge in node
-                //////////////////////////////////
-                let __source = record['r'].source != record['n'].id ;
-                let __target = record['r'].target != record['n'].id;
-                
-                for (let i=0; i<prevState.data.graph.nodes.length; i++){
-                    if (__source){
-                        if (prevState.data.graph.nodes[i].id == record['r'].source){
-                            for (let j=0; j<prevState.data.graph.nodes[i].sourceEdges.length; j++){
-                                if (prevState.data.graph.nodes[i].sourceEdges[j].id == record['r'].id){
-                                    prevState.data.graph.nodes[i].sourceEdges.splice(j, 1);
-                                    __source = false;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (__target){
-                        if (prevState.data.graph.nodes[i].id == record['r'].target){
-                            for (let j=0; j<prevState.data.graph.nodes[i].targetEdges.length; j++){
-                                if (prevState.data.graph.nodes[i].targetEdges[j].id == record['r'].id){
-                                    prevState.data.graph.nodes[i].targetEdges.splice(j, 1);
-                                    __target = false;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (!__source && !__target){
+                        prevState.data.graph.nodes.splice(i, 1);
                         break;
                     }
                 }
                 
-                for (let i=0; i<this.state.data.graph.edges.length; i++){
-                    if (prevState.data.graph.edges[i].id == record['r'].id){
-                        prevState.data.graph.edges.splice(i, 1);
-                        
-                        if (__countEdge[record['r'].type] == 1){
-                            delete __countEdge[record['r'].type];
-                        }else{
-                            __countEdge[record['r'].type]--;
-                        }
+                for (let count=0; count<2; count++){
+                    let __self = count == 0 ? 'sourceEdges' : 'targetEdges';
+                    let __other = count == 0 ? 'targetEdges' : 'sourceEdges';
+                    if (node.hasOwnProperty(__self)){
+                        node[__self].map((edge, index)=>{
+                            //////////////////////////////////
+                            //  delete source and target edge in node
+                            //////////////////////////////////
+                            for (let i=0; i<prevState.data.graph.nodes.length; i++){
+                                if (edge.target.id == prevState.data.graph.nodes[i].id){
+                                    for (let j=0; j<prevState.data.graph.nodes[i][__other].length; j++){
+                                        if (prevState.data.graph.nodes[i][__other][j].id == edge.id){
+                                            prevState.data.graph.nodes[i][__other].splice(j, 1);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            //////////////////////////////////
+                            //  delete edges
+                            //////////////////////////////////
+                            for (let i=prevState.data.graph.edges.length-1; i>=0; i--){
+                                if (prevState.data.graph.edges[i].id == edge.id){
+                                    prevState.data.graph.edges.splice(i, 1);
+                                    
+                                    if (__countEdge[edge.type] == 1){
+                                        delete __countEdge[edge.type];
+                                    }else{
+                                        __countEdge[edge.type]--;
+                                    }
 
-                        __countEdge['*']--;
-                        break;
+                                    __countEdge['*']--;
+                                    break;
+                                }
+                            }
+                        })
                     }
                 }
+                
             });
+            
             return prevState;
         });
     }.bind(this)

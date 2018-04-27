@@ -100,7 +100,7 @@ D3ForceSimulation.create = function(el, props, state) {
     this.simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(220))
         .force("charge", d3.forceManyBody().strength(1))
-        .force("collide", d3.forceCollide().radius(50))
+        .force("collide", d3.forceCollide().radius(80))
         .force("center", d3.forceCenter(300, 300));
 
     getStyles();

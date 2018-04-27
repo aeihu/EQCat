@@ -55,35 +55,47 @@ export default class EditorDialogComponent extends React.Component {
 	checkSubmit = function(mode){
 		if (mode == GlobalConstant.mode.edge){
 			if (GlobalFunction.CheckName(this.state.type) != ''){
-				return false;
+				return -1;
 			}
 		}else{
 			for (let i=0; i<this.state.labels.length; i++){
 				if (GlobalFunction.CheckName(this.state.labels[i]) != ''){
-					return false;
+					return -2;
+				}
+
+				for (let j=i+1; j<this.state.labels.length; j++){
+					if (this.state.labels[i] == this.state.labels[j]){
+						return -3;
+					}
 				}
 			}
 		}
 
 		for (let i=0; i<this.state.properties.length; i++){
 			if (GlobalFunction.CheckName(this.state.properties[i].key) != ''){
-				return false;
+				return -4;
+			}
+			
+			for (let j=i+1; j<this.state.properties.length; j++){
+				if (this.state.properties[i].key == this.state.properties[j].key){
+					return -5;
+				}
 			}
 
 			if (this.state.properties[i].type == 'number'){
 				if (isNaN(this.state.properties[i].value)){
-					return false;
+					return -6;
 				}
 			}else if (this.state.properties[i].type == 'listNumber'){
 				for (let j=0; j<this.state.properties[j].value.length; j++){
 					if (isNaN(this.state.properties[i].value[j])){
-						return false;
+						return -6;
 					}
 				}
 			}
 		}
 
-		return true;
+		return 0;
 	}.bind(this)
 
 	closeDialog = function(){
@@ -548,21 +560,41 @@ export default class EditorDialogComponent extends React.Component {
 				primary={true}
 				//keyboardFocused={true}
 				onClick={()=>{
-					if (this.checkSubmit(this.props.mode)){
-						switch(this.props.mode){
-							case GlobalConstant.mode.edge:
-								this.mergeEdge();
-								break;
-							case GlobalConstant.mode.node:
-								this.mergeNode();
-								break;
-							default:
-								this.addNode();
-								break;
-						}
-					}else{
-						this.props.onMessage('There is invalid item', 0);
-						this.isCheckError = true;
+					let __result = this.checkSubmit(this.props.mode);
+					this.isCheckError = true;
+					switch(__result){
+						case -1:
+							this.props.onMessage('There is invalid type', 0);
+							break;
+						case -2:
+							this.props.onMessage('There is invalid label', 0);
+							break;
+						case -3:
+							this.props.onMessage('There is same label', 0);
+							break;
+						case -4:
+							this.props.onMessage('There is invalid property key', 0);
+							break;
+						case -5:
+							this.props.onMessage('There is same property key', 0);
+							break;
+						case -6:
+							this.props.onMessage('There is invalid property value', 0);
+							break;
+						default:
+							this.isCheckError = false;
+							switch(this.props.mode){
+								case GlobalConstant.mode.edge:
+									this.mergeEdge();
+									break;
+								case GlobalConstant.mode.node:
+									this.mergeNode();
+									break;
+								default:
+									this.addNode();
+									break;
+							}
+							break;
 					}
 				}}
 			/>,
@@ -593,7 +625,8 @@ export default class EditorDialogComponent extends React.Component {
 						/>
 						<AutoComplete
 							//floatingLabelText="Label"
-							errorText={GlobalFunction.CheckName(this.state.labels[i], 'L'+i)}
+							errorStyle={{fontSize: '10px', lineHeight:'0px'}}
+							errorText={GlobalFunction.CheckName(this.state.labels[i])}
 							searchText={this.state.labels[i]}
 							onUpdateInput={(searchText)=>this.updateInputForLabel(searchText, i)}
 							onNewRequest={(value)=>this.newRequestForLabel(value, i)}
@@ -649,7 +682,8 @@ export default class EditorDialogComponent extends React.Component {
 						}} 
 					/>
 					<AutoComplete
-						errorText={GlobalFunction.CheckName(this.state.type, 'T')}
+						errorStyle={{fontSize: '10px', lineHeight:'0px'}}s
+						errorText={GlobalFunction.CheckName(this.state.type)}
 						searchText={this.state.type}
 						onUpdateInput={this.updateInputForLabel}
 						onNewRequest={this.newRequestForLabel}
@@ -678,7 +712,8 @@ export default class EditorDialogComponent extends React.Component {
 					flexWrap: 'wrap',}} 
 				>
 					<AutoComplete
-						errorText={GlobalFunction.CheckName(this.state.properties[i].key, 'P'+i)}
+						errorStyle={{fontSize: '10px', lineHeight:'0px'}}
+						errorText={GlobalFunction.CheckName(this.state.properties[i].key)}
 						hintText='Key'
 						searchText={this.state.properties[i].key}
 						onUpdateInput={(searchText) => this.updateInputForPropertyKey(searchText, i)}
@@ -853,6 +888,7 @@ export default class EditorDialogComponent extends React.Component {
 							:
 							<TextField 
 								id={this.state.properties[i].key}
+								errorStyle={{fontSize: '10px', lineHeight:'0px'}}
 								hintText={'Value[' + this.state.properties[i].type + ']'} 
 								onChange={function (event, newValue) {
 									this.setState(function(prevState, props) {
@@ -1007,19 +1043,22 @@ export default class EditorDialogComponent extends React.Component {
 								}}
 								actionIcon={
 									<div>
-										<IconButton 
-											//tooltip="Move Image To Top"
-											onClick={function(event) {
-												this.setState(function(prevState, props) {
-													let __tmp = prevState.images[0];
-													prevState.images[0] = prevState.images[index];
-													prevState.images[index] = __tmp;
-													return prevState;
-												});
-											}.bind(this)}
-										>
-											<StarBorder color="rgb(0, 188, 212)" />
-										</IconButton>
+										{index > 0 ?
+											<IconButton 
+												onClick={function(event) {
+													this.setState(function(prevState, props) {
+														let __tmp = prevState.images[0];
+														prevState.images[0] = prevState.images[index];
+														prevState.images[index] = __tmp;
+														return prevState;
+													});
+												}.bind(this)}
+											>
+												<StarBorder color="rgb(0, 188, 212)" />
+											</IconButton>
+											:
+											''
+										}
 										<IconButton 
 											//tooltip="Delete Image"
 											onClick={function(event) {
@@ -1039,15 +1078,12 @@ export default class EditorDialogComponent extends React.Component {
 							</GridTile>
 						))}
 						<GridTile
-							key='tile'
-							title='tile.title'
-							actionIcon={<IconButton><Clear color="rgb(0, 188, 212)"/></IconButton>}
-							titleStyle={{color: 'rgb(0, 188, 212)',}}
-							titleBackground="linear-gradient(to top, rgba(0,0,0,0.7) 0%,rgba(0,0,0,0.3) 70%,rgba(0,0,0,0) 100%)"
+							key='upload'
 						>
 							<Upload
 								action='/upload_image'
 								accept="image/*"
+								multiple={true}
 								beforeUpload={(file) => {
 									console.log('beforeUpload', file.name);
 									this.setState(function(prevState, props) {
@@ -1083,9 +1119,22 @@ export default class EditorDialogComponent extends React.Component {
 									:
 									<IconButton
 										onClick={()=>{console.log('upload')}}
+										tooltip="Add Image"
+										iconStyle={{
+											width:'150px',
+											opacity:0.4
+										}}
+										style={{
+											width:'170px',
+											height:'170px'
+										}}
+										tooltipStyles={{
+											top:'142px',
+											left:'55px'
+										}}
 										//tooltip="Add Icon"
 									>
-										<AddBox/>
+										<img src={GlobalConstant.addImageIcon} />
 									</IconButton>
 								}
 							</Upload>

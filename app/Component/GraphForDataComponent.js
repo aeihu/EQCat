@@ -198,24 +198,172 @@ export default class GraphForDataComponent extends React.Component {
             : '[:'+ edge.type + ' {id:' + edge.id + '}]';
     }
 
-    preDeleteNodes = function(nodes){
-        this.updateFlag = false;
-        this.setState(function(prevState, props) {
-            let __nodes = [];
-            for (let i=0; i<nodes.length; i++){
-                __nodes.push(nodes[i].id);
+    preDeleteNodesAndEdges = function(nodes, edges){
+        if (nodes.length > 0){
+            if (edges.length < 1){
+                this.preDeleteNodes(nodes);
+            }else{
+                this.updateFlag = false;
+                this.setState(function(prevState, props) {
+                    let xmlhttp = new XMLHttpRequest()
+                    
+                    xmlhttp.onreadystatechange = function(){
+                        if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                            console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+                            let __edges = [...edges];
+                            let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
+                            
+                            console.log('__json')
+                            console.log(__json)
+                            let __count = 0;
+                            let __message = '';
+                            let __source;
+                            let __target;
+                            let __tmpEdgeIDs = [];
+                            let __isContinue = false;
+                            
+                            for (let i=0; i<nodes.length; i++){
+                                __message += '<br/>&emsp;<b>'+i+':</b>&emsp;' + this.nodeToStrForMessage(nodes[i], true);
+                            }
+
+                            __message += '<br/><br/><b>Edges:</b>'
+                            for (let i=0; i<__json.length; i++){
+                                if (__json[i].r.source == __json[i].n.id){
+                                    __source = __json[i].n;
+                                    __target = __json[i].m;
+                                }else{
+                                    __source = __json[i].m;
+                                    __target = __json[i].n;
+                                }
+                            
+                                for (let j=0; j<__tmpEdgeIDs.length; j++){
+                                    if (__tmpEdgeIDs[j] == __json[i].r.id){
+                                        __isContinue = true;
+                                        break;
+                                    }
+                                }
+
+                                if (__isContinue){
+                                    __isContinue = false;
+                                    continue;
+                                }
+                                
+                                __tmpEdgeIDs.push(__json[i].r.id);
+                                __message += '<br/>&emsp;<b>'+__count+':</b>&emsp;'+
+                                    this.nodeToStrForMessage(__source, true)+
+                                    '-'+
+                                    this.edgeToStrForMessage(__json[i].r, true)+
+                                    '->'+
+                                    this.nodeToStrForMessage(__target, true);
+
+                                for (let j=__edges.length-1; j>=0; j--){
+                                    if (__edges[j].id == __json[i].r.id){
+                                        __edges.splice(j, 1);
+                                    }
+                                }
+                                __count++;
+                            }
+                            
+                            for (let i=0; i<__edges.length; i++){
+                                __message += '<br/>&emsp;<b>'+(i+__count)+':</b>&emsp;'+
+                                    this.nodeToStrForMessage(__edges[i].source, true)+
+                                    '-'+
+                                    this.edgeToStrForMessage(__edges[i], true)+
+                                    '->'+
+                                    this.nodeToStrForMessage(__edges[i].target, true);
+                            }
+                            
+                            __message = 'You will delete ' + nodes.length + ' nodes and ' + (__count + __edges.length) + ' edges:<br/><b>Nodes:</b>' + __message;
+                            this.props.onAlert('Delete Nodes And Relationships', 
+                                __message, 
+                                __edges.length < 1 ? 
+                                    ()=>this.deleteNodes(nodes)
+                                    :
+                                    ()=>this.deleteNodesAndEdges(nodes, __edges));
+                        }
+                    }.bind(this)
+                    
+                    let __nodes = [];
+                    for (let i=0; i<nodes.length; i++){
+                        __nodes.push(nodes[i].id);
+                    }
+                    xmlhttp.open("GET", '/preDeleteNode?nodes="' + Base64.encodeURI(JSON.stringify(__nodes)) + '"', true);
+                    xmlhttp.send();
+                    
+                    prevState.menu.open = false;
+                    return prevState;
+                })
             }
+        }else{
+            this.perDeleteEdges(edges);
+        }
+    }
+
+    deleteNodesAndEdges = function(nodes, edges){
+		let __json = {
+            nodes:[],
+            edges:[],
+        };
+
+		for (let i=0; i<edges.length; i++){
+            D3ForceSimulation.Unselect(edges[i]);
+            __json.edges.push(edges[i].id);
+        }
+        
+		for (let i=0; i<nodes.length; i++){
+            D3ForceSimulation.Unselect(nodes[i]);
+            __json.nodes.push(nodes[i].id);
+        }
+        
+        if (__json.nodes.length > 0 || 
+            __json.edges.length > 0){
+            let xmlhttp = new XMLHttpRequest()
             
-            if (__nodes.length > 0){
+            xmlhttp.onreadystatechange = function(){
+                if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                    console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+                    let __result = JSON.parse(Base64.decode(xmlhttp.responseText));
+                    console.log('ssssssssssssssssssssssssssssssssssssssss')
+                    
+                    this.updateFlag = true;
+                    this.props.onDeleteNode(nodes);
+                    this.props.onDeleteEdge(__json.edges);
+                    this.updateFlag = false;
+                    this.setState(function(prevState, props) {
+                        prevState.tooltip.selected.nodes = [];
+                        prevState.tooltip.selected.edges = [];
+                        return prevState;
+                    });
+                }
+            }.bind(this)
+            
+            console.log(__json)
+			xmlhttp.open("GET", '/deleteNE?NE="' + Base64.encodeURI(JSON.stringify(__json)) + '"', true);
+            xmlhttp.send();
+        }
+    }.bind(this)
+
+    preDeleteNodes = function(nodes){
+        if (nodes.length > 0){
+            this.updateFlag = false;
+            this.setState(function(prevState, props) {
+                let __nodes = [];
+                for (let i=0; i<nodes.length; i++){
+                    __nodes.push(nodes[i].id);
+                }
+                
                 let xmlhttp = new XMLHttpRequest()
                 
                 xmlhttp.onreadystatechange = function(){
                     if (xmlhttp.readyState==4 && xmlhttp.status==200){
                         console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
                         let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-                        let __message = 'You will delete ' + nodes.length + ' nodes and ' + __json.length + ' edges:<br/><b>Nodes:</b>';
+                        let __message = '';
                         let __source;
                         let __target;
+                        let __tmpEdgeIDs = [];
+                        let __isContinue = false;
+                        let __count = 0;
                         
                         for (let i=0; i<nodes.length; i++){
                             __message += '<br/>&emsp;<b>'+i+':</b>&emsp;' + this.nodeToStrForMessage(nodes[i], true);
@@ -223,6 +371,19 @@ export default class GraphForDataComponent extends React.Component {
 
                         __message += '<br/><br/><b>Edges:</b>'
                         for (let i=0; i<__json.length; i++){
+                            for (let j=0; j<__tmpEdgeIDs.length; j++){
+                                if (__tmpEdgeIDs[j] == __json[i].r.id){
+                                    __isContinue = true;
+                                    break;
+                                }
+                            }
+
+                            if (__isContinue){
+                                __isContinue = false;
+                                continue;
+                            }
+
+                            __tmpEdgeIDs.push(__json[i].r.id);
                             if (__json[i].r.source == __json[i].n.id){
                                 __source = __json[i].n;
                                 __target = __json[i].m;
@@ -231,45 +392,51 @@ export default class GraphForDataComponent extends React.Component {
                                 __target = __json[i].n;
                             }
                             
-                            __message += '<br/>&emsp;<b>'+i+':</b>&emsp;'+
-                               this.nodeToStrForMessage(__source, true)+
-                               '-'+
-                               this.edgeToStrForMessage(__json[i].r, true)+
-                               '->'+
-                               this.nodeToStrForMessage(__target, true);
+                            __message += '<br/>&emsp;<b>'+__count+':</b>&emsp;'+
+	                            this.nodeToStrForMessage(__source, true)+
+	                            '-'+
+	                            this.edgeToStrForMessage(__json[i].r, true)+
+	                            '->'+
+                                this.nodeToStrForMessage(__target, true);
+                            
+                            __count++;
                         }
                         
+                        __message = 'You will delete ' + nodes.length + ' nodes and ' + __count + ' edges:<br/><b>Nodes:</b>' + __message;
                         this.props.onAlert('Delete Nodes', __message, ()=>this.deleteNodes(nodes))
                     }
                 }.bind(this)
                 
                 xmlhttp.open("GET", '/preDeleteNode?nodes="' + Base64.encodeURI(JSON.stringify(__nodes)) + '"', true);
                 xmlhttp.send();
-            }
 
-            prevState.tooltip.selected.nodesOpen = false;
-            return prevState;
-        })
+                prevState.menu.open = false;
+                prevState.tooltip.selected.nodesOpen = false;
+                return prevState;
+            })
+        }
     }
 
     deleteNodes = function(nodes){
         let __nodes = [];
         for (let i=0; i<nodes.length; i++){
+            D3ForceSimulation.Unselect(nodes[i]);
             __nodes.push(nodes[i].id);
         }
-
+        
         if (__nodes.length > 0){
             let xmlhttp = new XMLHttpRequest()
             
             xmlhttp.onreadystatechange = function(){
                 if (xmlhttp.readyState==4 && xmlhttp.status==200){
                     console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-                    let __nodes = JSON.parse(Base64.decode(xmlhttp.responseText));
+                    let __result = JSON.parse(Base64.decode(xmlhttp.responseText));
                     console.log('ssssssssssssssssssssssssssssssssssssssss')
                     
                     this.updateFlag = true;
-                    this.props.onDeleteNode(__nodes);
+                    this.props.onDeleteNode(nodes);
                     this.updateFlag = false;
+                    
                     this.setState(function(prevState, props) {
                         let __b = false;
                         for (let i=0; i<nodes.length; i++){
@@ -277,11 +444,13 @@ export default class GraphForDataComponent extends React.Component {
                                 if (prevState.tooltip.selected.nodes[j].id == nodes[i].id){
                                     for (let k=prevState.tooltip.selected.edges.length-1; k>=0; k--){
                                         __b = false;
-                                        for (let l=nodes[i].sourceEdges.length-1; l>=0; l--){
-                                            if (nodes[i].sourceEdges[l].id == prevState.tooltip.selected.edges[k]){
-                                                prevState.tooltip.selected.edges.splice(k, 1);
-                                                __b = true;
-                                                break;
+                                        if (nodes[i].hasOwnProperty('sourceEdges')){
+                                            for (let l=nodes[i].sourceEdges.length-1; l>=0; l--){
+                                                if (nodes[i].sourceEdges[l].id == prevState.tooltip.selected.edges[k]){
+                                                    prevState.tooltip.selected.edges.splice(k, 1);
+                                                    __b = true;
+                                                    break;
+                                                }
                                             }
                                         }
 
@@ -289,10 +458,12 @@ export default class GraphForDataComponent extends React.Component {
                                             continue;
                                         }
 
-                                        for (let l=nodes[i].targetEdges.length-1; l>=0; l--){
-                                            if (nodes[i].targetEdges[l].id == prevState.tooltip.selected.edges[k]){
-                                                prevState.tooltip.selected.edges.splice(k, 1);
-                                                break;
+                                        if (nodes[i].hasOwnProperty('targetEdges')){
+                                            for (let l=nodes[i].targetEdges.length-1; l>=0; l--){
+                                                if (nodes[i].targetEdges[l].id == prevState.tooltip.selected.edges[k]){
+                                                    prevState.tooltip.selected.edges.splice(k, 1);
+                                                    break;
+                                                }
                                             }
                                         }
                                     }
@@ -303,7 +474,7 @@ export default class GraphForDataComponent extends React.Component {
                             }
                         }
 
-                        prevState.tooltip.selected.nodesOpen = prevState.tooltip.selected.nodes.length > 0;
+                        prevState.tooltip.selected.nodesOpen = prevState.tooltip.selected.nodesOpen ? prevState.tooltip.selected.nodes.length > 0 : false;
                         return prevState;
                     });
                 }
@@ -315,30 +486,34 @@ export default class GraphForDataComponent extends React.Component {
     }.bind(this)
 
     perDeleteEdges = function(edges){
-        this.updateFlag = false;
-        this.setState(function(prevState, props) {
-            let __edges = [];
-            let __message = 'You will delete '+edges.length+' edges:<br/>';
-            for (let i=0; i<edges.length; i++){
-                __edges.push(edges[i].id);
-                
-                __message += '<br/>&emsp;<b>'+i+':</b>&emsp;'+
-                    this.nodeToStrForMessage(edges[i].source, true)+
-                    '-'+
-                    this.edgeToStrForMessage(edges[i], true)+
-                    '->'+
-                    this.nodeToStrForMessage(edges[i].target, true);
-            }
+        if (edges.length > 0){
+            this.updateFlag = false;
+            this.setState(function(prevState, props) {
+                let __edges = [];
+                let __message = 'You will delete '+edges.length+' edges:<br/>';
+                for (let i=0; i<edges.length; i++){
+                    __edges.push(edges[i].id);
+                    
+                    __message += '<br/>&emsp;<b>'+i+':</b>&emsp;'+
+                        this.nodeToStrForMessage(edges[i].source, true)+
+                        '-'+
+                        this.edgeToStrForMessage(edges[i], true)+
+                        '->'+
+                        this.nodeToStrForMessage(edges[i].target, true);
+                }
 
-            prevState.tooltip.selected.edgesOpen = false;
-            this.props.onAlert('Delete Edges', __message, ()=>this.deleteEdges(edges))
-            return prevState;
-        })
+                prevState.menu.open = false;
+                prevState.tooltip.selected.edgesOpen = false;
+                this.props.onAlert('Delete Relationships', __message, ()=>this.deleteEdges(edges))
+                return prevState;
+            })
+        }
     }
 
     deleteEdges = function(edges){
 		let __edges = [];
 		for (let i=0; i<edges.length; i++){
+            D3ForceSimulation.Unselect(edges[i]);
             __edges.push(edges[i].id);
 		}
 
@@ -365,7 +540,7 @@ export default class GraphForDataComponent extends React.Component {
                             }
                         }
 
-                        prevState.tooltip.selected.edgesOpen = prevState.tooltip.selected.edges.length > 0;
+                        prevState.tooltip.selected.edgesOpen = prevState.tooltip.selected.edgesOpen ? prevState.tooltip.selected.edges.length > 0 : false;
                         return prevState;
                     });
 				}
@@ -581,6 +756,9 @@ export default class GraphForDataComponent extends React.Component {
                                                     return prevState;
                                                 });
                                                 break;
+                                            case 'Delete':
+                                                this.preDeleteNodesAndEdges([...this.state.tooltip.selected.nodes], [...this.state.tooltip.selected.edges])
+                                                break;
                                         }
                                     }.bind(this)
                                 }
@@ -603,7 +781,7 @@ export default class GraphForDataComponent extends React.Component {
                                 <MenuItem value="Select All" primaryText="Select All" leftIcon={<ActionToll />} />
                                 <MenuItem value="Unselect All" primaryText="Unselect All" leftIcon={<NotificationDoNotDisturb />} />
                                 <Divider />
-                                <MenuItem primaryText="Remove" leftIcon={<Delete />} />
+                                <MenuItem value="Delete" primaryText="Delete" leftIcon={<Delete />} />
                             </Menu>
                         </Popover>
                         {this.state.tooltip.connectMode ?
@@ -620,6 +798,7 @@ export default class GraphForDataComponent extends React.Component {
                                 }}>
                                     <AutoComplete
                                         hintText="Relationship Type"
+										errorStyle={{fontSize: '10px', lineHeight:'0px'}}
                                         searchText={this.state.tooltip.relationshipType}
                                         onUpdateInput={(searchText)=>{
                                             this.updateFlag = false;
@@ -734,6 +913,7 @@ export default class GraphForDataComponent extends React.Component {
                             }.bind(this)}
                         >
                             <Menu desktop={true}>
+                                {/* /////////////////////// Remove all and Delete all ///////////////////////// */}
                                 <IconButton 
                                     style={{
                                         padding:'0px',
@@ -844,6 +1024,7 @@ export default class GraphForDataComponent extends React.Component {
                             }.bind(this)}
                         >
                             <Menu desktop={true}>
+                                {/* /////////////////////// Remove all and Delete all ///////////////////////// */}
                                 <IconButton 
                                     style={{
                                         padding:'0px',
@@ -865,6 +1046,7 @@ export default class GraphForDataComponent extends React.Component {
                                 >
                                     <ActionDelete />
                                 </IconButton>
+                                {/* //////////////////////////////////////////////// */}
                                 {this.state.tooltip.selected.edges.map((edge, index)=>(
                                     <div
                                         style={{

@@ -6,6 +6,7 @@ const GlobalConstant = {
     imagesOfProperty: 'UPLOADED_IMAGES_EQCat',
     memoOfProperty: 'MEMO_EQCat',
     defaultIcon: 'icons/default/node.svg',
+    addImageIcon: 'icons/default/addImage.svg',
     labelList: [],
     propertyList: [],
     relationshipTypeList: [],
