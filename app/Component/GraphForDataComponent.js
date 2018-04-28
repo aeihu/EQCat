@@ -24,7 +24,8 @@ import ImagePhotoLibrary from 'material-ui/svg-icons/image/photo-library';
 import ImageControlPoint from 'material-ui/svg-icons/image/control-point';
 import ActionDone from 'material-ui/svg-icons/action/done';
 import ImageFilter from 'material-ui/svg-icons/image/filter';
-import SocialShare from 'material-ui/svg-icons/social/share';import ContentRemoveCircleOutline from 'material-ui/svg-icons/content/remove-circle-outline';
+import SocialShare from 'material-ui/svg-icons/social/share';
+import ContentRemoveCircleOutline from 'material-ui/svg-icons/content/remove-circle-outline';
 import ActionVisibilityOff from 'material-ui/svg-icons/action/visibility-off';
 import ImageEdit from 'material-ui/svg-icons/image/edit';
 import EditorDialogComponent from './EditorDialogComponent';
@@ -58,7 +59,6 @@ export default class GraphForDataComponent extends React.Component {
                 anchorEl: null
             },
             tooltip:{
-                connectMode: false,
                 showedImage: false,
                 relationshipType: '',
                 selected:{
@@ -73,7 +73,6 @@ export default class GraphForDataComponent extends React.Component {
         };
     }
 
-    updateFlag = true;
     cards = {
         nodes:[
             //{data:xxx , x:xxx, y:xxx}
@@ -88,24 +87,24 @@ export default class GraphForDataComponent extends React.Component {
     handleClick = function(event) {
         // This prevents ghost click.
         event.preventDefault();
-            
-        let __x = event.clientX;
-        let __y = event.clientY;
-
-        this.updateFlag = false;
-        this.setState(function(prevState, props) {
-            prevState.menu = {
-                open: true,
-                x: __x,
-                y: __y,
-                anchorEl: document.getElementById('menuInDisplayContent')
-            };
-            return prevState;
-        });
+        
+        if (!D3ForceSimulation.removeConncetLine()){
+            let __x = event.clientX;
+            let __y = event.clientY;
+    
+            this.setState(function(prevState, props) {
+                prevState.menu = {
+                    open: true,
+                    x: __x,
+                    y: __y,
+                    anchorEl: document.getElementById('menuInDisplayContent')
+                };
+                return prevState;
+            });
+        }
     }.bind(this)
 
     selectNode = function(d, isUnselect){
-        this.updateFlag = false;
         this.setState(function(prevState, props) {
             for (let i=0; i<prevState.tooltip.selected.nodes.length; i++){
                 if (d.id == prevState.tooltip.selected.nodes[i].id){
@@ -122,7 +121,6 @@ export default class GraphForDataComponent extends React.Component {
     }.bind(this);
     
     selectEdge = function(d, isUnselect){
-        this.updateFlag = false;
         this.setState(function(prevState, props) {
             for (let i=0; i<prevState.tooltip.selected.edges.length; i++){
                 if (d.id == prevState.tooltip.selected.edges[i].id){
@@ -146,7 +144,6 @@ export default class GraphForDataComponent extends React.Component {
             }
         }
 
-        this.updateFlag = false;
         this.setState(function(prevState, props) {
             this.cards[__mode].push({data:d, x:para.x, y:para.y});
             return prevState;
@@ -157,7 +154,6 @@ export default class GraphForDataComponent extends React.Component {
         let __mode = mode == GlobalConstant.mode.node ? 'nodes' : 'edges';
         for (let index in this.cards[__mode]){
             if (this.cards[__mode][index].data.id == id){
-                this.updateFlag = false;
                 this.setState(function(prevState, props) {
                     this.cards[__mode].splice(index, 1);
                     return prevState;
@@ -203,7 +199,6 @@ export default class GraphForDataComponent extends React.Component {
             if (edges.length < 1){
                 this.preDeleteNodes(nodes);
             }else{
-                this.updateFlag = false;
                 this.setState(function(prevState, props) {
                     let xmlhttp = new XMLHttpRequest()
                     
@@ -325,10 +320,8 @@ export default class GraphForDataComponent extends React.Component {
                     let __result = JSON.parse(Base64.decode(xmlhttp.responseText));
                     console.log('ssssssssssssssssssssssssssssssssssssssss')
                     
-                    this.updateFlag = true;
                     this.props.onDeleteNode(nodes);
                     this.props.onDeleteEdge(__json.edges);
-                    this.updateFlag = false;
                     this.setState(function(prevState, props) {
                         prevState.tooltip.selected.nodes = [];
                         prevState.tooltip.selected.edges = [];
@@ -345,7 +338,6 @@ export default class GraphForDataComponent extends React.Component {
 
     preDeleteNodes = function(nodes){
         if (nodes.length > 0){
-            this.updateFlag = false;
             this.setState(function(prevState, props) {
                 let __nodes = [];
                 for (let i=0; i<nodes.length; i++){
@@ -433,10 +425,7 @@ export default class GraphForDataComponent extends React.Component {
                     let __result = JSON.parse(Base64.decode(xmlhttp.responseText));
                     console.log('ssssssssssssssssssssssssssssssssssssssss')
                     
-                    this.updateFlag = true;
                     this.props.onDeleteNode(nodes);
-                    this.updateFlag = false;
-                    
                     this.setState(function(prevState, props) {
                         let __b = false;
                         for (let i=0; i<nodes.length; i++){
@@ -487,7 +476,6 @@ export default class GraphForDataComponent extends React.Component {
 
     perDeleteEdges = function(edges){
         if (edges.length > 0){
-            this.updateFlag = false;
             this.setState(function(prevState, props) {
                 let __edges = [];
                 let __message = 'You will delete '+edges.length+' edges:<br/>';
@@ -527,9 +515,7 @@ export default class GraphForDataComponent extends React.Component {
 					console.log('ssssssssssssssssssssssssssssssssssssssss')
                     console.log(__edges)
                     
-                    this.updateFlag = true;
                     this.props.onDeleteEdge(__edges);
-                    this.updateFlag = false;
                     this.setState(function(prevState, props) {
                         for (let i=0; i<__edges.length; i++){
                             for (let j=prevState.tooltip.selected.edges.length-1; j>=0; j--){
@@ -556,9 +542,7 @@ export default class GraphForDataComponent extends React.Component {
 
     changeConnectMode = function(){
         this.setState(function(prevState, props) {
-            this.updateFlag = false;
             D3ForceSimulation.changeConnectMode();
-            prevState.tooltip.connectMode = D3ForceSimulation.connectMode;
             prevState.menu.open = false;
             return prevState;
         })
@@ -566,13 +550,30 @@ export default class GraphForDataComponent extends React.Component {
 
     showOrHideImage = function() {
         this.setState(function(prevState, props) {
-            this.updateFlag = false;
             D3ForceSimulation.showOrHideImage();
             prevState.tooltip.showedImage = D3ForceSimulation.showedImage;
             prevState.menu.open = false;
             return prevState;
         })
     }.bind(this)
+
+    unselectAll = function() {
+        this.setState(function(prevState, props) {
+            for (let key in prevState.tooltip.selected){
+                switch (key){
+                    case 'nodes':
+                    case 'edges':
+                        for (let i=prevState.tooltip.selected[key].length-1; i>=0; i--){
+                            D3ForceSimulation.Unselect(prevState.tooltip.selected[key][i]);
+                            prevState.tooltip.selected[key].splice(i, 1);
+                        }
+                        break;
+                }
+            }
+            prevState.menu.open = false;
+            return prevState;
+        });
+    }
 
     componentDidMount()
     {
@@ -585,7 +586,26 @@ export default class GraphForDataComponent extends React.Component {
 
     componentWillReceiveProps(newProps)
     {
-        this.updateFlag = true;
+        if (newProps.data.refreshType >= 0){
+            switch (newProps.data.refreshType){
+                case 0:
+                    this.cards = {
+                        nodes:[
+                            //{data:xxx , x:xxx, y:xxx}
+                        ],
+                        edges:[],
+                    }
+
+                    this.unselectAll();
+                    break;
+                case 2:
+                    break;
+            }
+
+            let el = ReactDOM.findDOMNode();
+            D3ForceSimulation.update(el, this.props, this.state);
+        }
+
         this.styleEditor.mode = -1;
     }
 
@@ -593,10 +613,8 @@ export default class GraphForDataComponent extends React.Component {
     {
         console.log('bb');
 
-        if(this.updateFlag){
-            let el = ReactDOM.findDOMNode();
-            D3ForceSimulation.update(el, this.props, this.state);
-        }
+        //     let el = ReactDOM.findDOMNode();
+        //     D3ForceSimulation.update(el, this.props, this.state);
     }
 
     componentWillUnmount()
@@ -608,7 +626,6 @@ export default class GraphForDataComponent extends React.Component {
 
     showDialog = function(data, mode){
         this.setState(function(prevState, props) {
-            this.updateFlag = false;
             prevState.dialog.open = true;
             prevState.dialog.mode = mode;
             prevState.dialog.data = data;
@@ -646,7 +663,6 @@ export default class GraphForDataComponent extends React.Component {
                             this.props.onMergeEdge
                         }
                     onRequestClose={function () {
-                        this.updateFlag = false;
                         this.setState(function(prevState, props) {
                             prevState.dialog.open = false;
                             return prevState;
@@ -658,11 +674,13 @@ export default class GraphForDataComponent extends React.Component {
                         style={{backgroundColor: 'Gainsboro', width:'100%', flex:'1 1 auto'}} 
                         onContextMenu={this.handleClick}
                         onClick={function () {
-                            this.updateFlag = false;
-                            this.setState(function(prevState, props) {
-                                this.styleEditor.mode = -1;
-                                return prevState;
-                        })}.bind(this)}
+                            if (this.styleEditor.mode != -1){
+                                this.setState(function(prevState, props) {
+                                    this.styleEditor.mode = -1;
+                                    return prevState;
+                                })
+                            }
+                        }.bind(this)}
                     >
                         {__cardElements}
                         <div id='menuInDisplayContent' 
@@ -677,7 +695,6 @@ export default class GraphForDataComponent extends React.Component {
                             anchorOrigin={{horizontal:"left",vertical:"bottom"}}
                             targetOrigin={{horizontal:"left",vertical:"top"}}
                             onRequestClose={function () {
-                                this.updateFlag = false;
                                 this.setState(function(prevState, props) {
                                     prevState.menu.open = false;
                                     return prevState;
@@ -708,7 +725,6 @@ export default class GraphForDataComponent extends React.Component {
                                                 break;
                                             }
                                             case 'Hide Views':
-                                                this.updateFlag = false;
                                                 this.setState(function(prevState, props) {
                                                     this.cards = {
                                                         nodes:[],
@@ -739,22 +755,7 @@ export default class GraphForDataComponent extends React.Component {
                                                 })
                                                 break;
                                             case 'Unselect All':
-                                                this.updateFlag = false;
-                                                this.setState(function(prevState, props) {
-                                                    for (let key in prevState.tooltip.selected){
-                                                        switch (key){
-                                                            case 'nodes':
-                                                            case 'edges':
-                                                                for (let i=prevState.tooltip.selected[key].length-1; i>=0; i--){
-                                                                    D3ForceSimulation.Unselect(prevState.tooltip.selected[key][i]);
-                                                                    prevState.tooltip.selected[key].splice(i, 1);
-                                                                }
-                                                                break;
-                                                        }
-                                                    }
-                                                    prevState.menu.open = false;
-                                                    return prevState;
-                                                });
+                                                this.unselectAll();
                                                 break;
                                             case 'Delete':
                                                 this.preDeleteNodesAndEdges([...this.state.tooltip.selected.nodes], [...this.state.tooltip.selected.edges])
@@ -769,7 +770,7 @@ export default class GraphForDataComponent extends React.Component {
                                     value="Connect Mode" 
                                     primaryText="Connect Mode" 
                                     leftIcon={<SocialShare />} 
-                                    rightIcon={this.state.tooltip.connectMode ? <ActionDone /> : ''} />
+                                    rightIcon={D3ForceSimulation.connectMode >= 0 ? <ActionDone /> : ''} />
                                 <MenuItem 
                                     value="Show Image" 
                                     primaryText="Show Image" 
@@ -784,7 +785,7 @@ export default class GraphForDataComponent extends React.Component {
                                 <MenuItem value="Delete" primaryText="Delete" leftIcon={<Delete />} />
                             </Menu>
                         </Popover>
-                        {this.state.tooltip.connectMode ?
+                        {D3ForceSimulation.connectMode >= 0 ?
                             <div id='talkBubble' style={{right:'60px', top:'3px'}} >
                                 <div
                                     style={{
@@ -801,14 +802,12 @@ export default class GraphForDataComponent extends React.Component {
 										errorStyle={{fontSize: '10px', lineHeight:'0px'}}
                                         searchText={this.state.tooltip.relationshipType}
                                         onUpdateInput={(searchText)=>{
-                                            this.updateFlag = false;
                                             this.setState(function(prevState, props) {
                                                 prevState.tooltip.relationshipType = searchText;
                                                 return prevState;
                                             });
                                         }}
                                         onNewRequest={(value)=>{
-                                            this.updateFlag = false;
                                             this.setState(function(prevState, props) {
                                                 prevState.tooltip.relationshipType = value;
                                                 return prevState;
@@ -832,7 +831,7 @@ export default class GraphForDataComponent extends React.Component {
                     <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto'}} >
                         <IconButton 
                             tooltip="Connect Mode"
-                            style={this.state.tooltip.connectMode ? {backgroundColor:'YellowGreen', borderBottom: '1px solid #ddd'} : {borderBottom: '1px solid #ddd'}}
+                            style={D3ForceSimulation.connectMode >= 0 ? {backgroundColor:'YellowGreen', borderBottom: '1px solid #ddd'} : {borderBottom: '1px solid #ddd'}}
                             hoveredStyle={{backgroundColor:'SkyBlue'}}
                             onClick={this.changeConnectMode}
                         >
@@ -850,7 +849,10 @@ export default class GraphForDataComponent extends React.Component {
                             style={{borderBottom: '1px solid #ddd',}}
                             hoveredStyle={{backgroundColor:'SkyBlue'}}
                             tooltip="New Node"
-                            onClick={function() {this.showDialog({}, -1)}.bind(this)}
+                            onClick={function() {
+                                D3ForceSimulation.removeConncetLine();
+                                this.showDialog({}, -1);
+                            }.bind(this)}
                         >
                             <ImageControlPoint />
                         </IconButton>
@@ -861,7 +863,7 @@ export default class GraphForDataComponent extends React.Component {
                             hoveredStyle={{backgroundColor:'SkyBlue'}}
                             onClick={()=>{
                                 if (this.state.tooltip.selected.nodes.length > 0){
-                                    this.updateFlag = false;
+                                    D3ForceSimulation.removeConncetLine();
                                     this.setState(function(prevState, props) {
                                         prevState.tooltip.selected.nodesOpen = true;
                                         prevState.tooltip.selected.nodesEl = document.getElementById('iconButton_selectedNodes');
@@ -878,7 +880,7 @@ export default class GraphForDataComponent extends React.Component {
                             hoveredStyle={{backgroundColor:'SkyBlue'}}
                             onClick={()=>{
                                 if (this.state.tooltip.selected.edges.length > 0){
-                                    this.updateFlag = false;
+                                    D3ForceSimulation.removeConncetLine();
                                     this.setState(function(prevState, props) {
                                         prevState.tooltip.selected.edgesOpen = true;
                                         prevState.tooltip.selected.edgesEl = document.getElementById('iconButton_selectedEdges');
@@ -905,7 +907,6 @@ export default class GraphForDataComponent extends React.Component {
                             anchorOrigin={{horizontal:"left",vertical:"center"}}
                             targetOrigin={{horizontal:"right",vertical:"top"}}
                             onRequestClose={function () {
-                                this.updateFlag = false;
                                 this.setState(function(prevState, props) {
                                     prevState.tooltip.selected.nodesOpen = false;
                                     return prevState;
@@ -922,7 +923,6 @@ export default class GraphForDataComponent extends React.Component {
                                     }}
                                     iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
                                     onClick={() =>{
-                                        this.updateFlag = false;
                                         this.setState(function(prevState, props) {
                                             for (let i=prevState.tooltip.selected.nodes.length-1; i>=0; i--){
                                                 D3ForceSimulation.Unselect(prevState.tooltip.selected.nodes[i]);
@@ -986,7 +986,6 @@ export default class GraphForDataComponent extends React.Component {
                                             }}
                                             iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
                                             onClick={() =>{
-                                                this.updateFlag = false;
                                                 this.setState(function(prevState, props) {
                                                     for (let i=0; i<prevState.tooltip.selected.nodes.length; i++){
                                                         if (prevState.tooltip.selected.nodes[i].id == node.id){
@@ -1016,7 +1015,6 @@ export default class GraphForDataComponent extends React.Component {
                             anchorOrigin={{horizontal:"left",vertical:"center"}}
                             targetOrigin={{horizontal:"right",vertical:"top"}}
                             onRequestClose={function () {
-                                this.updateFlag = false;
                                 this.setState(function(prevState, props) {
                                     prevState.tooltip.selected.edgesOpen = false;
                                     return prevState;
@@ -1033,7 +1031,6 @@ export default class GraphForDataComponent extends React.Component {
                                     }}
                                     iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
                                     onClick={() =>{
-                                        this.updateFlag = false;
                                         this.setState(function(prevState, props) {
                                             for (let i=prevState.tooltip.selected.edges.length-1; i>=0; i--){
                                                 D3ForceSimulation.Unselect(prevState.tooltip.selected.edges[i]);
@@ -1102,7 +1099,6 @@ export default class GraphForDataComponent extends React.Component {
                                             }}
                                             iconStyle={{fill:'rgba(0, 0, 0, 0.4)'}}
                                             onClick={() =>{
-                                                this.updateFlag = false;
                                                 this.setState(function(prevState, props) {
                                                     for (let i=0; i<prevState.tooltip.selected.edges.length; i++){
                                                         if (prevState.tooltip.selected.edges[i].id == edge.id){
@@ -1177,7 +1173,6 @@ export default class GraphForDataComponent extends React.Component {
                     parameter={this.styleEditor}
                     onChange={function(){
                         this.setState(function(prevState, props) {
-                            this.updateFlag = false;
                             return prevState;
                         });
                     }.bind(this)}

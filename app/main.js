@@ -34,6 +34,7 @@ class App extends React.Component {
                 statement:'',
                 records:[],
                 graph: {
+                    refreshType: -1,
                     nodes: [
                         //{id:"0", name : "0", age:12},
                     ],
@@ -66,6 +67,7 @@ class App extends React.Component {
 
     showAlert = function (title, message, action){
 		this.setState(function(prevState, props) {
+            prevState.data.graph.refreshType = -1;
             prevState.alert.open = true;
             prevState.alert.title = title;
             prevState.alert.message = message;
@@ -76,6 +78,7 @@ class App extends React.Component {
 
     hideAlert = function (){
 		this.setState(function(prevState, props) {
+            prevState.data.graph.refreshType = -1;
             prevState.alert.open = false;
 			return prevState;
         })
@@ -86,6 +89,7 @@ class App extends React.Component {
 			prevState.snackbar.open = true;
             prevState.snackbar.message = message;
             prevState.snackbar.color = type == 0 ? 'rgba(245, 0, 0, 0.87)' : 'rgba(106, 198, 255, 0.87)';
+            prevState.data.graph.refreshType = -1;
 			return prevState;
 		})
     }.bind(this);
@@ -247,6 +251,7 @@ class App extends React.Component {
 
                 this.setState(function(prevState, props) {
                     prevState.progress.open = false;
+                    prevState.data.graph.refreshType = 0;
                     prevState.data.statement = statement;
                     prevState.data.records = __json;
                     prevState.data.graph.nodes = __nodes;
@@ -263,6 +268,7 @@ class App extends React.Component {
         xmlhttp.send();
 
         this.setState(function(prevState, props) {
+            prevState.data.graph.refreshType = -1;
             prevState.progress.open = true
             return prevState;
         });
@@ -308,6 +314,8 @@ class App extends React.Component {
                         labels: node[0][keyName].labels,
                         properties: node[0][keyName].properties
                     });
+
+                    prevState.data.graph.refreshType = 1;
                     return prevState;
                 });
             }
@@ -373,6 +381,7 @@ class App extends React.Component {
                             prevState.data.graph.nodes[i].labels = node[0][keyName].labels;
                             prevState.data.graph.nodes[i].properties = node[0][keyName].properties;
                             console.log(prevState.data.graph.nodes[i].properties)
+                            prevState.data.graph.refreshType = 1;
                             return prevState;
                         });
                         break;
@@ -462,6 +471,7 @@ class App extends React.Component {
                 
             });
             
+            prevState.data.graph.refreshType = 2;
             return prevState;
         });
     }.bind(this)
@@ -511,6 +521,7 @@ class App extends React.Component {
                         }
                     }
 
+                    prevState.data.graph.refreshType = 1;
                     return prevState;
                 });
             }
@@ -547,6 +558,7 @@ class App extends React.Component {
                             }
 
                             prevState.data.graph.edges[i].properties = edge[0][keyName].properties;
+                            prevState.data.graph.refreshType = 1;
                             return prevState;
                         });
                         break;
@@ -608,7 +620,7 @@ class App extends React.Component {
                     }
                 }
             }
-
+            prevState.data.graph.refreshType = 2;
             return prevState;
         });
     }.bind(this)
@@ -655,6 +667,7 @@ class App extends React.Component {
 					onRequestClose={()=>{ 
 						this.setState(function(prevState, props) {
 							prevState.snackbar.open = false;
+                            prevState.data.graph.refreshType = -1;
 							return prevState;
 						})}}
 				/>
