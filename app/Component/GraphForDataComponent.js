@@ -50,8 +50,10 @@ export default class GraphForDataComponent extends React.Component {
                 mode: -1
             },
             showCard: this.showCard,
+            showMenu: this.showMenu,
             selectNode: this.selectNode,
             selectEdge: this.selectEdge,
+            fillRelationshipTypeToAuto: this.fillRelationshipTypeToAuto,
             menu: {
                 open: false,
                 x: 0,
@@ -84,7 +86,14 @@ export default class GraphForDataComponent extends React.Component {
         mode: -1
     }
 
-    handleClick = function(event) {
+    fillRelationshipTypeToAuto = function(value){
+        this.setState(function(prevState, props) {
+            prevState.tooltip.relationshipType = value;
+            return prevState;
+        })
+    }.bind(this)
+
+    showMenu = function(event) {
         // This prevents ghost click.
         event.preventDefault();
         
@@ -672,7 +681,6 @@ export default class GraphForDataComponent extends React.Component {
                 <div style={{display: 'flex', flexDirection: 'row', flex:'1 1 auto', width:'100%'}}>
                     <div id="displayContent" 
                         style={{backgroundColor: 'Gainsboro', width:'100%', flex:'1 1 auto'}} 
-                        onContextMenu={this.handleClick}
                         onClick={function () {
                             if (this.styleEditor.mode != -1){
                                 this.setState(function(prevState, props) {

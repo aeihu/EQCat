@@ -146,7 +146,9 @@ app.get('/template/save?:template', function (req, res) {
 
 app.get('/addNode?:node', function (req, res) {
 	try{
+		console.log(Base64.decode(req.query.node))
 		let __json = JSON.parse(Base64.decode(req.query.node));
+		console.log(__json)
 		DBDriver.addSingleNode(__json, res);
 	}	
 	catch (err){
@@ -192,6 +194,17 @@ app.get('/addEdge?:edge', function (req, res) {
 	try{
 		let __json = JSON.parse(Base64.decode(req.query.edge));
 		DBDriver.addSingleEdge(__json, res);
+	}	
+	catch (err){
+		console.log(err);
+		res.send('error');
+	}
+});
+
+app.get('/directEdge?:edge', function (req, res) {
+	try{
+		let __json = JSON.parse(Base64.decode(req.query.edge));
+		DBDriver.directSingleEdge(__json, res);
 	}	
 	catch (err){
 		console.log(err);

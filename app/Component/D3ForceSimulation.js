@@ -11,7 +11,10 @@ D3ForceSimulation.y = 0;
 D3ForceSimulation.tx = 1920;
 D3ForceSimulation.ty = 1080;
 D3ForceSimulation.showedImage = false;
-D3ForceSimulation.connectMode = false;
+
+D3ForceSimulation.connectMode = -1;
+D3ForceSimulation.conncetLine = null;
+
 D3ForceSimulation.NEStyles = {
     nodes: {
         //xx:{
@@ -26,6 +29,8 @@ D3ForceSimulation.NEStyles = {
         //}
     },
 };
+
+let menuFlag = true;
 
 function getStyles() {
     let xmlhttp = new XMLHttpRequest()
@@ -64,26 +69,33 @@ D3ForceSimulation.create = function(el, props, state) {
                     D3ForceSimulation.y = D3ForceSimulation.y - (D3ForceSimulation.ty - d3.event.y);
                 }))
         .on("mousemove", function(d){
-            //console.log(d3.event)
-            if (D3ForceSimulation.connectMode){
-                let __conncet_line = D3ForceSimulation.svg.select('#conncet_line');
-                if (!__conncet_line.empty()){
-                    let __x = d3.mouse(this)[0] - D3ForceSimulation.x;
-                    __conncet_line
-                        .attr('x2', __x + (__x < __conncet_line.attr('x1') ? 8 : -8))
-                        .attr('y2', d3.mouse(this)[1] - D3ForceSimulation.y);
+            if (D3ForceSimulation.connectMode >= 0){
+                //D3ForceSimulation.conncetLine = D3ForceSimulation.svg.select('#conncet_line');
+                if (D3ForceSimulation.conncetLine !=null ){
+                    if (!D3ForceSimulation.conncetLine.empty()){
+                        let __x = d3.mouse(this)[0] - D3ForceSimulation.x;
+                        let __y = d3.mouse(this)[1] - D3ForceSimulation.y;
+                        
+                        if (D3ForceSimulation.conncetLine.attr('id') == 'conncet_line'){
+                            __x = __x + (__x < D3ForceSimulation.conncetLine.attr('x1') ? 8 : -8);
+                            D3ForceSimulation.conncetLine
+                                .attr('x2', __x)
+                                .attr('y2', __y);
+                        }else{
+                            moveExistEdge(D3ForceSimulation.conncetLine, __x, __y);
+                        }
+                    }
                 }
             }
         })
-        // .on("mousedown", function(d){
-        //     if (D3ForceSimulation.connectMode){
-        //         console.log('wwwwwwwwwwwwwwwwwwwasasa')
-        //         let __conncet_line = D3ForceSimulation.svg.select('#conncet_line');
-        //         if (!__conncet_line.empty()){
-        //             __conncet_line.remove();
-        //         }
-        //     }
-        // })
+        .on("contextmenu", function(data, index) {
+            if (menuFlag){
+                d3.event.preventDefault();
+                state.showMenu(d3.event);
+            }else{
+                menuFlag = true;
+            }
+        })
         .append("g");
     
     this.svg.append("defs")
@@ -108,7 +120,7 @@ D3ForceSimulation.create = function(el, props, state) {
 };
 
 D3ForceSimulation.dragstarted = function dragstarted(d) {
-    if (!D3ForceSimulation.connectMode){
+    if (D3ForceSimulation.connectMode < 0){
         if (!d3.event.active) {
             D3ForceSimulation.simulation.alphaTarget(0.3).restart();
         }
@@ -119,14 +131,14 @@ D3ForceSimulation.dragstarted = function dragstarted(d) {
 }
 
 D3ForceSimulation.dragged = function dragged(d) {
-    if (!D3ForceSimulation.connectMode){
+    if (D3ForceSimulation.connectMode < 0){
         d.fx = d3.event.x;
         d.fy = d3.event.y;
     }
 }
 
 D3ForceSimulation.dragended = function dragended(d) {
-    if (!D3ForceSimulation.connectMode){
+    if (D3ForceSimulation.connectMode < 0){
         if (!d3.event.active) {
             D3ForceSimulation.simulation.alphaTarget(0);
         }
@@ -198,42 +210,59 @@ function setEdgeColor(d) {
     return D3ForceSimulation.getEdgeStyle(d.type).color;
 }
 
-function drawLine(d)
-{
-    let __x = d.source.x-d.target.x;
-    let __y = d.source.y-d.target.y;
-    let __sR = d.source.size * 0.5 + 5;
-    let __tR = d.target.size * 0.5 + 10;
+
+function moveExistEdge(selection, x, y){
+    let __def = selection.select('.defs_path')
+    let __path = selection.select('.link_path')
+
+    __path.attr("d", 
+        function(d) {
+            computeForExistEdge(d, x, y)
+            return 'M' + d.sx + ',' + d.sy +' L' + d.tx + ',' + d.ty
+        }
+    );
     
-    let __jdDushu = GlobalFunction.MathAngle(d.target.x, d.target.y, d.source.x, d.source.y);
-    let __sin = Math.sin(__jdDushu);
-    let __cos = Math.cos(__jdDushu);
+    __def.attr("d", 
+        (d) => {
+            return 'M' + d.psx + ',' + d.psy +' L' + d.ptx + ',' + d.pty
+        }
+    );
+}
 
-    d.sx = d.source.x - __sR * __cos;
-    d.sy = d.source.y - __sR * __sin;
-    d.tx = d.target.x + __tR * __cos;
-    d.ty = d.target.y + __tR * __sin;
+function computeForExistEdge(d, x, y){
+    let __x;
 
-
-    if (d.floor != 0){
-        //1.5578977136721246
-        // let lcx = __x * 0.5 + d.target.x;
-        // let lcy = __y * 0.5 + d.target.y;
-        d.fx = (__x * 0.5 + d.target.x) - d.floor * Math.cos(__jdDushu + 1.5689874350398076);
-        d.fy = (__y * 0.5 + d.target.y) - d.floor * Math.sin(__jdDushu + 1.5689874350398076);
-
-        //0.08726646
-        // __sin = Math.sin(__jdDushu + 0.08726646 * d.floor * 0.05);
-        // __cos = Math.cos(__jdDushu + 0.08726646 * d.floor * 0.05);
-        d.sx = d.source.x - __sR * Math.cos(__jdDushu + 0.2596263 * d.floor * 0.05);
-        d.sy = d.source.y - __sR * Math.sin(__jdDushu + 0.2596263 * d.floor * 0.05);
-        d.tx = d.target.x + __tR * Math.cos(__jdDushu + 0.2596263 * d.floor * -0.05);
-        d.ty = d.target.y + __tR * Math.sin(__jdDushu + 0.2596263 * d.floor * -0.05);
-    }else{
-        d.sx = d.source.x - __sR * __cos;
-        d.sy = d.source.y - __sR * __sin;
-        d.tx = d.target.x + __tR * __cos;
-        d.ty = d.target.y + __tR * __sin;
+    switch (D3ForceSimulation.connectMode){
+        case 1:{
+            __x = x-d.target.x;
+            let __tR = d.target.size * 0.5 + 10;
+            
+            x = x + (x < d.target.x ? 8 : -8);
+            let __jdDushu = GlobalFunction.MathAngle(d.target.x, d.target.y, x, y);
+            let __sin = Math.sin(__jdDushu);
+            let __cos = Math.cos(__jdDushu);
+        
+            d.sx = x;
+            d.sy = y;
+            d.tx = d.target.x + __tR * __cos;
+            d.ty = d.target.y + __tR * __sin;
+            break;
+        }
+        case 2:{
+            __x = d.source.x-x;
+            let __sR = d.source.size * 0.5 + 5;
+            
+            x = x + (x < d.source.x ? 8 : -8);
+            let __jdDushu = GlobalFunction.MathAngle(x, y, d.source.x, d.source.y);
+            let __sin = Math.sin(__jdDushu);
+            let __cos = Math.cos(__jdDushu);
+        
+            d.sx = d.source.x - __sR * __cos;
+            d.sy = d.source.y - __sR * __sin;
+            d.tx = x;
+            d.ty = y;
+            break;
+        }
     }
 
     if (__x < 0){
@@ -246,6 +275,117 @@ function drawLine(d)
         d.psy = d.ty;
         d.ptx = d.sx;
         d.pty = d.sy;
+    }
+}
+
+function drawEdge(selection)
+{
+    let __def = selection.select('.defs_path')
+    let __path = selection.select('.link_path')
+    
+    __path.attr("d", 
+        function(d) {
+            computeForEdge(d);
+            return d.source.id == d.target.id ? 
+                'M' + d.sx + ',' + d.sy +' C'+ d.fx + ',' + d.fy + ' ' + d.fx1 + ',' + d.fy1 + ' ' + d.tx + ',' + d.ty
+                :
+                d.floor == 0 ?
+                    'M' + d.sx + ',' + d.sy +' L' + d.tx + ',' + d.ty
+                    :
+                    'M' + d.sx + ',' + d.sy +' Q'+ d.fx + ',' + d.fy + ' ' + d.tx + ',' + d.ty
+        });
+
+    __def.attr("d", 
+        (d) => {
+            return d.source.id == d.target.id ? 
+                d.floor < 0 ?
+                    'M' + d.psx + ',' + d.psy +' C'+ d.fx + ',' + d.fy + ' ' + d.fx1 + ',' + d.fy1 + ' ' + d.ptx + ',' + d.pty
+                    :
+                    'M' + d.psx + ',' + d.psy +' C'+ d.fx1 + ',' + d.fy1 + ' ' + d.fx + ',' + d.fy + ' ' + d.ptx + ',' + d.pty
+                :
+                d.floor == 0 ?
+                    'M' + d.psx + ',' + d.psy +' L' + d.ptx + ',' + d.pty
+                    :
+                    'M' + d.psx + ',' + d.psy +' Q'+ d.fx + ',' + d.fy + ' ' + d.ptx + ',' + d.pty
+        });
+}
+
+function computeForEdge(d)
+{
+    if (d.source.id == d.target.id){
+        let __r = d.source.size * 0.5 + 1;
+        
+        if (d.floor < 0){
+            d.sx = d.source.x - __r;
+            d.sy = d.source.y;
+            d.tx = d.target.x - 5;
+            d.ty = d.target.y - __r;
+            d.fx = d.sx - (Math.abs(d.floor) + 40);
+            d.fy = d.source.y;
+            d.fx1 = d.source.x;
+            d.fy1 = d.sy - (Math.abs(d.floor) + 40);
+            
+            d.psx = d.sx;
+            d.psy = d.sy;
+            d.ptx = d.tx;
+            d.pty = d.ty;
+        }else{
+            d.sx = d.source.x + __r;
+            d.sy = d.source.y;
+            d.tx = d.target.x + 5;
+            d.ty = d.target.y - __r;
+            d.fx = d.sx + (Math.abs(d.floor) + 40);
+            d.fy = d.source.y;
+            d.fx1 = d.source.x;
+            d.fy1 = d.sy - (Math.abs(d.floor) + 40);
+            
+            d.psx = d.tx;
+            d.psy = d.ty;
+            d.ptx = d.sx;
+            d.pty = d.sy;
+        }
+    }else{
+        let __x = d.source.x-d.target.x;
+        let __y = d.source.y-d.target.y;
+        let __sR = d.source.size * 0.5 + 5;
+        let __tR = d.target.size * 0.5 + 10;
+        
+        let __jdDushu = GlobalFunction.MathAngle(d.target.x, d.target.y, d.source.x, d.source.y);
+        let __sin = Math.sin(__jdDushu);
+        let __cos = Math.cos(__jdDushu);
+    
+        if (d.floor != 0){
+            //1.5578977136721246
+            // let lcx = __x * 0.5 + d.target.x;
+            // let lcy = __y * 0.5 + d.target.y;
+            d.fx = (__x * 0.5 + d.target.x) - d.floor * Math.cos(__jdDushu + 1.5689874350398076);
+            d.fy = (__y * 0.5 + d.target.y) - d.floor * Math.sin(__jdDushu + 1.5689874350398076);
+    
+            //0.08726646
+            // __sin = Math.sin(__jdDushu + 0.08726646 * d.floor * 0.05);
+            // __cos = Math.cos(__jdDushu + 0.08726646 * d.floor * 0.05);
+            d.sx = d.source.x - __sR * Math.cos(__jdDushu + 0.2596263 * d.floor * 0.05);
+            d.sy = d.source.y - __sR * Math.sin(__jdDushu + 0.2596263 * d.floor * 0.05);
+            d.tx = d.target.x + __tR * Math.cos(__jdDushu + 0.2596263 * d.floor * -0.05);
+            d.ty = d.target.y + __tR * Math.sin(__jdDushu + 0.2596263 * d.floor * -0.05);
+        }else{
+            d.sx = d.source.x - __sR * __cos;
+            d.sy = d.source.y - __sR * __sin;
+            d.tx = d.target.x + __tR * __cos;
+            d.ty = d.target.y + __tR * __sin;
+        }
+    
+        if (__x < 0){
+            d.psx = d.sx;
+            d.psy = d.sy;
+            d.ptx = d.tx;
+            d.pty = d.ty;
+        }else{
+            d.psx = d.tx;
+            d.psy = d.ty;
+            d.ptx = d.sx;
+            d.pty = d.sy;
+        }
     }
 }
 
@@ -361,6 +501,7 @@ D3ForceSimulation.ScreenMoveTo = function(d){
 D3ForceSimulation.update = function(el, props, state) {
     // Re-compute the scales, and render the data points
     // var scales = this._scales(el, state.domain);
+    console.log('========== update data ==========');
     this._drawNodesAndEdges(el, props, state);
 };
 
@@ -397,7 +538,6 @@ D3ForceSimulation.SelectAll = function(state){
 
 D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     let __data = props.data
-    console.log('/////////////////////////');
     console.log(__data);
 
     let __updataForNode = this.svg
@@ -448,9 +588,9 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     __updataForLink.exit().remove();
 
 ////////////////////// setStyle //////////////////////////////////
-
-    __node = __node.merge(__updataForNode);   
+ 
     __link = __link.merge(__updataForLink); 
+    __node = __node.merge(__updataForNode);  
 
     __node
         .attr('class', function(d){ 
@@ -460,14 +600,17 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
 
             return d.selected ? 'nodes nodes_selected' : 'nodes'
         })
-        .on("dblclick", function(d){console.log(d3.event)
+        .on("dblclick", function(d){
             state.showCard(d, {mode: GlobalConstant.mode.node, x: d3.event.clientX-80, y: d3.event.clientY-100}); 
         })
         .on("click", function(d){
-            if (D3ForceSimulation.connectMode){
-                let __conncet_line = D3ForceSimulation.svg.select('#conncet_line');
-                if (__conncet_line.empty()){
-                    D3ForceSimulation.svg
+            if (D3ForceSimulation.connectMode >= 0){
+                if (D3ForceSimulation.conncetLine == null){
+                    D3ForceSimulation.conncetLine = D3ForceSimulation.svg.select('#conncet_line');
+                }
+
+                if (D3ForceSimulation.conncetLine.empty()){
+                    D3ForceSimulation.conncetLine = D3ForceSimulation.svg
                         .append('line')
                         .attr('id', 'conncet_line')
                         .attr('x1', d.x)
@@ -478,31 +621,79 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                         .style('marker-end', 'url(#marker_arrow)')
                         .style('stroke', 'rgb(0, 0, 0)');
                 }else{
-                    let __message = GlobalFunction.CheckName(state.tooltip.relationshipType);
-                    if (__message == ''){
-                        let __edge = {
-                            source: __conncet_line.attr('source'),
-                            target: d.id,
-                            type: state.tooltip.relationshipType
-                        }
-                        let xmlhttp = new XMLHttpRequest()
-            
-                        xmlhttp.onreadystatechange = function(){
-                            if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                                console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-                                let __edge = JSON.parse(Base64.decode(xmlhttp.responseText));
-                                console.log(__edge)
-                                props.onAddEdge(__edge);
-                                props.onMessage('Add edge is success', 1);
+                    switch (D3ForceSimulation.connectMode){
+                        case 0:{
+                            let __message = GlobalFunction.CheckName(state.tooltip.relationshipType);
+                            if (__message == ''){
+                                let __edge = {
+                                    source: D3ForceSimulation.conncetLine.attr('source'),
+                                    target: d.id,
+                                    type: state.tooltip.relationshipType
+                                }
+                                
+                                let xmlhttp = new XMLHttpRequest()
+                    
+                                xmlhttp.onreadystatechange = function(){
+                                    if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                                        console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+                                        let __edge = JSON.parse(Base64.decode(xmlhttp.responseText));
+                                        console.log(__edge)
+                                        props.onAddEdge(__edge);
+                                        props.onMessage('Add edge is success', 1);
+                                    }
+                                }.bind(this)
+        
+                                xmlhttp.open("GET", '/addEdge?edge="' + Base64.encodeURI(JSON.stringify(__edge)) + '"', true);
+                                xmlhttp.send();
+                            }else{
+                                props.onMessage(__message, 0);
                             }
-                        }.bind(this)
-
-                        xmlhttp.open("GET", '/addEdge?edge="' + Base64.encodeURI(JSON.stringify(__edge)) + '"', true);
-                        xmlhttp.send();
-                    }else{
-                        props.onMessage(__message, 0);
+                            
+                            D3ForceSimulation.removeConncetLine();
+                            break;
+                        }
+                        case 1:
+                        case 2:{
+                            let __message = GlobalFunction.CheckName(state.tooltip.relationshipType);
+                            if (__message == ''){
+                                let __edge = {
+                                    connectMode: D3ForceSimulation.connectMode,
+                                    node: d.id,
+                                    edge: D3ForceSimulation.conncetLine.attr('id').substr(8),
+                                    type: state.tooltip.relationshipType
+                                }
+                                console.log(D3ForceSimulation.conncetLine.attr('id').substr(8))
+                                
+                                let xmlhttp = new XMLHttpRequest()
+                    
+                                xmlhttp.onreadystatechange = function(){
+                                    if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                                        console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
+                                        let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
+                                        console.log(__json)
+                                        
+                                        // D3ForceSimulation.connectMode = 0;
+                                        // D3ForceSimulation.conncetLine.remove()
+                                        // D3ForceSimulation.conncetLine = null;
+                                        // if (!D3ForceSimulation.svg.select('#node_id_'+d.id).empty()){
+                                        //     console.log('ooooooooooooooooooooooooooooooooooooooooooooo')
+                                        // }
+                                        // D3ForceSimulation.svg.select('#node_id_'+d.id).remove();
+                                        props.onMergeEdge(__json, __edge.edge);
+                                        props.onMessage('Merge edge is success', 1);
+                                    }
+                                }.bind(this)
+        
+                                xmlhttp.open("GET", '/directEdge?edge="' + Base64.encodeURI(JSON.stringify(__edge)) + '"', true);
+                                xmlhttp.send();
+                            }else{
+                                props.onMessage(__message, 0);
+                            }
+                            
+                            D3ForceSimulation.removeConncetLine();
+                            break;
+                        }
                     }
-                    __conncet_line.remove();
                 }
             }else{
                 if (d.hasOwnProperty('selected')){
@@ -613,8 +804,29 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
 
             return 'links'
         })
+        .on("contextmenu", function(d, i) {
+            d3.event.preventDefault()
+            if (D3ForceSimulation.connectMode >= 0){
+                if (D3ForceSimulation.conncetLine == null || D3ForceSimulation.conncetLine.empty()){
+                    D3ForceSimulation.conncetLine = D3ForceSimulation.svg.select('#link_id_'+d.id);
+                    D3ForceSimulation.connectMode = 2;
+                    moveExistEdge(D3ForceSimulation.conncetLine, d3.mouse(this)[0], d3.mouse(this)[1]);
+                    state.fillRelationshipTypeToAuto(d.type);
+                    menuFlag = false;
+                }
+            }
+        })
         .on("click", function(d){
-            if (D3ForceSimulation.connectMode){
+            if (D3ForceSimulation.connectMode >= 0){
+                if (D3ForceSimulation.conncetLine == null || D3ForceSimulation.conncetLine.empty()){
+                    D3ForceSimulation.conncetLine = D3ForceSimulation.svg.select('#link_id_'+d.id);
+                    D3ForceSimulation.connectMode = 1;
+                    
+                    let __x = d3.mouse(this)[0]// - D3ForceSimulation.x;
+                    let __y = d3.mouse(this)[1]// - D3ForceSimulation.y;
+                    moveExistEdge(D3ForceSimulation.conncetLine, __x, __y);
+                    state.fillRelationshipTypeToAuto(d.type);
+                }
             }else{
                 if (d.hasOwnProperty('selected')){
                     d.selected = !d.selected;
@@ -670,23 +882,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                 return 'translate(' + d.x + ',' + d.y + ')';
             });
 
-        __link.each(drawLine);
-
-         __pathInLink.attr("d", 
-            function(d) {
-                return d.floor == 0 ?
-                    'M' + d.sx + ',' + d.sy +' L' + d.tx + ',' + d.ty
-                    :
-                    'M' + d.sx + ',' + d.sy +' Q'+ d.fx + ',' + d.fy + ' ' + d.tx + ',' + d.ty
-            });
-        
-        __defsInLink.attr("d", 
-            (d) => {
-                return d.floor == 0 ?
-                    'M' + d.psx + ',' + d.psy +' L' + d.ptx + ',' + d.pty
-                    :
-                    'M' + d.psx + ',' + d.psy +' Q'+ d.fx + ',' + d.fy + ' ' + d.ptx + ',' + d.pty
-            });
+        drawEdge(__link);
     }
     
     this.simulation
@@ -709,13 +905,30 @@ D3ForceSimulation.showOrHideImage = function(){
 }
 
 D3ForceSimulation.changeConnectMode = function(){
-    D3ForceSimulation.connectMode = !D3ForceSimulation.connectMode;
-    if (!D3ForceSimulation.connectMode){
-        let __conncet_line = D3ForceSimulation.svg.select('#conncet_line');
-        if (!__conncet_line.empty()){
-            __conncet_line.remove();
+    D3ForceSimulation.removeConncetLine();
+    D3ForceSimulation.connectMode = D3ForceSimulation.connectMode < 0 ? 0 : -1;
+    console.log(D3ForceSimulation.connectMode)
+}
+
+D3ForceSimulation.removeConncetLine = function(){
+    if (D3ForceSimulation.connectMode >= 0){
+        if (D3ForceSimulation.conncetLine != null){
+            if (!D3ForceSimulation.conncetLine.empty()){
+                if (D3ForceSimulation.conncetLine.attr('id') == 'conncet_line'){
+                    D3ForceSimulation.connectMode = 0;
+                    D3ForceSimulation.conncetLine.remove();
+                    D3ForceSimulation.conncetLine = null;
+                    return true;
+                }else{
+                    drawEdge(D3ForceSimulation.conncetLine);
+                    D3ForceSimulation.connectMode = 0;
+                    D3ForceSimulation.conncetLine = null;
+                    return true;
+                }
+            }
         }
     }
+    return false;
 }
 
 D3ForceSimulation.destroy = function(el) {

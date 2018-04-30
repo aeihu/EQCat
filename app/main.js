@@ -554,9 +554,54 @@ class App extends React.Component {
 
                                 prevState.data.graph.count.edges = __countEdge;
                                 prevState.data.graph.edges[i].type = edge[0][keyName].type;
-                                prevState.data.graph.edges[i].id = edge[0][keyName].id;
                             }
 
+                            let __key = prevState.data.graph.edges[i].source.id != edge[0][keyName].source ?
+                                'source'
+                                :
+                                prevState.data.graph.edges[i].target.id != edge[0][keyName].target ? 
+                                    'target'
+                                    :
+                                    '';
+
+                            if (__key != ''){
+                                let __new = false;
+                                let __old = false;
+                                let __str = __key + 'Edges';
+                                let __tmp = null;
+                                let __index = 0;
+                                for (let j=0; j<prevState.data.graph.nodes.length; j++){
+                                    if (!__new){
+                                        if (edge[0][keyName][__key] == prevState.data.graph.nodes[j].id){
+                                            if (!prevState.data.graph.nodes[j].hasOwnProperty(__str))
+                                                prevState.data.graph.nodes[j][__str] = [];
+
+                                            __index = j;
+                                            __new = true;
+                                        }
+                                    }
+
+                                    if (!__old){
+                                        if (prevState.data.graph.edges[i][__key].id == prevState.data.graph.nodes[j].id){
+                                            for (let idx=0; idx<prevState.data.graph.nodes[j][__str].length; idx++){
+                                                if (prevState.data.graph.edges[i].id == prevState.data.graph.nodes[j][__str][idx].id){
+                                                    __tmp = prevState.data.graph.nodes[j][__str][idx];
+                                                    prevState.data.graph.nodes[j][__str].splice(idx, 1);
+                                                    __old = true;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (__new && __old){
+                                        break;
+                                    }
+                                }
+                                prevState.data.graph.nodes[__index][__str].push(__tmp);
+                                prevState.data.graph.edges[i][__key] = edge[0][keyName][__key];
+                            }
+                            
+                            prevState.data.graph.edges[i].id = edge[0][keyName].id;
                             prevState.data.graph.edges[i].properties = edge[0][keyName].properties;
                             prevState.data.graph.refreshType = 1;
                             return prevState;

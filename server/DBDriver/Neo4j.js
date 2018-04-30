@@ -140,7 +140,7 @@ export default class Neo4j
 
         __statement += '}) return n';
         console.log(__statement);
-        this.runStatement(__statement, node.properties.merge, res);
+        this.runStatement(__statement, node.properties, res);
     }
 
     mergeSingleNode(node, res)
@@ -220,6 +220,21 @@ export default class Neo4j
                 ' where id(s)=' + edge.source + ' and id(t)=' + edge.target +
                 ' create (s)-[r:' + edge.type + ']->(t) return DISTINCT r';
         }
+        console.log(__statement);
+        this.runStatement(__statement, {}, res);
+    }
+
+    directSingleEdge(edge, res){
+        // MATCH (n1)-[r1:foo]->(n2),(n6)
+        // WHERE n1.id = 1 AND n2.id = 2 and n6.id = 6
+        // CREATE (n2)-[r2:foo]->(n6)
+        // SET r2=r1
+        // DELETE r1
+        let __statement = edge.connectMode == 1 ? 'MATCH ()-[r1]->(n1),' : 'MATCH (n1)-[r1]->(),';
+        __statement += '(n2) where id(r1)=' + edge.edge + ' and id(n2)=' + edge.node + ' ';
+        __statement += edge.connectMode == 1 ? 'CREATE (n2)-[r:' + edge.type + ']->(n1)' : 'CREATE (n1)-[r:' + edge.type + ']->(n2)';
+        __statement += ' SET r=r1 DELETE r1 return DISTINCT r';
+
         console.log(__statement);
         this.runStatement(__statement, {}, res);
     }
