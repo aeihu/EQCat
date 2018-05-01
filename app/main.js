@@ -95,172 +95,185 @@ class App extends React.Component {
     }.bind(this);
     
     runCypher = function(statement) {
+        if (statement.trim() == ''){
+            this.showSnackbar('Cypher statement is expected to be a non-empty string', 0);
+            return;
+        }
+
         let xmlhttp = new XMLHttpRequest()
         
         xmlhttp.onreadystatechange = function(){
             if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
                 let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-                let __nodes = [];
-                let __edges = [];
-                let __rows = [];
-                let __columns = [];
-                let __count = {
-                    nodes: {
-                        '*': {
-                            total: 0,
-                            propertiesList: {
-                                '<id>': 1
-                            }
-                        }
-                    },
-                    edges: {
-                        '*': 0
-                    }
-                };
-                let __isFirst = true;
-                __json.forEach(function (v, k) {
-                    if (__isFirst){
-                        for (let key in v)
-                            __columns.push(key);
-                        
-                        __isFirst = false;
-                    }
-
-                    let __row = []
-                    for (let key in v) {
-                        if (v[key].hasOwnProperty("id") 
-                            && v[key].hasOwnProperty("labels") 
-                            && v[key].hasOwnProperty("properties")){
-                            
-                            let __b = true;
-                            for (let i = 0; i < __nodes.length; i++){
-                                if (__nodes[i].id == v[key].id){
-                                    __b = false;
-                                    break;
+                if (__json.hasOwnProperty('error')){
+                    this.setState(function(prevState, props) {
+                        prevState.progress.open = false;
+                        prevState.data.graph.refreshType = -1;
+                        return prevState;
+                    });
+                    this.showSnackbar(__json.message, 0);
+                }else{
+                    let __nodes = [];
+                    let __edges = [];
+                    let __rows = [];
+                    let __columns = [];
+                    let __count = {
+                        nodes: {
+                            '*': {
+                                total: 0,
+                                propertiesList: {
+                                    '<id>': 1
                                 }
                             }
+                        },
+                        edges: {
+                            '*': 0
+                        }
+                    };
+                    let __isFirst = true;
+                    __json.forEach(function (v, k) {
+                        if (__isFirst){
+                            for (let key in v)
+                                __columns.push(key);
+                            
+                            __isFirst = false;
+                        }
 
-                            if (__b){
-                                __nodes.push(v[key]);
-
-                                for (let i = 0; i < v[key].labels.length; i++){
-                                    let __label = v[key].labels[i];
-                                    if (__count.nodes.hasOwnProperty(__label)){
-                                        __count.nodes[__label].total++;
-                                    }else{
-                                        __count.nodes[__label] = {
-                                            total:1, 
-                                            propertiesList: {
-                                                '<id>':1
-                                            }
-                                        };
+                        let __row = []
+                        for (let key in v) {
+                            if (v[key].hasOwnProperty("id") 
+                                && v[key].hasOwnProperty("labels") 
+                                && v[key].hasOwnProperty("properties")){
+                                
+                                let __b = true;
+                                for (let i = 0; i < __nodes.length; i++){
+                                    if (__nodes[i].id == v[key].id){
+                                        __b = false;
+                                        break;
                                     }
-                                    
-                                    for (let propertyName in v[key].properties){
-                                        if (propertyName != GlobalConstant.imagesOfProperty &&
-                                            propertyName != GlobalConstant.memoOfProperty){
-                                            __count.nodes[__label].propertiesList[propertyName] = 
-                                                __count.nodes[__label].propertiesList.hasOwnProperty(propertyName) ?
-                                                    __count.nodes[__label].propertiesList[propertyName] + 1
-                                                    :
-                                                    1;
+                                }
+
+                                if (__b){
+                                    __nodes.push(v[key]);
+
+                                    for (let i = 0; i < v[key].labels.length; i++){
+                                        let __label = v[key].labels[i];
+                                        if (__count.nodes.hasOwnProperty(__label)){
+                                            __count.nodes[__label].total++;
+                                        }else{
+                                            __count.nodes[__label] = {
+                                                total:1, 
+                                                propertiesList: {
+                                                    '<id>':1
+                                                }
+                                            };
                                         }
+                                        
+                                        for (let propertyName in v[key].properties){
+                                            if (propertyName != GlobalConstant.imagesOfProperty &&
+                                                propertyName != GlobalConstant.memoOfProperty){
+                                                __count.nodes[__label].propertiesList[propertyName] = 
+                                                    __count.nodes[__label].propertiesList.hasOwnProperty(propertyName) ?
+                                                        __count.nodes[__label].propertiesList[propertyName] + 1
+                                                        :
+                                                        1;
+                                            }
+                                        }
+                                        
+                                        __count.nodes['*'].total++;
                                     }
-                                    
-                                    __count.nodes['*'].total++;
                                 }
+                                
+                                __row.push(JSON.stringify(
+                                    {
+                                        id: v[key].id,
+                                        labels: v[key].labels,
+                                        properties: v[key].properties
+                                    }
+                                    , null, 2));
+                            }else if (v[key].hasOwnProperty("id") 
+                                && v[key].hasOwnProperty("type") 
+                                && v[key].hasOwnProperty("properties")
+                                && v[key].hasOwnProperty("source")
+                                && v[key].hasOwnProperty("target")){
+
+                                let __b = true;
+                                for (let i = 0; i < __edges.length; i++){
+                                    if (__edges[i].id == v[key].id){
+                                        __b = false;
+                                        break;
+                                    }
+                                }
+
+                                if (__b){
+                                    __edges.push(v[key]);
+                                
+                                    if (__count.edges.hasOwnProperty(v[key].type))
+                                        __count.edges[v[key].type]++;
+                                    else
+                                        __count.edges[v[key].type] = 1;
+
+                                    __count.edges['*']++;
+                                }
+
+                                __row.push(JSON.stringify(
+                                    {
+                                        id: v[key].id,
+                                        type: v[key].type,
+                                        properties: v[key].properties
+                                    }
+                                    , null, 2));
+                            }else{
+                                __row.push(v[key]);
                             }
+                        }
+
+                        __rows.push(__row);
+                    }.bind(this));
+
+                    for (let i = 0; i < __edges.length; i++){
+                        let __isSource = false;
+                        let __isTarget = false;
+                        for (let j = 0; j < __nodes.length; j++){
+                            if (!__isSource){
+                                if (__edges[i].source == __nodes[j].id){
+                                    __isSource = true;
+                                    if (!__nodes[j].hasOwnProperty('sourceEdges'))
+                                        __nodes[j]['sourceEdges'] = [];
+
+                                    __nodes[j].sourceEdges.push(__edges[i]);
+                                }
+                            } 
                             
-                            __row.push(JSON.stringify(
-                                {
-                                    id: v[key].id,
-                                    labels: v[key].labels,
-                                    properties: v[key].properties
-                                }
-                                , null, 2));
-                        }else if (v[key].hasOwnProperty("id") 
-                            && v[key].hasOwnProperty("type") 
-                            && v[key].hasOwnProperty("properties")
-                            && v[key].hasOwnProperty("source")
-                            && v[key].hasOwnProperty("target")){
+                            if (!__isTarget){
+                                if (__edges[i].target == __nodes[j].id){
+                                    __isTarget = true;
+                                    if (!__nodes[j].hasOwnProperty('targetEdges'))
+                                        __nodes[j]['targetEdges'] = [];
 
-                            let __b = true;
-                            for (let i = 0; i < __edges.length; i++){
-                                if (__edges[i].id == v[key].id){
-                                    __b = false;
-                                    break;
+                                    __nodes[j].targetEdges.push(__edges[i]);
                                 }
                             }
 
-                            if (__b){
-                                __edges.push(v[key]);
-                            
-                                if (__count.edges.hasOwnProperty(v[key].type))
-                                    __count.edges[v[key].type]++;
-                                else
-                                    __count.edges[v[key].type] = 1;
-
-                                __count.edges['*']++;
+                            if (__isSource && __isTarget){
+                                break;
                             }
-
-                            __row.push(JSON.stringify(
-                                {
-                                    id: v[key].id,
-                                    type: v[key].type,
-                                    properties: v[key].properties
-                                }
-                                , null, 2));
-                        }else{
-                            __row.push(v[key]);
                         }
                     }
 
-                    __rows.push(__row);
-                }.bind(this));
-
-                for (let i = 0; i < __edges.length; i++){
-                    let __isSource = false;
-                    let __isTarget = false;
-                    for (let j = 0; j < __nodes.length; j++){
-                        if (!__isSource){
-                            if (__edges[i].source == __nodes[j].id){
-                                __isSource = true;
-                                if (!__nodes[j].hasOwnProperty('sourceEdges'))
-                                    __nodes[j]['sourceEdges'] = [];
-
-                                __nodes[j].sourceEdges.push(__edges[i]);
-                            }
-                        } 
-                        
-                        if (!__isTarget){
-                            if (__edges[i].target == __nodes[j].id){
-                                __isTarget = true;
-                                if (!__nodes[j].hasOwnProperty('targetEdges'))
-                                    __nodes[j]['targetEdges'] = [];
-
-                                __nodes[j].targetEdges.push(__edges[i]);
-                            }
-                        }
-
-                        if (__isSource && __isTarget){
-                            break;
-                        }
-                    }
+                    this.setState(function(prevState, props) {
+                        prevState.progress.open = false;
+                        prevState.data.graph.refreshType = 0;
+                        prevState.data.statement = statement;
+                        prevState.data.records = __json;
+                        prevState.data.graph.nodes = __nodes;
+                        prevState.data.graph.edges = __edges;
+                        prevState.data.graph.count = __count;
+                        prevState.data.table.rows = __rows;
+                        prevState.data.table.columns = __columns;
+                        return prevState;
+                    });
                 }
-
-                this.setState(function(prevState, props) {
-                    prevState.progress.open = false;
-                    prevState.data.graph.refreshType = 0;
-                    prevState.data.statement = statement;
-                    prevState.data.records = __json;
-                    prevState.data.graph.nodes = __nodes;
-                    prevState.data.graph.edges = __edges;
-                    prevState.data.graph.count = __count;
-                    prevState.data.table.rows = __rows;
-                    prevState.data.table.columns = __columns;
-                    return prevState;
-                });
             }
         }.bind(this)
 

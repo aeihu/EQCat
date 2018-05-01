@@ -20,11 +20,4 @@ var upload = function(path){
     });
 } 
 
-   //如需其他设置，请参考multer的limits,使用方法如下。
-  //var upload = multer({
- //    storage: storage,
- //    limits:{}
- // });
- 
-//导出对象
 module.exports = upload;

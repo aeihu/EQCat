@@ -241,13 +241,14 @@ export default class EditorDialogComponent extends React.Component {
 		
 		xmlhttp.onreadystatechange = function(){
 			if (xmlhttp.readyState==4 && xmlhttp.status==200){
-				console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
 				let __node = JSON.parse(Base64.decode(xmlhttp.responseText));
-				console.log('ssssssssssssssssssssssssssssssssssssssss')
-				console.log(__node)
-				this.props.onChangeData(__node);
-				this.props.onMessage('Add node is success', 1);
-				this.closeDialog();
+				if (__node.hasOwnProperty('error')){
+					this.props.onMessage(__node.message, 0);
+				}else{
+					this.props.onChangeData(__node);
+					this.props.onMessage('Add node is success', 1);
+					this.closeDialog();
+				}
 			}
 		}.bind(this)
 
@@ -369,13 +370,14 @@ export default class EditorDialogComponent extends React.Component {
 			
 			xmlhttp.onreadystatechange = function(){
 				if (xmlhttp.readyState==4 && xmlhttp.status==200){
-					console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
 					let __edge = JSON.parse(Base64.decode(xmlhttp.responseText));
-					console.log('ssssssssssssssssssssssssssssssssssssssss')
-					console.log(__edge)
-					this.props.onChangeData(__edge, this.props.data.id);
-					this.props.onMessage('Merge edge is success', 1);
-					this.closeDialog();
+					if (__edge.hasOwnProperty('error')){
+						this.props.onMessage(__edge.message, 0);
+					}else{
+						this.props.onChangeData(__edge, this.props.data.id);
+						this.props.onMessage('Merge edge is success', 1);
+						this.closeDialog();
+					}
 				}
 			}.bind(this)
 
@@ -435,13 +437,14 @@ export default class EditorDialogComponent extends React.Component {
 			
 			xmlhttp.onreadystatechange = function(){
 				if (xmlhttp.readyState==4 && xmlhttp.status==200){
-					console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
 					let __node = JSON.parse(Base64.decode(xmlhttp.responseText));
-					console.log('ssssssssssssssssssssssssssssssssssssssss')
-					console.log(__node)
-					this.props.onChangeData(__node);
-					this.props.onMessage('Merge node is success', 1);
-					this.closeDialog();
+					if (__node.hasOwnProperty('error')){
+						this.props.onMessage(__node.message, 0);
+					}else{
+						this.props.onChangeData(__node);
+						this.props.onMessage('Merge node is success', 1);
+						this.closeDialog();
+					}
 				}
 			}.bind(this)
 

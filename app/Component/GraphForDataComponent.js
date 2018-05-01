@@ -213,77 +213,77 @@ export default class GraphForDataComponent extends React.Component {
                     
                     xmlhttp.onreadystatechange = function(){
                         if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                            console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-                            let __edges = [...edges];
                             let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-                            
-                            console.log('__json')
-                            console.log(__json)
-                            let __count = 0;
-                            let __message = '';
-                            let __source;
-                            let __target;
-                            let __tmpEdgeIDs = [];
-                            let __isContinue = false;
-                            
-                            for (let i=0; i<nodes.length; i++){
-                                __message += '<br/>&emsp;<b>'+i+':</b>&emsp;' + this.nodeToStrForMessage(nodes[i], true);
-                            }
-
-                            __message += '<br/><br/><b>Edges:</b>'
-                            for (let i=0; i<__json.length; i++){
-                                if (__json[i].r.source == __json[i].n.id){
-                                    __source = __json[i].n;
-                                    __target = __json[i].m;
-                                }else{
-                                    __source = __json[i].m;
-                                    __target = __json[i].n;
+                            if (__json.hasOwnProperty('error')){
+                                this.props.onMessage(__json.message, 0);
+                            }else{
+                                let __edges = [...edges];
+                                let __count = 0;
+                                let __message = '';
+                                let __source;
+                                let __target;
+                                let __tmpEdgeIDs = [];
+                                let __isContinue = false;
+                                
+                                for (let i=0; i<nodes.length; i++){
+                                    __message += '<br/>&emsp;<b>'+i+':</b>&emsp;' + this.nodeToStrForMessage(nodes[i], true);
                                 }
-                            
-                                for (let j=0; j<__tmpEdgeIDs.length; j++){
-                                    if (__tmpEdgeIDs[j] == __json[i].r.id){
-                                        __isContinue = true;
-                                        break;
+    
+                                __message += '<br/><br/><b>Edges:</b>'
+                                for (let i=0; i<__json.length; i++){
+                                    if (__json[i].r.source == __json[i].n.id){
+                                        __source = __json[i].n;
+                                        __target = __json[i].m;
+                                    }else{
+                                        __source = __json[i].m;
+                                        __target = __json[i].n;
                                     }
-                                }
-
-                                if (__isContinue){
-                                    __isContinue = false;
-                                    continue;
+                                
+                                    for (let j=0; j<__tmpEdgeIDs.length; j++){
+                                        if (__tmpEdgeIDs[j] == __json[i].r.id){
+                                            __isContinue = true;
+                                            break;
+                                        }
+                                    }
+    
+                                    if (__isContinue){
+                                        __isContinue = false;
+                                        continue;
+                                    }
+                                    
+                                    __tmpEdgeIDs.push(__json[i].r.id);
+                                    __message += '<br/>&emsp;<b>'+__count+':</b>&emsp;'+
+                                        this.nodeToStrForMessage(__source, true)+
+                                        '-'+
+                                        this.edgeToStrForMessage(__json[i].r, true)+
+                                        '->'+
+                                        this.nodeToStrForMessage(__target, true);
+    
+                                    for (let j=__edges.length-1; j>=0; j--){
+                                        if (__edges[j].id == __json[i].r.id){
+                                            __edges.splice(j, 1);
+                                        }
+                                    }
+                                    __count++;
                                 }
                                 
-                                __tmpEdgeIDs.push(__json[i].r.id);
-                                __message += '<br/>&emsp;<b>'+__count+':</b>&emsp;'+
-                                    this.nodeToStrForMessage(__source, true)+
-                                    '-'+
-                                    this.edgeToStrForMessage(__json[i].r, true)+
-                                    '->'+
-                                    this.nodeToStrForMessage(__target, true);
-
-                                for (let j=__edges.length-1; j>=0; j--){
-                                    if (__edges[j].id == __json[i].r.id){
-                                        __edges.splice(j, 1);
-                                    }
+                                for (let i=0; i<__edges.length; i++){
+                                    __message += '<br/>&emsp;<b>'+(i+__count)+':</b>&emsp;'+
+                                        this.nodeToStrForMessage(__edges[i].source, true)+
+                                        '-'+
+                                        this.edgeToStrForMessage(__edges[i], true)+
+                                        '->'+
+                                        this.nodeToStrForMessage(__edges[i].target, true);
                                 }
-                                __count++;
+                                
+                                __message = 'You will delete ' + nodes.length + ' nodes and ' + (__count + __edges.length) + ' edges:<br/><b>Nodes:</b>' + __message;
+                                this.props.onAlert('Delete Nodes And Relationships', 
+                                    __message, 
+                                    __edges.length < 1 ? 
+                                        ()=>this.deleteNodes(nodes)
+                                        :
+                                        ()=>this.deleteNodesAndEdges(nodes, __edges));
                             }
-                            
-                            for (let i=0; i<__edges.length; i++){
-                                __message += '<br/>&emsp;<b>'+(i+__count)+':</b>&emsp;'+
-                                    this.nodeToStrForMessage(__edges[i].source, true)+
-                                    '-'+
-                                    this.edgeToStrForMessage(__edges[i], true)+
-                                    '->'+
-                                    this.nodeToStrForMessage(__edges[i].target, true);
-                            }
-                            
-                            __message = 'You will delete ' + nodes.length + ' nodes and ' + (__count + __edges.length) + ' edges:<br/><b>Nodes:</b>' + __message;
-                            this.props.onAlert('Delete Nodes And Relationships', 
-                                __message, 
-                                __edges.length < 1 ? 
-                                    ()=>this.deleteNodes(nodes)
-                                    :
-                                    ()=>this.deleteNodesAndEdges(nodes, __edges));
                         }
                     }.bind(this)
                     
@@ -325,17 +325,18 @@ export default class GraphForDataComponent extends React.Component {
             
             xmlhttp.onreadystatechange = function(){
                 if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                    console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
                     let __result = JSON.parse(Base64.decode(xmlhttp.responseText));
-                    console.log('ssssssssssssssssssssssssssssssssssssssss')
-                    
-                    this.props.onDeleteNode(nodes);
-                    this.props.onDeleteEdge(__json.edges);
-                    this.setState(function(prevState, props) {
-                        prevState.tooltip.selected.nodes = [];
-                        prevState.tooltip.selected.edges = [];
-                        return prevState;
-                    });
+                    if (__result.hasOwnProperty('error')){
+                        this.props.onMessage(__result.message, 0);
+                    }else{
+                        this.props.onDeleteNode(nodes);
+                        this.props.onDeleteEdge(__json.edges);
+                        this.setState(function(prevState, props) {
+                            prevState.tooltip.selected.nodes = [];
+                            prevState.tooltip.selected.edges = [];
+                            return prevState;
+                        });
+                    }
                 }
             }.bind(this)
             
@@ -357,54 +358,57 @@ export default class GraphForDataComponent extends React.Component {
                 
                 xmlhttp.onreadystatechange = function(){
                     if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                        console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
                         let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-                        let __message = '';
-                        let __source;
-                        let __target;
-                        let __tmpEdgeIDs = [];
-                        let __isContinue = false;
-                        let __count = 0;
-                        
-                        for (let i=0; i<nodes.length; i++){
-                            __message += '<br/>&emsp;<b>'+i+':</b>&emsp;' + this.nodeToStrForMessage(nodes[i], true);
-                        }
+                        if (__json.hasOwnProperty('error')){
+                            this.props.onMessage(__json.message, 0);
+                        }else{
+                            let __message = '';
+                            let __source;
+                            let __target;
+                            let __tmpEdgeIDs = [];
+                            let __isContinue = false;
+                            let __count = 0;
+                            
+                            for (let i=0; i<nodes.length; i++){
+                                __message += '<br/>&emsp;<b>'+i+':</b>&emsp;' + this.nodeToStrForMessage(nodes[i], true);
+                            }
 
-                        __message += '<br/><br/><b>Edges:</b>'
-                        for (let i=0; i<__json.length; i++){
-                            for (let j=0; j<__tmpEdgeIDs.length; j++){
-                                if (__tmpEdgeIDs[j] == __json[i].r.id){
-                                    __isContinue = true;
-                                    break;
+                            __message += '<br/><br/><b>Edges:</b>'
+                            for (let i=0; i<__json.length; i++){
+                                for (let j=0; j<__tmpEdgeIDs.length; j++){
+                                    if (__tmpEdgeIDs[j] == __json[i].r.id){
+                                        __isContinue = true;
+                                        break;
+                                    }
                                 }
-                            }
 
-                            if (__isContinue){
-                                __isContinue = false;
-                                continue;
-                            }
+                                if (__isContinue){
+                                    __isContinue = false;
+                                    continue;
+                                }
 
-                            __tmpEdgeIDs.push(__json[i].r.id);
-                            if (__json[i].r.source == __json[i].n.id){
-                                __source = __json[i].n;
-                                __target = __json[i].m;
-                            }else{
-                                __source = __json[i].m;
-                                __target = __json[i].n;
+                                __tmpEdgeIDs.push(__json[i].r.id);
+                                if (__json[i].r.source == __json[i].n.id){
+                                    __source = __json[i].n;
+                                    __target = __json[i].m;
+                                }else{
+                                    __source = __json[i].m;
+                                    __target = __json[i].n;
+                                }
+                                
+                                __message += '<br/>&emsp;<b>'+__count+':</b>&emsp;'+
+                                    this.nodeToStrForMessage(__source, true)+
+                                    '-'+
+                                    this.edgeToStrForMessage(__json[i].r, true)+
+                                    '->'+
+                                    this.nodeToStrForMessage(__target, true);
+                                
+                                __count++;
                             }
                             
-                            __message += '<br/>&emsp;<b>'+__count+':</b>&emsp;'+
-	                            this.nodeToStrForMessage(__source, true)+
-	                            '-'+
-	                            this.edgeToStrForMessage(__json[i].r, true)+
-	                            '->'+
-                                this.nodeToStrForMessage(__target, true);
-                            
-                            __count++;
+                            __message = 'You will delete ' + nodes.length + ' nodes and ' + __count + ' edges:<br/><b>Nodes:</b>' + __message;
+                            this.props.onAlert('Delete Nodes', __message, ()=>this.deleteNodes(nodes))
                         }
-                        
-                        __message = 'You will delete ' + nodes.length + ' nodes and ' + __count + ' edges:<br/><b>Nodes:</b>' + __message;
-                        this.props.onAlert('Delete Nodes', __message, ()=>this.deleteNodes(nodes))
                     }
                 }.bind(this)
                 
@@ -430,51 +434,52 @@ export default class GraphForDataComponent extends React.Component {
             
             xmlhttp.onreadystatechange = function(){
                 if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                    console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
                     let __result = JSON.parse(Base64.decode(xmlhttp.responseText));
-                    console.log('ssssssssssssssssssssssssssssssssssssssss')
-                    
-                    this.props.onDeleteNode(nodes);
-                    this.setState(function(prevState, props) {
-                        let __b = false;
-                        for (let i=0; i<nodes.length; i++){
-                            for (let j=prevState.tooltip.selected.nodes.length-1; j>=0; j--){
-                                if (prevState.tooltip.selected.nodes[j].id == nodes[i].id){
-                                    for (let k=prevState.tooltip.selected.edges.length-1; k>=0; k--){
-                                        __b = false;
-                                        if (nodes[i].hasOwnProperty('sourceEdges')){
-                                            for (let l=nodes[i].sourceEdges.length-1; l>=0; l--){
-                                                if (nodes[i].sourceEdges[l].id == prevState.tooltip.selected.edges[k]){
-                                                    prevState.tooltip.selected.edges.splice(k, 1);
-                                                    __b = true;
-                                                    break;
+                    if (__result.hasOwnProperty('error')){
+                        this.props.onMessage(__result.message, 0);
+                    }else{
+                        this.props.onDeleteNode(nodes);
+                        this.setState(function(prevState, props) {
+                            let __b = false;
+                            for (let i=0; i<nodes.length; i++){
+                                for (let j=prevState.tooltip.selected.nodes.length-1; j>=0; j--){
+                                    if (prevState.tooltip.selected.nodes[j].id == nodes[i].id){
+                                        for (let k=prevState.tooltip.selected.edges.length-1; k>=0; k--){
+                                            __b = false;
+                                            if (nodes[i].hasOwnProperty('sourceEdges')){
+                                                for (let l=nodes[i].sourceEdges.length-1; l>=0; l--){
+                                                    if (nodes[i].sourceEdges[l].id == prevState.tooltip.selected.edges[k]){
+                                                        prevState.tooltip.selected.edges.splice(k, 1);
+                                                        __b = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            if (__b){
+                                                continue;
+                                            }
+
+                                            if (nodes[i].hasOwnProperty('targetEdges')){
+                                                for (let l=nodes[i].targetEdges.length-1; l>=0; l--){
+                                                    if (nodes[i].targetEdges[l].id == prevState.tooltip.selected.edges[k]){
+                                                        prevState.tooltip.selected.edges.splice(k, 1);
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         }
 
-                                        if (__b){
-                                            continue;
-                                        }
-
-                                        if (nodes[i].hasOwnProperty('targetEdges')){
-                                            for (let l=nodes[i].targetEdges.length-1; l>=0; l--){
-                                                if (nodes[i].targetEdges[l].id == prevState.tooltip.selected.edges[k]){
-                                                    prevState.tooltip.selected.edges.splice(k, 1);
-                                                    break;
-                                                }
-                                            }
-                                        }
+                                        prevState.tooltip.selected.nodes.splice(j, 1);
+                                        break;
                                     }
-
-                                    prevState.tooltip.selected.nodes.splice(j, 1);
-                                    break;
                                 }
                             }
-                        }
 
-                        prevState.tooltip.selected.nodesOpen = prevState.tooltip.selected.nodesOpen ? prevState.tooltip.selected.nodes.length > 0 : false;
-                        return prevState;
-                    });
+                            prevState.tooltip.selected.nodesOpen = prevState.tooltip.selected.nodesOpen ? prevState.tooltip.selected.nodes.length > 0 : false;
+                            return prevState;
+                        });
+                    }
                 }
             }.bind(this)
             
@@ -519,26 +524,26 @@ export default class GraphForDataComponent extends React.Component {
 			
 			xmlhttp.onreadystatechange = function(){
 				if (xmlhttp.readyState==4 && xmlhttp.status==200){
-					console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
 					let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-					console.log('ssssssssssssssssssssssssssssssssssssssss')
-                    console.log(__edges)
-                    
-                    this.props.onDeleteEdge(__edges);
-                    this.setState(function(prevState, props) {
-                        for (let i=0; i<__edges.length; i++){
-                            for (let j=prevState.tooltip.selected.edges.length-1; j>=0; j--){
-                                if (prevState.tooltip.selected.edges[j].id == __edges[i]){
-                                    prevState.tooltip.selected.edges.splice(j, 1);
-                                    break;
+                    if (__json.hasOwnProperty('error')){
+                        this.props.onMessage(__json.message, 0);
+                    }else{
+                        this.props.onDeleteEdge(__edges);
+                        this.setState(function(prevState, props) {
+                            for (let i=0; i<__edges.length; i++){
+                                for (let j=prevState.tooltip.selected.edges.length-1; j>=0; j--){
+                                    if (prevState.tooltip.selected.edges[j].id == __edges[i]){
+                                        prevState.tooltip.selected.edges.splice(j, 1);
+                                        break;
+                                    }
                                 }
                             }
-                        }
 
-                        prevState.tooltip.selected.edgesOpen = prevState.tooltip.selected.edgesOpen ? prevState.tooltip.selected.edges.length > 0 : false;
-                        return prevState;
-                    });
-				}
+                            prevState.tooltip.selected.edgesOpen = prevState.tooltip.selected.edgesOpen ? prevState.tooltip.selected.edges.length > 0 : false;
+                            return prevState;
+                        });
+                    }
+                }
             }.bind(this)
             
 			xmlhttp.open("GET", '/deleteEdge?edges="' + Base64.encodeURI(JSON.stringify(__edges)) + '"', true);
@@ -1179,6 +1184,7 @@ export default class GraphForDataComponent extends React.Component {
                 <EditStyleComponent 
                     data={this.props.data.count}
                     parameter={this.styleEditor}
+                    onMessage={this.props.onMessage}
                     onChange={function(){
                         this.setState(function(prevState, props) {
                             return prevState;

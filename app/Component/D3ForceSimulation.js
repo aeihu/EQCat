@@ -32,15 +32,18 @@ D3ForceSimulation.NEStyles = {
 
 let menuFlag = true;
 
-function getStyles() {
+function getStyles(props) {
     let xmlhttp = new XMLHttpRequest()
     
     xmlhttp.onreadystatechange = function(){
         if (xmlhttp.readyState==4 && xmlhttp.status==200){
-            console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
             let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-            D3ForceSimulation.NEStyles = __json.styles;
-            console.log(D3ForceSimulation.NEStyles)
+            if (__json.hasOwnProperty('error')){
+                props.onMessage(__json.message, 0);
+            }else{
+                D3ForceSimulation.NEStyles = __json.styles;
+                //console.log(D3ForceSimulation.NEStyles)
+            }
         }
     }.bind(this)
 
@@ -115,8 +118,7 @@ D3ForceSimulation.create = function(el, props, state) {
         .force("collide", d3.forceCollide().radius(80))
         .force("center", d3.forceCenter(300, 300));
 
-    getStyles();
-    //this.update(el, props, state);
+    getStyles(props);
 };
 
 D3ForceSimulation.dragstarted = function dragstarted(d) {
@@ -635,11 +637,13 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                     
                                 xmlhttp.onreadystatechange = function(){
                                     if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                                        console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
                                         let __edge = JSON.parse(Base64.decode(xmlhttp.responseText));
-                                        console.log(__edge)
-                                        props.onAddEdge(__edge);
-                                        props.onMessage('Add edge is success', 1);
+                                        if (__edge.hasOwnProperty('error')){
+                                            props.onMessage(__edge.message, 0);
+                                        }else{
+                                            props.onAddEdge(__edge);
+                                            props.onMessage('Add edge is success', 1);
+                                        }
                                     }
                                 }.bind(this)
         
@@ -668,19 +672,13 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                     
                                 xmlhttp.onreadystatechange = function(){
                                     if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                                        console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
                                         let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-                                        console.log(__json)
-                                        
-                                        // D3ForceSimulation.connectMode = 0;
-                                        // D3ForceSimulation.conncetLine.remove()
-                                        // D3ForceSimulation.conncetLine = null;
-                                        // if (!D3ForceSimulation.svg.select('#node_id_'+d.id).empty()){
-                                        //     console.log('ooooooooooooooooooooooooooooooooooooooooooooo')
-                                        // }
-                                        // D3ForceSimulation.svg.select('#node_id_'+d.id).remove();
-                                        props.onMergeEdge(__json, __edge.edge);
-                                        props.onMessage('Merge edge is success', 1);
+                                        if (__json.hasOwnProperty('error')){
+                                            props.onMessage(__json.message, 0);
+                                        }else{
+                                            props.onMergeEdge(__json, __edge.edge);
+                                            props.onMessage('Merge edge is success', 1);
+                                        }
                                     }
                                 }.bind(this)
         

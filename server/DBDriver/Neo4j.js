@@ -1,20 +1,39 @@
 const neo4j = require('neo4j-driver').v1;
 import { Base64 } from 'js-base64';
+import log4js from '../Util/Log4js';
 
 export default class Neo4j
 {
+    _logger = null;
     _driver = null;
     _labels = [];
     _relationshipTypes = [];
     _propertyKeys = [];
 
-    constructor(bolt, username, password)
+    constructor()
     {
-        //console.log('error');
-        this._driver = neo4j.driver(bolt, neo4j.auth.basic(username, password), {maxTransactionRetryTime: 30000});
-        this.getLabels();
-        this.getRelationshipTypes();
-        this.getPropertyKeys();
+        this._logger = log4js.log4js.getLogger('neo4j');
+    }
+
+    close(){
+        if (this._driver != null){
+            this._driver.close();
+        }
+    }
+
+    login(bolt, username, password)
+    {
+        try{
+            this._driver = neo4j.driver(bolt, neo4j.auth.basic(username, password), {maxTransactionRetryTime: 30000});
+            this.getLabels();
+            this.getRelationshipTypes();
+            this.getPropertyKeys();
+        }catch(error){
+            this._logger.addContext('statementType', 'e');
+            this._logger.addContext('parameters', error.name);
+            this._logger.error(error.message);
+            this._logger.clearContext();
+        }
     }
 
     ifIntegerThenToNumberOrString(val)
@@ -54,14 +73,15 @@ export default class Neo4j
 
     close()
     {
-        if (this._driver != null)
+        if (this._driver != null){
             this._driver.close();
+        }
     }
 
     getLabels()
     {
         if (this._driver == null){
-            res.send('error');
+            res.send(Base64.encodeURI(JSON.stringify({error: 'neo4jError', message: 'database has disconnected'})));
         }
         else{
             let __session = this._driver.session();
@@ -73,16 +93,19 @@ export default class Neo4j
                     }.bind(this))
                 }.bind(this))
                 .catch(function (error) {
-                    console.log(error);
+                    this._logger.addContext('statementType', 'e');
+                    this._logger.addContext('parameters', error.name);
+                    this._logger.error(error.message);
+                    this._logger.clearContext();
                     __session.close();
-                });
+                }.bind(this));
         }
     }
 
     getPropertyKeys()
     {
         if (this._driver == null){
-            res.send('error');
+            res.send(Base64.encodeURI(JSON.stringify({error: 'neo4jError', message: 'database has disconnected'})));
         }
         else{
             let __session = this._driver.session();
@@ -94,16 +117,19 @@ export default class Neo4j
                     }.bind(this))
                 }.bind(this))
                 .catch(function (error) {
-                    console.log(error);
+                    this._logger.addContext('statementType', 'e');
+                    this._logger.addContext('parameters', error.name);
+                    this._logger.error(error.message);
+                    this._logger.clearContext();
                     __session.close();
-                });
+                }.bind(this));
         }
     }
 
     getRelationshipTypes()
     {
         if (this._driver == null){
-            res.send('error');
+            res.send(Base64.encodeURI(JSON.stringify({error: 'neo4jError', message: 'database has disconnected'})));
         }
         else{
             let __session = this._driver.session();
@@ -115,9 +141,12 @@ export default class Neo4j
                     }.bind(this))
                 }.bind(this))
                 .catch(function (error) {
-                    console.log(error);
+                    this._logger.addContext('statementType', 'e');
+                    this._logger.addContext('parameters', error.name);
+                    this._logger.error(error.message);
+                    this._logger.clearContext();
                     __session.close();
-                });
+                }.bind(this));
         }
     }
 
@@ -139,7 +168,6 @@ export default class Neo4j
         }
 
         __statement += '}) return n';
-        console.log(__statement);
         this.runStatement(__statement, node.properties, res);
     }
 
@@ -178,7 +206,6 @@ export default class Neo4j
         }
 
         __statement += ' return n';
-        console.log(__statement);
         this.runStatement(__statement, node.properties.merge, res);
     }
     
@@ -193,7 +220,6 @@ export default class Neo4j
             __statement += 'id(n)=' + nodes[i];
         }
         __statement += ' return DISTINCT n,r,m';
-        console.log(__statement);
         this.runStatement(__statement, {}, res);
     }
 
@@ -208,7 +234,6 @@ export default class Neo4j
             __statement += 'id(n)=' + nodes[i];
         }
         __statement += ' detach delete n return n';
-        console.log(__statement);
         this.runStatement(__statement, {}, res);
     }
     
@@ -220,7 +245,6 @@ export default class Neo4j
                 ' where id(s)=' + edge.source + ' and id(t)=' + edge.target +
                 ' create (s)-[r:' + edge.type + ']->(t) return DISTINCT r';
         }
-        console.log(__statement);
         this.runStatement(__statement, {}, res);
     }
 
@@ -235,7 +259,6 @@ export default class Neo4j
         __statement += edge.connectMode == 1 ? 'CREATE (n2)-[r:' + edge.type + ']->(n1)' : 'CREATE (n1)-[r:' + edge.type + ']->(n2)';
         __statement += ' SET r=r1 DELETE r1 return DISTINCT r';
 
-        console.log(__statement);
         this.runStatement(__statement, {}, res);
     }
 
@@ -276,7 +299,6 @@ export default class Neo4j
 
             __statement += ' return DISTINCT r';
         }
-        console.log(__statement);
         this.runStatement(__statement, edge.hasOwnProperty('target') ? edge.properties : edge.properties.merge, res);
     }
     
@@ -291,7 +313,6 @@ export default class Neo4j
             __statement += 'id(r)=' + edges[i];
         }
         __statement += ' delete r';
-        console.log(__statement);
         this.runStatement(__statement, {}, res);
     }
 
@@ -319,25 +340,25 @@ export default class Neo4j
 
         __statement += ' detach delete n,r return DISTINCT n,r';
 
-        console.log(__statement);
         this.runStatement(__statement, {}, res);
     }
 
     runStatement(statement, param, res)
     {
         if (this._driver == null){
-            res.send('error');
-        }
-        else{
+            res.send(Base64.encodeURI(JSON.stringify({error: 'neo4jError', message: 'database has disconnected'})));
+        }else{
             let __session = this._driver.session();
 
             __session
                 .run(statement, param)
                 .then(function (result) {
                     let __result = [];
-                    //console.log(result);
-                    console.log(result.summary.counters);
-                    console.log(result.summary.updateStatistics);
+                    this._logger.addContext('statementType', result.summary.statementType);
+                    this._logger.addContext('parameters', JSON.stringify(result.summary.statement.parameters));
+                    this._logger.info(result.summary.statement.text);
+                    this._logger.clearContext();
+
                     result.records.forEach(function (value, key, record) {
                         let __record = {};
                         for (let i = 0; i < value.length; i++){
@@ -386,15 +407,18 @@ export default class Neo4j
                         __result.push(__record)
                     }.bind(this));
 
-                    console.log(__result);
                     res.send(Base64.encodeURI(JSON.stringify(__result)));
                     __session.close();
                 }.bind(this))
                 .catch(function (error) {
-                    console.log(error);
-                    res.send(Base64.encodeURI(JSON.stringify(error)));
+                    let __msg = error.message.substr(0, error.message.indexOf('\r'));
+                    this._logger.addContext('statementType', 'e');
+                    this._logger.addContext('parameters', error.code);
+                    this._logger.warn(__msg);
+                    this._logger.clearContext();
+                    res.send(Base64.encodeURI(JSON.stringify({error: error.name, message: __msg})));
                     __session.close();
-                });
+                }.bind(this));
         }
     }
 }

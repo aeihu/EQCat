@@ -21,9 +21,9 @@ export default class EditStyleComponent extends React.Component {
         
         xmlhttp.onreadystatechange = function(){
             if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                console.log(xmlhttp.readyState + " : " + xmlhttp.responseText);
-                if (xmlhttp.responseText == 'success'){
-                    //do something
+                let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
+                if (__json.hasOwnProperty('error')){
+                    this.props.onMessage(__json.message, 0);
                 }
             }
         }.bind(this)
@@ -173,6 +173,7 @@ export default class EditStyleComponent extends React.Component {
                         chipName={this.state.name} 
                         onIconChange={this.setIconInBar}
                         onCaptionChange={this.setCaptionInBar}
+                        onMessage={this.props.onMessage}
                         onSizeChange={this.setSizeInBar} />
                 : this.state.parameter.mode == GlobalConstant.mode.edge ?
                     <EditEdgeComponent 
