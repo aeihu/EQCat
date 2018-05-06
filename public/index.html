@@ -27,11 +27,6 @@
             background:#0f0
         }
 
-        #tooltip{
-            display:flex;
-            flex-direction:column;
-        }
-
         #mainpanel{
             display: flex;
             flex-direction: column;
@@ -85,7 +80,9 @@
         }
 
         .tooltip{
-            position: absolute;
+            transition: width 0.45s;
+            width: 0;
+            /* position: absolute;
             width: 120;
             height: auto;
             font-family: simsun;
@@ -93,7 +90,11 @@
             text-align: center;
             border-width: 1px;
             background-color: white;
-            border-radius: 5px;
+            border-radius: 5px; */
+        }
+
+        .tooltip_open{
+            width: 250px;
         }
 
         .CodeMirror{

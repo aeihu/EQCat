@@ -207,13 +207,6 @@ class App extends React.Component {
 
                                 if (__b){
                                     __edges.push(v[key]);
-                                
-                                    if (__count.edges.hasOwnProperty(v[key].type))
-                                        __count.edges[v[key].type]++;
-                                    else
-                                        __count.edges[v[key].type] = 1;
-
-                                    __count.edges['*']++;
                                 }
 
                                 __row.push(JSON.stringify(
@@ -231,33 +224,46 @@ class App extends React.Component {
                         __rows.push(__row);
                     }.bind(this));
 
-                    for (let i = 0; i < __edges.length; i++){
-                        let __isSource = false;
-                        let __isTarget = false;
+                    for (let i = __edges.length - 1; i >= 0; i--){
+                        let __srcIdx = -1;
+                        let __tgtIdx = -1;
                         for (let j = 0; j < __nodes.length; j++){
-                            if (!__isSource){
+                            if (__srcIdx < 0){
                                 if (__edges[i].source == __nodes[j].id){
-                                    __isSource = true;
-                                    if (!__nodes[j].hasOwnProperty('sourceEdges'))
-                                        __nodes[j]['sourceEdges'] = [];
-
-                                    __nodes[j].sourceEdges.push(__edges[i]);
+                                    __srcIdx = j;
                                 }
                             } 
                             
-                            if (!__isTarget){
+                            if (__tgtIdx < 0){
                                 if (__edges[i].target == __nodes[j].id){
-                                    __isTarget = true;
-                                    if (!__nodes[j].hasOwnProperty('targetEdges'))
-                                        __nodes[j]['targetEdges'] = [];
-
-                                    __nodes[j].targetEdges.push(__edges[i]);
+                                    __tgtIdx = j;
                                 }
                             }
 
-                            if (__isSource && __isTarget){
+                            if (__srcIdx >= 0 && __tgtIdx >= 0){
                                 break;
                             }
+                        }
+
+                        if (__srcIdx >= 0 && __tgtIdx >= 0){
+                            if (!__nodes[__srcIdx].hasOwnProperty('sourceEdges'))
+                                __nodes[__srcIdx]['sourceEdges'] = [];
+
+                            __nodes[__srcIdx].sourceEdges.push(__edges[i]);
+                            
+                            if (!__nodes[__tgtIdx].hasOwnProperty('targetEdges'))
+                                __nodes[__tgtIdx]['targetEdges'] = [];
+
+                            __nodes[__tgtIdx].targetEdges.push(__edges[i]);
+                                
+                            if (__count.edges.hasOwnProperty(__edges[i].type))
+                                __count.edges[__edges[i].type]++;
+                            else
+                                __count.edges[__edges[i].type] = 1;
+
+                            __count.edges['*']++;
+                        }else{
+                            __edges.splice(i, 1);
                         }
                     }
 
@@ -699,7 +705,9 @@ class App extends React.Component {
                     onRequestClose={this.hideAlert}
                     onAction={this.state.alert.action}
                 />
-                <div id="tooltip">
+                <div style={{
+                        display: 'flex',
+                        flexDirection: 'column'}}>
                     <TooltipComponent />
                 </div>
                 <div id='mainpanel'>

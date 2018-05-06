@@ -74,7 +74,7 @@ export default class CardComponent extends React.Component {
                         borderBottomStyle: 'dotted',
                         margin: '6px 6px 6px 16px'
                         }}>
-                        <span style={{fontSize: '14px', color:'LightSlateGray'}}>{key + ' :'}</span>
+                        <span style={{lineHeight:'18px', fontSize: '14px', color:'LightSlateGray'}}>{key + ' :'}</span>
                         {typeof this.state.card.data.properties[key] == 'object' ?
                             <div style={{
                                 width:'242px',
@@ -118,7 +118,7 @@ export default class CardComponent extends React.Component {
                                 ))}
                             </div>
                             :
-                            <span style={{fontSize: '16px', color:'Black'}}>
+                            <span style={{lineHeight:'20px', fontSize: '16px', color:'Black'}}>
                                 {typeof this.state.card.data.properties[key] == 'boolean' ? 
                                     this.state.card.data.properties[key] ? '√' : '×'
                                     :

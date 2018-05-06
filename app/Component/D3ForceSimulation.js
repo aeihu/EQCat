@@ -111,11 +111,16 @@ D3ForceSimulation.create = function(el, props, state) {
         .attr('orient', 'auto')
         .append('path')
         .attr('d', 'M2,2 L2,11 L10,6 L2,2')
+    
+    this.svg.append("g")
+        .attr('id', "layer_edges");
+    this.svg.append("g")
+        .attr('id', "layer_nodes");
 
     this.simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(220))
         .force("charge", d3.forceManyBody().strength(1))
-        .force("collide", d3.forceCollide().radius(80))
+        .force("collide", d3.forceCollide().radius(100))
         .force("center", d3.forceCenter(300, 300));
 
     getStyles(props);
@@ -126,7 +131,7 @@ D3ForceSimulation.dragstarted = function dragstarted(d) {
         if (!d3.event.active) {
             D3ForceSimulation.simulation.alphaTarget(0.3).restart();
         }
-
+        
         d.fx = d.x;
         d.fy = d.y;
     }
@@ -190,9 +195,48 @@ function setNodeText(d) {
     return d.id; 
 }
 
-function setNodeSize(d) { 
-    d.size = d.labels.length > 0 ? D3ForceSimulation.getNodeStyle(d.labels[0]).size : 50;
-    let __offset = -d.size / 2;
+function setNodeSize(d) {
+    if (d.labels.length < 1){
+        d.size = 50;
+    }else{
+        let __property = D3ForceSimulation.getNodeStyle(d.labels[0]).size.property;
+        let __level = D3ForceSimulation.getNodeStyle(d.labels[0]).size.levels.level;
+        if (__level.length == 0){
+            d.size = 50;
+        }else{
+            if (__property == '<connect number>'){
+                let __connectNumber = (d.hasOwnProperty('sourceEdges') ? d.sourceEdges.length : 0) + (d.hasOwnProperty('targetEdges') ? d.targetEdges.length : 0)
+                for (let i=0; i<__level.length; i++){
+                    if (__connectNumber < __level[i][0] || i == __level.length -1){
+                        d.size = __level[i][1];
+                        break;
+                    }
+                }
+            }else{
+                if (d.properties.hasOwnProperty(__property)){
+                    if (D3ForceSimulation.getNodeStyle(d.labels[0]).size.levels.type == 'num'){
+                        for (let i=0; i<__level.length; i++){
+                            if (d.properties[__property] < __level[i][0] || i == __level.length -1){
+                                d.size = __level[i][1];
+                                break;
+                            }
+                        }
+                    }else{
+                        for (let i=__level.length-1; i>=0; i--){
+                            if (d.properties[__property] == __level[i][0] || i == 0){
+                                d.size = __level[i][1];
+                                break;
+                            }
+                        }
+                    }
+                }else{
+                    d.size = __level.length < 1 ? 50 : __level[0][1];
+                }
+            }
+        }
+    }
+
+    let __offset = -d.size * 0.5;
 
     D3ForceSimulation.svg.select('#node_image_id_'+d.id)
         .attr("transform", 'translate(' + __offset  + ',' + __offset + ')')
@@ -201,11 +245,7 @@ function setNodeSize(d) {
 }
 
 function setNodeTextOffset(d) { 
-    if (d.labels.length > 0){
-        return D3ForceSimulation.getNodeStyle(d.labels[0]).size / 2 + 10;
-    }
-
-    return 35;
+    return d.size * 0.5 + 10;
 }
 
 function setEdgeColor(d) { 
@@ -407,17 +447,17 @@ D3ForceSimulation.getEdgeStyle = function(type){
     return this.NEStyles.edges[type];
 }
 
-D3ForceSimulation.setStyle = function(state, type, val) {
-    switch (state.parameter.mode){
+D3ForceSimulation.setStyle = function(mode, name, type, val) {
+    switch (mode){
         case GlobalConstant.mode.node:
-            if (!this.NEStyles.nodes.hasOwnProperty(state.name)){
-                this.NEStyles.nodes[state.name] = {...GlobalConstant.defaultNodeStyle}
+            if (!this.NEStyles.nodes.hasOwnProperty(name)){
+                this.NEStyles.nodes[name] = {...GlobalConstant.defaultNodeStyle}
             }
 
             let __node = this.svg.selectAll(".nodes")
                 .filter(function(d, i){
                     for (let index=0; index<d.labels.length; index++){
-                        if (d.labels[index] == state.name)
+                        if (d.labels[index] == name)
                             return true;
                     }    
                     return false;
@@ -426,40 +466,42 @@ D3ForceSimulation.setStyle = function(state, type, val) {
             if (!__node.empty()){
                 switch (type){
                     case 'icon':
-                        this.NEStyles.nodes[state.name].icon = val;
+                        this.NEStyles.nodes[name].icon = val;
                         __node.select('.node_icon')
                             .attr("xlink:href", setIcon);
                         break;
                     case 'caption':
-                        this.NEStyles.nodes[state.name].caption = val;
+                        this.NEStyles.nodes[name].caption = val;
                         __node.select('text')
                             .text(setNodeText);
                         break;
-                    case 'size':
-                        this.NEStyles.nodes[state.name].size = val;
+                    case 'size_property':
+                        this.NEStyles.nodes[name].size.property = val;
                         __node.select('.node_icon')
                             .each(setNodeSize);
                         
                         __node.select('text')
                             .attr("dy", setNodeTextOffset);
                         break;
+                    case 'size_level':
+                        break;
                 }
             }
             break;
         case GlobalConstant.mode.edge:
-            if (!this.NEStyles.edges.hasOwnProperty(state.name)){
-                this.NEStyles.edges[state.name] =  {...GlobalConstant.defaultEdgeStyle}
+            if (!this.NEStyles.edges.hasOwnProperty(name)){
+                this.NEStyles.edges[name] =  {...GlobalConstant.defaultEdgeStyle}
             }
             
             let __link = this.svg.selectAll(".links")
                 .filter(function(d, i){
-                    return d.type == state.name;
+                    return d.type == name;
                 });
             
             if (!__link.empty()){
                 switch (type){
                     case 'color':
-                        this.NEStyles.edges[state.name].color = val;
+                        this.NEStyles.edges[name].color = val;
                         __link.style('stroke', setEdgeColor)
                         break;
                     case 'size':
@@ -543,6 +585,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     console.log(__data);
 
     let __updataForNode = this.svg
+        .select('#layer_nodes')
         .selectAll(".nodes")
         .data(__data.nodes)
         
@@ -564,6 +607,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .attr("text-anchor", "middle");
 
     let __updataForLink = this.svg
+        .select('#layer_edges')
         .selectAll(".links")
         .data(__data.edges)
     
@@ -786,12 +830,13 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .attr('class', function(d){ 
             let __sid = typeof d.source == 'object' ? d.source.id : d.source;
             let __tid = typeof d.target == 'object' ? d.target.id : d.target;
-            d['STID'] = __tid > __sid ? __sid + ':' + __tid : __tid + ':' + __sid;
+            let __b = __tid > __sid;
+            d['STID'] = __b ? __sid + ':' + __tid : __tid + ':' + __sid;
             if (!__tmplinks.hasOwnProperty(d['STID'])){
                 __tmplinks[d['STID']] = [];
             }
 
-            __tmplinks[d['STID']].push(d);
+            __tmplinks[d['STID']].push({data: d, flag:__b});
 
             if (!d.hasOwnProperty('selected')){
                 d['selected'] = false;
@@ -857,10 +902,10 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
             let tmp = 1;
             for (let i=0; i<__tmplinks[key].length; i++){
                 tmp = 1 + i;
-                __tmplinks[key][i]['floor'] = 20 * (tmp % 2 == 1 ? Math.ceil(tmp/2) : -Math.ceil(tmp/2));
+                __tmplinks[key][i].data['floor'] = (__tmplinks[key][i].flag ? 1 : -1) * 20 * (tmp % 2 == 1 ? Math.ceil(tmp/2) : -Math.ceil(tmp/2));
             }
         }else{
-            __tmplinks[key][0]['floor'] = 0;
+            __tmplinks[key][0].data['floor'] = 0;
         }
     }
 

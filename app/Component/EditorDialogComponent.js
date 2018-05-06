@@ -46,7 +46,7 @@ export default class EditorDialogComponent extends React.Component {
 			labels: [],
 			type:'',    // edge
 			properties:[
-                //{key:1,type:'String',value:'1'}
+                //{key:1,type:'String',value:'1', oldType'String', oldValue:'1'}
 			],
 		};
 	}
@@ -538,7 +538,12 @@ export default class EditorDialogComponent extends React.Component {
 									[...newProps.data.properties[key]]
 									:
 									newProps.data.properties[key],
-								type: __type
+								type: __type,
+								oldType: __type,
+								oldValue: typeof newProps.data.properties[key] == 'object' ? 
+									[...newProps.data.properties[key]]
+									:
+									newProps.data.properties[key]
 							});
 						}
 					}
@@ -836,7 +841,7 @@ export default class EditorDialogComponent extends React.Component {
 										</IconButton>
 									</div>
 								))}
-								<IconMenu
+								{/* <IconMenu
 									iconButtonElement={
 										<IconButton 
 											style={{
@@ -856,16 +861,20 @@ export default class EditorDialogComponent extends React.Component {
 										</IconButton>}
 									onChange ={function(event, value) {
 											this.setState(function(prevState, props) {
-												prevState.properties[i].value = [];
+												prevState.properties[i].value = prevState.properties[i].hasOwnProperty('oldType') ?
+														prevState.properties[i].oldType == 'list'+value ? [...this.state.properties[i].oldValue] : []
+														:
+														[];
+												prevState.properties[i].type = 'list'+value;
 												return prevState;
 											});
 										}.bind(this)
 									}
 								>
-									<MenuItem value="string" primaryText="String" leftIcon={<ContentFontDownload />} />
-									<MenuItem value="number" primaryText="Number" leftIcon={<ImageLooksOne />} />
-									<MenuItem value="boolean" primaryText="Boolean" leftIcon={<ToggleCheckBox />} />
-								</IconMenu>
+									<MenuItem value="String" primaryText="String" leftIcon={<ContentFontDownload />} />
+									<MenuItem value="Number" primaryText="Number" leftIcon={<ImageLooksOne />} />
+									<MenuItem value="Boolean" primaryText="Boolean" leftIcon={<ToggleCheckBox />} />
+								</IconMenu> */}
 								
 								<IconButton 
 									tooltip="Add Item"
@@ -920,21 +929,26 @@ export default class EditorDialogComponent extends React.Component {
 							</IconButton>}
                         onChange={function(event, value) {
 								this.setState(function(prevState, props) {
-									console.log(value);
-									prevState.properties[i].type = value;
-									switch (prevState.properties[i].type)
+									let __newValue;
+									switch (value)
 									{
 										case 'object':
-											prevState.properties[i].value = [];
+											console.log('fqfqfqfqfqfq')
+											//__newValue = [];
 											break;
 										case 'string':
 										case 'number':
-											prevState.properties[i].value = '';
+											__newValue = '';
 											break;
 										case 'boolean':
-											prevState.properties[i].value = true;
+											__newValue = true;
 											break;
 									}
+									prevState.properties[i].value = prevState.properties[i].hasOwnProperty('oldType') ?
+											prevState.properties[i].oldType == value ? this.state.properties[i].oldValue : __newValue
+											:
+											__newValue;
+									prevState.properties[i].type = value;
 									return prevState;
 								});
 							}.bind(this)
@@ -953,9 +967,11 @@ export default class EditorDialogComponent extends React.Component {
 									primaryText="String" 
 									onClick={function(event, value) {
 											this.setState(function(prevState, props) {
-												console.log(value);
 												prevState.properties[i].type = "listString";
-												prevState.properties[i].value = [];
+												prevState.properties[i].value = prevState.properties[i].hasOwnProperty('oldType') ?
+														prevState.properties[i].oldType == "listString" ? [...this.state.properties[i].oldValue] : []
+														:
+														[];
 												return prevState;
 											});
 										}.bind(this)}
@@ -965,9 +981,11 @@ export default class EditorDialogComponent extends React.Component {
 									primaryText="Number" 
 									onClick={function(event, value) {
 											this.setState(function(prevState, props) {
-												console.log(value);
 												prevState.properties[i].type = "listNumber";
-												prevState.properties[i].value = [];
+												prevState.properties[i].value = prevState.properties[i].hasOwnProperty('oldType') ?
+														prevState.properties[i].oldType == "listNumber" ? [...this.state.properties[i].oldValue] : []
+														:
+														[];
 												return prevState;
 											});
 										}.bind(this)}
@@ -979,7 +997,10 @@ export default class EditorDialogComponent extends React.Component {
 											this.setState(function(prevState, props) {
 												console.log(value);
 												prevState.properties[i].type = "listBoolean";
-												prevState.properties[i].value = [];
+												prevState.properties[i].value = prevState.properties[i].hasOwnProperty('oldType') ?
+														prevState.properties[i].oldType == "listBoolean" ? [...this.state.properties[i].oldValue] : []
+														:
+														[];
 												return prevState;
 											});
 										}.bind(this)}
