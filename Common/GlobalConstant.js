@@ -13,11 +13,28 @@ const GlobalConstant = {
     templateList: {},
     defaultNodeStyle: {
         icon: 'icons/default/node.svg',
-        size: 50,
+        size: {
+            property: 'name',
+            levels: {
+                level: [
+                    [0,50] //level 0: val<=0, size=50
+                ],
+                type: 'num'
+            }
+        },
         caption: '<id>'
     },
     defaultEdgeStyle: {
-        color: '#000000'
+        color: '#000000',
+        width: {
+            property: 'name',
+            levels: {
+                level: [
+                    [0,50] //level 0: val<=0, size=50
+                ],
+                type: 'num'
+            }
+        }
     }
 }
 
