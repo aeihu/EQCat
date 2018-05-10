@@ -11,28 +11,20 @@ const GlobalConstant = {
     propertyList: [],
     relationshipTypeList: [],
     templateList: {},
-    defaultNodeStyle: {
-        icon: 'icons/default/node.svg',
-        size: {
-            property: 'name',
-            levels: {
-                level: [
-                    [0,50] //level 0: val<=0, size=50
-                ],
-                type: 'num'
-            }
-        },
-        caption: '<id>'
+    defaultNodeStyle: function(){
+        return {
+            icon: 'icons/default/node.svg',
+            size_property: '<id>',
+            size_level: [],
+            caption: '<id>'
+        }
     },
-    defaultEdgeStyle: {
-        color: '#000000',
-        width: {
-            property: 'name',
-            levels: {
-                level: [
-                    [0,50] //level 0: val<=0, size=50
-                ],
-                type: 'num'
+    defaultEdgeStyle: function(){
+        return {
+            color: '#000000',
+            width: {
+                property: 'name',
+                level: []
             }
         }
     }

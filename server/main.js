@@ -129,13 +129,23 @@ class EQCarServer{
 				let __json = JSON.parse(Base64.decode(req.query.style));
 				if (__json.mode == GlobalConstant.mode.node){
 					if (!this.styles.nodes.hasOwnProperty(__json.label)){
-						this.styles.nodes[__json.label] = {...GlobalConstant.defaultNodeStyle};
+						this.styles.nodes[__json.label] = GlobalConstant.defaultNodeStyle();
 					}
 		
-					this.styles.nodes[__json.label][__json.property] = __json.value;
+					switch (__json.property){
+						case 'size_property':
+							this.styles.nodes[__json.label].size_property = __json.value;
+							break;
+						case 'size_level':
+							this.styles.nodes[__json.label].size_level = __json.value;
+							break;
+						default:
+							this.styles.nodes[__json.label][__json.property] = __json.value;
+							break;
+					}
 				}else{
 					if (!this.styles.edges.hasOwnProperty(__json.type)){
-						this.styles.edges[__json.type] = {...GlobalConstant.defaultEdgeStyle};
+						this.styles.edges[__json.type] = GlobalConstant.defaultEdgeStyle();
 					}
 		
 					this.styles.edges[__json.type][__json.property] = __json.value;

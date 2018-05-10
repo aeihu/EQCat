@@ -3,7 +3,6 @@ import AddBox from 'material-ui/svg-icons/content/add-box';
 import IconButton from 'material-ui/IconButton';
 import Upload from 'rc-upload';
 import CircularProgress from 'material-ui/CircularProgress';
-//import { Uploader } from '@navjobs/upload'
 
 export default class IconSelectorComponent extends React.Component {
     constructor(props) {

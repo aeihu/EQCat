@@ -16,7 +16,7 @@ export default class EditStyleComponent extends React.Component {
         }
     }  
 
-	sendSetStyle = function(style){
+	sendSetStyle = function(style, func){
         let xmlhttp = new XMLHttpRequest()
         
         xmlhttp.onreadystatechange = function(){
@@ -24,6 +24,10 @@ export default class EditStyleComponent extends React.Component {
                 let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
                 if (__json.hasOwnProperty('error')){
                     this.props.onMessage(__json.message, 0);
+                }else{
+                    if (typeof func == 'function'){
+                        func();
+                    }
                 }
             }
         }.bind(this)

@@ -21,19 +21,6 @@ export default class EditEdgeComponent extends React.Component {
         }
     }
 
-    setColor = function (hex){
-        if (D3ForceSimulation.getEdgeStyle(this.props.chipName).color != hex){
-            D3ForceSimulation.setStyle(GlobalConstant.mode.edge, this.props.chipName, 'color', hex);
-            this.props.onChange();
-            this.props.onSendStyle({
-                mode: GlobalConstant.mode.edge,
-                type: this.props.chipName,
-                property: 'color',
-                value: hex
-            })
-        }
-    }.bind(this)
-
     render() {
         let __name = typeof this.props.chipName === 'undefined' ? '' : this.props.chipName;
 
@@ -67,7 +54,7 @@ export default class EditEdgeComponent extends React.Component {
                     style={{width:'15px', height: '20px', margin: '12px'}}
                 />
 
-                <span>width:</span>
+                {/* <span>width:</span>
                 <Chip 
                     className="edgeChip" 
                     style={{border:'1px solid #a1a1a1'}}
@@ -83,9 +70,9 @@ export default class EditEdgeComponent extends React.Component {
                     }.bind(this)}
                 >
                     {D3ForceSimulation.geEdgeStyle(__name).width.property}
-                </Chip>
+                </Chip> */}
 
-                <Popover
+                {/* <Popover
                     open={this.state.captionAndSizeMenu.open}
                     anchorEl={this.state.captionAndSizeMenu.anchorEl}
                     anchorOrigin={{horizontal:"right", vertical:"top"}}
@@ -108,7 +95,7 @@ export default class EditEdgeComponent extends React.Component {
                             />
                         :''}
                     </Menu>
-                </Popover>
+                </Popover> */}
                 <Popover
                     open={this.state.colorPicker.open}
                     anchorEl={this.state.colorPicker.anchorEl}
@@ -124,7 +111,21 @@ export default class EditEdgeComponent extends React.Component {
                 >
                     <SketchPicker
                         color={D3ForceSimulation.getEdgeStyle(__name).color}
-                        onChange={({hex}) => this.setColor(hex)}
+                        onChange={({hex}) => {
+                            if (D3ForceSimulation.getEdgeStyle(this.props.chipName).color != hex){
+                                this.props.onSendStyle(
+                                    {
+                                        mode: GlobalConstant.mode.edge,
+                                        type: this.props.chipName,
+                                        property: 'color',
+                                        value: hex
+                                    }, 
+                                    ()=>{
+                                        D3ForceSimulation.setStyle(GlobalConstant.mode.edge, this.props.chipName, 'color', hex);
+                                        this.props.onChange();
+                                    });
+                            }
+                        }}
                     />
                 </Popover>
             </div>

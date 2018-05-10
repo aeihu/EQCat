@@ -17,11 +17,13 @@ D3ForceSimulation.conncetLine = null;
 
 D3ForceSimulation.NEStyles = {
     nodes: {
-        //xx:{
-        //  icon:'a.png',
-        //  size:'50',
-        //  caption:'name',
-        //}
+        // icon: 'icons/default/node.svg',
+        // size: {
+        //     property: 'name',
+        //     level: [
+        //     ],
+        // },
+        // caption: '<id>'
     },
     edges: {
         //xx:{
@@ -199,38 +201,42 @@ function setNodeSize(d) {
     if (d.labels.length < 1){
         d.size = 50;
     }else{
-        let __property = D3ForceSimulation.getNodeStyle(d.labels[0]).size.property;
-        let __level = D3ForceSimulation.getNodeStyle(d.labels[0]).size.levels.level;
+        let __property = D3ForceSimulation.getNodeStyle(d.labels[0]).size_property;
+        let __level = D3ForceSimulation.getNodeStyle(d.labels[0]).size_level;
         if (__level.length == 0){
             d.size = 50;
         }else{
             if (__property == '<connect number>'){
                 let __connectNumber = (d.hasOwnProperty('sourceEdges') ? d.sourceEdges.length : 0) + (d.hasOwnProperty('targetEdges') ? d.targetEdges.length : 0)
-                for (let i=0; i<__level.length; i++){
-                    if (__connectNumber < __level[i][0] || i == __level.length -1){
-                        d.size = __level[i][1];
-                        break;
+                for (let i=0; i<__level.length; i+=2){
+                    if (i == __level.length - 2){
+                        d.size = Number(__level[i+1]);
+                    }else{
+                        if (!isNaN(Number(__level[i]))){
+                            if (__connectNumber <= Number(__level[i])){
+                                d.size = Number(__level[i+1]);
+                                break;
+                            }
+                        }
                     }
                 }
             }else{
                 if (d.properties.hasOwnProperty(__property)){
-                    if (D3ForceSimulation.getNodeStyle(d.labels[0]).size.levels.type == 'num'){
-                        for (let i=0; i<__level.length; i++){
-                            if (d.properties[__property] < __level[i][0] || i == __level.length -1){
-                                d.size = __level[i][1];
+                    for (let i=0; i<__level.length; i+=2){
+                        if (!isNaN(Number(__level[i])) && typeof d.properties[__property] == "number"){
+                            if (d.properties[__property] <= Number(__level[i]) || i == __level.length - 2){
+                                d.size = Number(__level[i+1]);
                                 break;
                             }
-                        }
-                    }else{
-                        for (let i=__level.length-1; i>=0; i--){
-                            if (d.properties[__property] == __level[i][0] || i == 0){
-                                d.size = __level[i][1];
+                        }else{
+                            if (d.properties[__property] == __level[i] || i == __level.length - 2){
+                                d.size = Number(__level[i+1]);
                                 break;
                             }
                         }
                     }
                 }else{
-                    d.size = __level.length < 1 ? 50 : __level[0][1];
+                    d.size = __level[1];
                 }
             }
         }
@@ -433,7 +439,7 @@ function computeForEdge(d)
 
 D3ForceSimulation.getNodeStyle = function(label){
     if (!this.NEStyles.nodes.hasOwnProperty(label)){
-        this.NEStyles.nodes[label] = {...GlobalConstant.defaultNodeStyle}
+        this.NEStyles.nodes[label] = GlobalConstant.defaultNodeStyle();
     }
 
     return this.NEStyles.nodes[label];
@@ -441,7 +447,7 @@ D3ForceSimulation.getNodeStyle = function(label){
 
 D3ForceSimulation.getEdgeStyle = function(type){
     if (!this.NEStyles.edges.hasOwnProperty(type)){
-        this.NEStyles.edges[type] = {...GlobalConstant.defaultEdgeStyle}
+        this.NEStyles.edges[type] = GlobalConstant.defaultEdgeStyle();
     }
 
     return this.NEStyles.edges[type];
@@ -451,7 +457,7 @@ D3ForceSimulation.setStyle = function(mode, name, type, val) {
     switch (mode){
         case GlobalConstant.mode.node:
             if (!this.NEStyles.nodes.hasOwnProperty(name)){
-                this.NEStyles.nodes[name] = {...GlobalConstant.defaultNodeStyle}
+                this.NEStyles.nodes[name] = GlobalConstant.defaultNodeStyle();
             }
 
             let __node = this.svg.selectAll(".nodes")
@@ -476,7 +482,7 @@ D3ForceSimulation.setStyle = function(mode, name, type, val) {
                             .text(setNodeText);
                         break;
                     case 'size_property':
-                        this.NEStyles.nodes[name].size.property = val;
+                        this.NEStyles.nodes[name].size_property = val;
                         __node.select('.node_icon')
                             .each(setNodeSize);
                         
@@ -484,13 +490,19 @@ D3ForceSimulation.setStyle = function(mode, name, type, val) {
                             .attr("dy", setNodeTextOffset);
                         break;
                     case 'size_level':
+                        this.NEStyles.nodes[name].size_level = [...val];
+                        __node.select('.node_icon')
+                            .each(setNodeSize);
+                        
+                        __node.select('text')
+                            .attr("dy", setNodeTextOffset);
                         break;
                 }
             }
             break;
         case GlobalConstant.mode.edge:
             if (!this.NEStyles.edges.hasOwnProperty(name)){
-                this.NEStyles.edges[name] =  {...GlobalConstant.defaultEdgeStyle}
+                this.NEStyles.edges[name] =  GlobalConstant.defaultEdgeStyle();
             }
             
             let __link = this.svg.selectAll(".links")
