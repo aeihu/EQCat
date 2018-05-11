@@ -12,6 +12,7 @@ import GlobalFunction from '../../Common/GlobalFunction';
 import {D3ForceSimulation} from './D3ForceSimulation';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 import Clear from 'material-ui/svg-icons/content/clear';
+import AutoComplete from 'material-ui/AutoComplete';
 
 export default class EditNodeComponent extends React.Component {
     constructor(props) {
@@ -21,8 +22,7 @@ export default class EditNodeComponent extends React.Component {
                 open: false,
                 anchorEl: null
             },
-            captionAndSizeMenu: {
-                mode: 0, //0:caption 1:Size
+            captionMenu: {
                 open: false,
                 anchorEl: null
             },
@@ -33,6 +33,8 @@ export default class EditNodeComponent extends React.Component {
             },
         }
     }
+
+    isError = false;
 
     setCaption = function (propertyName){
         if (propertyName != D3ForceSimulation.getNodeStyle(this.props.chipName).caption){
@@ -71,23 +73,53 @@ export default class EditNodeComponent extends React.Component {
         }
     }.bind(this)
 
+    checkSubmitForLevelForSize = function(){
+        for (let i=0; i<this.state.levelMenu.level.length; i++){
+            if (i%2 == 0){
+                for (let j=i+2; j<this.state.levelMenu.level.length; j+=2){
+                    if (this.state.levelMenu.level[i] == this.state.levelMenu.level[j]){
+                        return -1;
+                    }
+                }
+            }else{
+                if (isNaN(Number(this.state.levelMenu.level[i]))){
+                    return -2;
+                }
+            }
+        }
+        return 0;
+    }
+
     setLevelForSize = function (){    
         if (!GlobalFunction.ArrayEquals(this.state.levelMenu.level, D3ForceSimulation.getNodeStyle(this.props.chipName).size_level)){
-            this.props.onSendStyle(
-                {
-                    mode: GlobalConstant.mode.node,
-                    label: this.props.chipName,
-                    property: 'size_level',
-                    value: this.state.levelMenu.level
-                },
-                ()=>{
-                    this.setState(function(prevState, props) {
-                        D3ForceSimulation.setStyle(GlobalConstant.mode.node, this.props.chipName, 'size_level', this.state.levelMenu.level);
-                        prevState.levelMenu.open = false;
-                        return prevState;
-                    }.bind(this));
-                }
-            )
+            switch (this.checkSubmitForLevelForSize()){
+                case -1:
+                    this.isError = true;
+                    this.props.onMessage('There is same level key', 0);
+                    break;
+                case -2:
+                    this.isError = true;
+                    this.props.onMessage('There is invalid level value', 0);
+                    break;
+                default:
+                    this.props.onSendStyle(
+                        {
+                            mode: GlobalConstant.mode.node,
+                            label: this.props.chipName,
+                            property: 'size_level',
+                            value: this.state.levelMenu.level
+                        },
+                        ()=>{
+                            this.setState(function(prevState, props) {
+                                D3ForceSimulation.setStyle(GlobalConstant.mode.node, this.props.chipName, 'size_level', this.state.levelMenu.level);
+                                prevState.levelMenu.open = false;
+                                return prevState;
+                            }.bind(this));
+                        }
+                    )
+                    break;
+
+            }
         }else{
             this.setState(function(prevState, props) {
                 prevState.levelMenu.open = false;
@@ -107,6 +139,9 @@ export default class EditNodeComponent extends React.Component {
 
     componentWillReceiveProps(newProps)
     {
+        if (this.isError)
+            return;
+
         this.setState(function(prevState, props) {
             prevState.levelMenu.level = [...D3ForceSimulation.getNodeStyle(newProps.chipName).size_level];
             return prevState;
@@ -123,10 +158,7 @@ export default class EditNodeComponent extends React.Component {
                     <MenuItem 
                         primaryText={key} 
                         onClick={function(event, value) {
-                            this.state.captionAndSizeMenu.mode == 0 ?
                                 this.setCaption(key)
-                                :
-                                this.setPropertyForSize(key);
                         }.bind(this)}
                     />
                 );
@@ -136,9 +168,13 @@ export default class EditNodeComponent extends React.Component {
         let __levelItem = [];
         for (let i = 0; i < this.state.levelMenu.level.length; i+=2){
             __levelItem.push(
-                <div style={{
-                    marginLeft: '10px'
-                }}>
+				<div style={{
+					display: 'flex', 
+					flexDirection: 'row', 
+					alignItems: 'center',
+					flexWrap: 'wrap',
+                    marginLeft: '10px'}} 
+				>
                     <Avatar
                         backgroundColor='Tomato'
                         size={16}
@@ -148,7 +184,7 @@ export default class EditNodeComponent extends React.Component {
                     </Avatar>
                     <TextField 
                         id={'value1'}
-                        style={{width:'50px', height:'32px'}}
+                        style={{width:'80px', height:'32px'}}
                         inputStyle={{fontSize: '12px'}}
                         onChange={(event, newValue) => {
                             this.setState(function(prevState, props) {
@@ -157,12 +193,13 @@ export default class EditNodeComponent extends React.Component {
                             })
                         }}
                         //errorText={value[0].tr ? "It's not number" : ''}
+						errorStyle={{fontSize: '10px', lineHeight:'0px'}}
                         value={this.state.levelMenu.level[i]}
                     /> 
                     :
                     <TextField 
                         id={'value2'}
-                        style={{width:'50px', height:'32px'}}
+                        style={{width:'80px', height:'32px'}}
                         inputStyle={{fontSize: '12px'}}
                         onChange={(event, newValue) =>{
                             this.setState(function(prevState, props) {
@@ -171,6 +208,7 @@ export default class EditNodeComponent extends React.Component {
                             })
                         }}
                         errorText={isNaN(Number(this.state.levelMenu.level[i+1])) ? "It's not number" : ''}
+                        errorStyle={{fontSize: '10px', lineHeight:'0px'}}
                         value={this.state.levelMenu.level[i+1]}
                     /> 
                     
@@ -197,6 +235,8 @@ export default class EditNodeComponent extends React.Component {
                 </div>
             );
         }
+
+        let __datasource = ['<connect number>'].concat(GlobalConstant.propertyList);
 
         return (
             <div style={{
@@ -245,9 +285,8 @@ export default class EditNodeComponent extends React.Component {
                     onClick={function(event) {
                         const __target = event.currentTarget;
                         this.setState(function(prevState, props) {
-                            prevState.captionAndSizeMenu.mode = 0;
-                            prevState.captionAndSizeMenu.open = true;
-                            prevState.captionAndSizeMenu.anchorEl = __target;
+                            prevState.captionMenu.open = true;
+                            prevState.captionMenu.anchorEl = __target;
                             return prevState;
                         });
                     }.bind(this)}
@@ -256,23 +295,22 @@ export default class EditNodeComponent extends React.Component {
                 </Chip>
 
                 <span style={{marginLeft:'12px'}}>Size: [</span>
-                <Chip 
-                    className="edgeChip" 
-                    style={{border:'1px solid #a1a1a1'}}
-                    //backgroundColor='#a1a1a100'
-                    labelStyle={{fontSize: '12px'}}
-                    onClick={function(event) {
-                        const __target = event.currentTarget;
-                        this.setState(function(prevState, props) {
-                            prevState.captionAndSizeMenu.mode = 1;
-                            prevState.captionAndSizeMenu.open = true;
-                            prevState.captionAndSizeMenu.anchorEl = __target;
-                            return prevState;
-                        });
-                    }.bind(this)}
-                >
-                    {D3ForceSimulation.getNodeStyle(__name).size_property}
-                </Chip>
+                <AutoComplete
+                    // errorStyle={{fontSize: '10px', lineHeight:'0px'}}
+                    // errorText={GlobalFunction.CheckName(this.state.labels[i])}
+                    anchorOrigin={{horizontal:"left", vertical:"top"}}
+                    targetOrigin={{horizontal:"left", vertical:"bottom"}}
+                    searchText={D3ForceSimulation.getNodeStyle(this.props.chipName).size_property}
+                    onUpdateInput={(value)=>this.setPropertyForSize(value)}
+                    onNewRequest={(value)=>this.setPropertyForSize(value)}
+                    dataSource={__datasource}
+                    filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
+                    openOnFocus={false}
+                    maxSearchResults={6}
+                    style={{width:'105px',height:'32px'}} 
+                    textFieldStyle={{width:'105px',height:'32px'}} 
+                    inputStyle={{fontSize: '12px'}}
+                />
                 <span> : </span>
                 <Chip 
                     className="edgeChip" 
@@ -282,13 +320,14 @@ export default class EditNodeComponent extends React.Component {
                     onClick={function(event) {
                         const __target = event.currentTarget;
                         this.setState(function(prevState, props) {
+                            this.isError = false;
                             prevState.levelMenu.open = true;
                             prevState.levelMenu.anchorEl = __target;
                             return prevState;
                         });
                     }.bind(this)}
                 >
-                    Level
+                    LEVEL
                 </Chip>
                 <span> ]</span>
 
@@ -300,10 +339,10 @@ export default class EditNodeComponent extends React.Component {
                     anchorEl={this.state.levelMenu.anchorEl}
                     anchorOrigin={{horizontal:"right", vertical:"top"}}
                     targetOrigin={{horizontal:"left", vertical:"bottom"}}
-                    style={{width:'180px'}}
+                    style={{width:'300px'}}
                     onRequestClose={this.setLevelForSize}
                 >
-                    <div style={{width:'180px', maxHeight:'300px', overflowX:'hidden'}}>
+                    <div style={{width:'300px', maxHeight:'300px', overflowX:'hidden'}}>
                         {__levelItem}
                         <IconButton
                             onClick={()=>{
@@ -320,26 +359,18 @@ export default class EditNodeComponent extends React.Component {
                 </Popover>
 
                 <Popover
-                    open={this.state.captionAndSizeMenu.open}
-                    anchorEl={this.state.captionAndSizeMenu.anchorEl}
+                    open={this.state.captionMenu.open}
+                    anchorEl={this.state.captionMenu.anchorEl}
                     anchorOrigin={{horizontal:"right", vertical:"top"}}
                     targetOrigin={{horizontal:"left", vertical:"bottom"}}
                     onRequestClose={function() {
                         this.setState(function(prevState, props) {
-                            prevState.captionAndSizeMenu.open = false;
+                            prevState.captionMenu.open = false;
                             return prevState;
                         });
                     }.bind(this)}
                 >
                     <Menu desktop={true} maxHeight={300}>
-                        {this.state.captionAndSizeMenu.mode == 1 ?
-                            <MenuItem 
-                                primaryText='<connect number>'
-                                onClick={function(event, value) {
-                                    this.setPropertyForSize('<connect number>');
-                                }.bind(this)}
-                            />
-                        :''}
                         {__propertyItem}
                     </Menu>
                 </Popover>

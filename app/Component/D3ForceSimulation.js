@@ -258,6 +258,30 @@ function setEdgeColor(d) {
     return D3ForceSimulation.getEdgeStyle(d.type).color;
 }
 
+function setEdgeStroke(d) { 
+    let __property = D3ForceSimulation.getEdgeStyle(d.type).stroke_property;
+    let __level = D3ForceSimulation.getEdgeStyle(d.type).stroke_level;
+
+    if (__level.length == 0){
+        return '0'
+    }else{
+        if (d.properties.hasOwnProperty(__property)){
+            for (let i=0; i<__level.length; i+=2){
+                if (!isNaN(Number(__level[i])) && typeof d.properties[__property] == "number"){
+                    if (d.properties[__property] <= Number(__level[i]) || i == __level.length - 2){
+                        return __level[i+1]
+                    }
+                }else{
+                    if (d.properties[__property] == __level[i] || i == __level.length - 2){
+                        return __level[i+1]
+                    }
+                }
+            }
+        }else{
+            return __level[1];
+        }
+    }
+}
 
 function moveExistEdge(selection, x, y){
     let __def = selection.select('.defs_path')
@@ -516,7 +540,13 @@ D3ForceSimulation.setStyle = function(mode, name, type, val) {
                         this.NEStyles.edges[name].color = val;
                         __link.style('stroke', setEdgeColor)
                         break;
-                    case 'size':
+                    case 'stroke_property':
+                        this.NEStyles.edges[name].stroke_property = val;
+                        __link.select('.link_path').style('stroke-dasharray', setEdgeStroke)
+                        break;
+                    case 'stroke_level':
+                        this.NEStyles.edges[name].stroke_level = [...val];
+                        __link.select('.link_path').style('stroke-dasharray', setEdgeStroke)
                         break;
                 }
             }
@@ -925,7 +955,8 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
         .attr('id', (d) => {return 'defs_path_id_'+ d.id});
 
     let __pathInLink = __link.select('.link_path')
-        .attr('id', (d)=> {return 'link_path_id_'+ d.id});
+        .attr('id', (d)=> {return 'link_path_id_'+ d.id})
+        .style('stroke-dasharray', setEdgeStroke);
     
     let __textpathInLink = __link.select('textPath')
         .attr('xlink:href', (d) => {return '#defs_path_id_'+ d.id})

@@ -148,7 +148,17 @@ class EQCarServer{
 						this.styles.edges[__json.type] = GlobalConstant.defaultEdgeStyle();
 					}
 		
-					this.styles.edges[__json.type][__json.property] = __json.value;
+					switch (__json.property){
+						case 'stroke_property':
+							this.styles.edges[__json.type].stroke_property = __json.value;
+							break;
+						case 'stroke_level':
+							this.styles.edges[__json.type].stroke_level = __json.value;
+							break;
+						default:
+							this.styles.edges[__json.type][__json.property] = __json.value;
+							break;
+					}
 				}
 		
 				fs.writeFile(this.stylePath, JSON.stringify(this.styles, null, 2),

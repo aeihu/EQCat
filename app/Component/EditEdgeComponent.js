@@ -5,12 +5,23 @@ import Popover from 'material-ui/Popover/Popover';
 import { SketchPicker } from 'react-color';
 import GlobalConstant from '../../Common/GlobalConstant';
 import {D3ForceSimulation} from './D3ForceSimulation';
+import AutoComplete from 'material-ui/AutoComplete';
+import GlobalFunction from '../../Common/GlobalFunction';
+import IconButton from 'material-ui/IconButton';
+import ContentAdd from 'material-ui/svg-icons/content/add';
+import Avatar from 'material-ui/Avatar';
+import TextField from 'material-ui/TextField';
+import Clear from 'material-ui/svg-icons/content/clear';
+import IconMenu from 'material-ui/IconMenu';
+import MenuItem from 'material-ui/MenuItem';
 
 export default class EditEdgeComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            iconMenu: {
+            levelMenu: {
+                property: '',
+                level: [],
                 open: false,
                 anchorEl: null
             },
@@ -21,8 +32,204 @@ export default class EditEdgeComponent extends React.Component {
         }
     }
 
+    isError = false;
+    
+    checkSubmitForLevelForStroke = function(){
+        for (let i=0; i<this.state.levelMenu.level.length; i+=2){
+            if (i%2 == 0){
+                for (let j=i+2; j<this.state.levelMenu.level.length; j+=2){
+                    if (this.state.levelMenu.level[i] == this.state.levelMenu.level[j]){
+                        return -1;
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    setLevelForStroke = function (){    
+        if (!GlobalFunction.ArrayEquals(this.state.levelMenu.level, D3ForceSimulation.getEdgeStyle(this.props.chipName).stroke_level)){
+            switch (this.checkSubmitForLevelForStroke()){
+                case -1:
+                    this.isError = true;
+                    this.props.onMessage('There is same level key', 0);
+                    break;
+                default:
+                    this.props.onSendStyle(
+                        {
+                            mode: GlobalConstant.mode.edge,
+                            type: this.props.chipName,
+                            property: 'stroke_level',
+                            value: this.state.levelMenu.level
+                        },
+                        ()=>{
+                            this.setState(function(prevState, props) {
+                                D3ForceSimulation.setStyle(GlobalConstant.mode.edge, this.props.chipName, 'stroke_level', this.state.levelMenu.level);
+                                prevState.levelMenu.open = false;
+                                return prevState;
+                            }.bind(this));
+                        }
+                    )
+                    break;
+
+            }
+        }else{
+            this.setState(function(prevState, props) {
+                prevState.levelMenu.open = false;
+                return prevState;
+            }.bind(this));
+        }
+    }.bind(this)
+
+    setPropertyForStroke = function(property){
+        if (property != D3ForceSimulation.getEdgeStyle(this.props.chipName).stroke_property){
+            this.props.onSendStyle(
+                {
+                    mode: GlobalConstant.mode.edge,
+                    type: this.props.chipName,
+                    property: 'stroke_property',
+                    value: property
+                },
+                ()=>{
+                    this.setState(function(prevState, props) {
+                        D3ForceSimulation.setStyle(GlobalConstant.mode.edge, this.props.chipName, 'stroke_property', property);
+                        return prevState;
+                    }.bind(this));
+                })
+        }
+    }.bind(this)
+
+    componentDidMount()
+    {
+        this.setState(function(prevState, props) {
+            prevState.levelMenu.level = [...D3ForceSimulation.getEdgeStyle(this.props.chipName).stroke_level];
+            return prevState;
+        })
+    }
+
+    componentWillReceiveProps(newProps)
+    {
+        if (this.isError)
+            return;
+
+        this.setState(function(prevState, props) {
+            prevState.levelMenu.level = [...D3ForceSimulation.getEdgeStyle(newProps.chipName).stroke_level];
+            return prevState;
+        })
+    }
+
     render() {
         let __name = typeof this.props.chipName === 'undefined' ? '' : this.props.chipName;
+
+        let __levelItem = [];
+        for (let i = 0; i < this.state.levelMenu.level.length; i+=2){
+            __levelItem.push(
+				<div style={{
+					display: 'flex', 
+					flexDirection: 'row', 
+					alignItems: 'center',
+					flexWrap: 'wrap',
+                    marginLeft: '10px'}} 
+				>
+                    <Avatar
+                        backgroundColor='Tomato'
+                        size={16}
+                        style={{marginRight:'2px'}}
+                    >
+                        {i * 0.5}
+                    </Avatar>
+                    <TextField 
+                        id={'value1'}
+                        style={{width:'80px', height:'32px'}}
+                        inputStyle={{fontSize: '12px'}}
+                        onChange={(event, newValue) => {
+                            this.setState(function(prevState, props) {
+                                prevState.levelMenu.level[i] = newValue;
+                                return prevState;
+                            })
+                        }}
+                        //errorText={value[0].tr ? "It's not number" : ''}
+						errorStyle={{fontSize: '10px', lineHeight:'0px'}}
+                        value={this.state.levelMenu.level[i]}
+                    /> 
+                    :
+                    <IconMenu
+                        anchorOrigin={{horizontal:"left", vertical:"top"}}
+                        targetOrigin={{horizontal:"left", vertical:"bottom"}}
+                        iconButtonElement={
+                            <svg xmlns="http://www.w3.org/2000/svg"  width="120px" height="32px">
+                                <g fill="none" stroke="black" stroke-width="3">
+                                    <path stroke-dasharray={this.state.levelMenu.level[i+1]} d="M5 17 l115 0" />>
+                                </g>
+                            </svg>
+                        }
+                        onChange={(event, value) => {
+                            this.setState(function(prevState, props) {
+                                prevState.levelMenu.level[i+1] = value;
+                                return prevState;
+                            })
+                        }}
+                    >
+                        <MenuItem value="0" primaryText="" >
+                            <svg xmlns="http://www.w3.org/2000/svg"  width="120px" height="32px">
+                                <g fill="none" stroke="black" stroke-width="3">
+                                    <path stroke-dasharray="0" d="M5 17 l115 0" />>
+                                </g>
+                            </svg>
+                        </MenuItem>
+                        <MenuItem value="20,5" primaryText="" >
+                            <svg xmlns="http://www.w3.org/2000/svg"  width="120px" height="32px">
+                                <g fill="none" stroke="black" stroke-width="3">
+                                    <path stroke-dasharray="20,5" d="M5 17 l115 0" />>
+                                </g>
+                            </svg>
+                        </MenuItem>
+                        <MenuItem value="25,5,5,5" primaryText="" >
+                            <svg xmlns="http://www.w3.org/2000/svg"  width="120px" height="32px">
+                                <g fill="none" stroke="black" stroke-width="3">
+                                    <path stroke-dasharray="20,5,5,5" d="M5 17 l115 0" />>
+                                </g>
+                            </svg>
+                        </MenuItem>
+                        <MenuItem value="20,5,2,5,2,5,2,5" primaryText="" >
+                            <svg xmlns="http://www.w3.org/2000/svg"  width="120px" height="32px">
+                                <g fill="none" stroke="black" stroke-width="3">
+                                    <path stroke-dasharray="20,5,5,5,5,5,5,5" d="M5 17 l115 0" />>
+                                </g>
+                            </svg>
+                        </MenuItem>
+                        <MenuItem value="2,5" primaryText="" >
+                            <svg xmlns="http://www.w3.org/2000/svg"  width="120px" height="32px">
+                                <g fill="none" stroke="black" stroke-width="3">
+                                    <path stroke-dasharray="2,5" d="M5 17 l115 0" />>
+                                </g>
+                            </svg>
+                        </MenuItem>
+                    </IconMenu>
+                    
+                    <IconButton 
+                        style={{
+                            top:'4px',
+                            padding:'0px',
+                            width: '24px',
+                            height: '24px'
+                        }}
+                        onClick={function(event) {
+                            this.setState(function(prevState, props) {
+                                prevState.levelMenu.level.splice(i, 2);
+                                return prevState;
+                            });
+                        }.bind(this)}
+                    >
+                        <Clear
+                            style={{
+                                height: '24px',
+                                width: '24px',}} 
+                        />
+                    </IconButton>
+                </div>
+            );
+        }
 
         return (
             <div style={{
@@ -54,7 +261,24 @@ export default class EditEdgeComponent extends React.Component {
                     style={{width:'15px', height: '20px', margin: '12px'}}
                 />
 
-                {/* <span>width:</span>
+                <span style={{marginLeft:'12px'}}>Stroke: [</span>
+                <AutoComplete
+                    // errorStyle={{fontSize: '10px', lineHeight:'0px'}}
+                    // errorText={GlobalFunction.CheckName(this.state.labels[i])}
+                    anchorOrigin={{horizontal:"left", vertical:"top"}}
+                    targetOrigin={{horizontal:"left", vertical:"bottom"}}
+                    searchText={D3ForceSimulation.getEdgeStyle(this.props.chipName).stroke_property}
+                    onUpdateInput={this.setPropertyForStroke}
+                    onNewRequest={this.setPropertyForStroke}
+                    dataSource={GlobalConstant.propertyList}
+                    filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
+                    openOnFocus={false}
+                    maxSearchResults={6}
+                    style={{width:'105px',height:'32px'}} 
+                    textFieldStyle={{width:'105px',height:'32px'}} 
+                    inputStyle={{fontSize: '12px'}}
+                />
+                <span> : </span>
                 <Chip 
                     className="edgeChip" 
                     style={{border:'1px solid #a1a1a1'}}
@@ -63,39 +287,17 @@ export default class EditEdgeComponent extends React.Component {
                     onClick={function(event) {
                         const __target = event.currentTarget;
                         this.setState(function(prevState, props) {
-                            prevState.captionAndSizeMenu.open = true;
-                            prevState.captionAndSizeMenu.anchorEl = __target;
+                            this.isError = false;
+                            prevState.levelMenu.open = true;
+                            prevState.levelMenu.anchorEl = __target;
                             return prevState;
                         });
                     }.bind(this)}
                 >
-                    {D3ForceSimulation.geEdgeStyle(__name).width.property}
-                </Chip> */}
+                    LEVEL
+                </Chip>
+                <span> ]</span>
 
-                {/* <Popover
-                    open={this.state.captionAndSizeMenu.open}
-                    anchorEl={this.state.captionAndSizeMenu.anchorEl}
-                    anchorOrigin={{horizontal:"right", vertical:"top"}}
-                    targetOrigin={{horizontal:"left", vertical:"bottom"}}
-                    onRequestClose={function() {
-                        this.setState(function(prevState, props) {
-                            prevState.captionAndSizeMenu.open = false;
-                            return prevState;
-                        });
-                    }.bind(this)}
-                >
-                    <Menu desktop={true}>
-                        {__propertyItem}
-                        {this.state.captionAndSizeMenu.mode == 1 ?
-                            <MenuItem 
-                                primaryText='<connect number>'
-                                onClick={function(event, value) {
-                                    this.setPropertyForSize(key);
-                                }.bind(this)}
-                            />
-                        :''}
-                    </Menu>
-                </Popover> */}
                 <Popover
                     open={this.state.colorPicker.open}
                     anchorEl={this.state.colorPicker.anchorEl}
@@ -127,6 +329,30 @@ export default class EditEdgeComponent extends React.Component {
                             }
                         }}
                     />
+                </Popover>
+                
+                <Popover
+                    open={this.state.levelMenu.open}
+                    anchorEl={this.state.levelMenu.anchorEl}
+                    anchorOrigin={{horizontal:"right", vertical:"top"}}
+                    targetOrigin={{horizontal:"left", vertical:"bottom"}}
+                    style={{width:'300px'}}
+                    onRequestClose={this.setLevelForStroke}
+                >
+                    <div style={{width:'300px', maxHeight:'300px', overflowX:'hidden'}}>
+                        {__levelItem}
+                        <IconButton
+                            onClick={()=>{
+                                this.setState(function(prevState, props) {
+                                    prevState.levelMenu.level.push("");
+                                    prevState.levelMenu.level.push('0');
+                                    return prevState;
+                                });
+                            }}
+                        >
+                            <ContentAdd/>
+                        </IconButton>
+                    </div>
                 </Popover>
             </div>
         );
