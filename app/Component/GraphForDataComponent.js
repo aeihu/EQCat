@@ -618,9 +618,8 @@ export default class GraphForDataComponent extends React.Component {
 
             let el = ReactDOM.findDOMNode();
             D3ForceSimulation.update(el, this.props, this.state);
+            this.styleEditor.mode = -1;
         }
-
-        this.styleEditor.mode = -1;
     }
 
     componentDidUpdate()
