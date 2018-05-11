@@ -22,10 +22,8 @@ const GlobalConstant = {
     defaultEdgeStyle: function(){
         return {
             color: '#000000',
-            width: {
-                property: 'name',
-                level: []
-            }
+            stroke_property: '<id>',
+            stroke_level: [],
         }
     }
 }

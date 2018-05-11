@@ -133,6 +133,7 @@ export default class EditStyleComponent extends React.Component {
                     <EditEdgeComponent 
                         data={this.props.data.edges} 
                         chipName={this.state.name} 
+                        onMessage={this.props.onMessage}
                         onSendStyle={this.sendSetStyle}
                         onChange={this.props.onChange}
                     />
