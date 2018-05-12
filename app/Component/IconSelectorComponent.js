@@ -91,19 +91,36 @@ export default class IconSelectorComponent extends React.Component {
                         })
                     }}
                     onStart={(file) => {
-                    console.log('onStart', file.name);
+                        console.log('onStart', file.name);
                     // this.refs.inner.abort(file);
                     }}
                     onSuccess={(file) => {
                         console.log('onSuccess', file);
-                        this.getIconList();
-                        // this.setState(function(prevState, props) {
-                        //     prevState.progress = false;
-                        //     return prevState;
-                        // })
+                        let __b = true;
+                        this.setState(function(prevState, props) {
+                            let __json = JSON.parse(Base64.decode(file));
+                            let __filename = 'icons/' + __json.filename;
+                            for (let i=0; i<prevState.icons.length; i++){
+                                if (prevState.icons[i] == __filename){
+                                    __b = false;
+                                    break;
+                                }
+                            }
+
+                            if (__b){
+                                prevState.icons.push(__filename);
+                            }
+
+                            prevState.progress = false;
+                            return prevState;
+                        })
+
+                        if (!__b){
+                            this.props.onMessage('This icon has been upload', 0);
+                        }
                     }}
                     onProgress={(step, file) => {
-                    console.log('onProgress', Math.round(step.percent), file.name);
+                        console.log('onProgress', Math.round(step.percent), file.name);
                     }}
                     onError={(err) => {
                         console.log('onError', err);
@@ -116,10 +133,7 @@ export default class IconSelectorComponent extends React.Component {
                     {this.state.progress ? 
                         <CircularProgress/>
                         :
-                        <IconButton
-                            onClick={()=>{console.log('upload')}}
-                            //tooltip="Add Icon"
-                        >
+                        <IconButton onClick={()=>{console.log('upload')}}>
                             <AddBox/>
                         </IconButton>
                     }

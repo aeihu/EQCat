@@ -389,6 +389,7 @@ export default class EditNodeComponent extends React.Component {
                 >
                     <IconSelectorComponent
                         icon={D3ForceSimulation.getNodeStyle(__name).icon}
+                        onMessage={this.props.onMessage}
                         onChange={(icon) => {
                             if (icon != D3ForceSimulation.getNodeStyle(this.props.chipName).icon){
                                 this.props.onSendStyle(

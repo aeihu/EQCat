@@ -5,6 +5,7 @@ import path from'path';
 import { Base64 } from 'js-base64';
 import GlobalConstant from'../Common/GlobalConstant';
 import log4js from './Util/Log4js';
+import md5 from'md5';
 
 class EQCarServer{
     constructor(){
@@ -47,7 +48,7 @@ class EQCarServer{
 	
 	getIconList(dir)
 	{
-		let __root = path.join(dir)  
+		let __root = path.join(dir);
 		let __pa = fs.readdirSync(__root);
 		let __result = [];
 
@@ -56,7 +57,7 @@ class EQCarServer{
 			if(!__info.isDirectory()){  
 				__result.push('icons/' + ele);
 			}     
-		}) 
+		});
 
 		return __result;
 	}
@@ -236,7 +237,7 @@ class EQCarServer{
 			try{
 				let __json = JSON.parse(Base64.decode(req.query.edge));
 				this.DBDriver.addSingleEdge(__json, res);
-			}	
+			}
 			catch (err){
 				log4js.logger.error(err.name + ': ' + err.message + ' <addEdge>');
 				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
@@ -269,7 +270,7 @@ class EQCarServer{
 			try{
 				let __json = JSON.parse(Base64.decode(req.query.edges));
 				this.DBDriver.deleteEdges(__json, res);
-			}	
+			}
 			catch (err){
 				log4js.logger.error(err.name + ': ' + err.message + ' <deleteEdge>');
 				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
@@ -293,24 +294,59 @@ class EQCarServer{
 					log4js.logger.error(err.name + ': ' + err.message + ' <upload_icon>');
 					res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
 					return;
-				} 
+				}
 				
-				res.send(Base64.encodeURI('{}'));
-				this.icons = this.getIconList(this.iconPath);
-			})
+				let __filename = this.iconPath + '/' + req.file.filename;
+				if (fs.existsSync(__filename)){
+					fs.readFile(__filename, function(err, buf) {
+						let __fileFormat = (req.file.filename).split(".");
+						let __newFilename =  md5(buf) + "." + __fileFormat[__fileFormat.length - 1]
+						fs.rename(__filename, this.iconPath + '/' + __newFilename, function(err){
+							if (err) {
+								log4js.logger.error(err.name + ': ' + err.message + ' <upload_icon>');
+								res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
+								return;
+							}
+							
+							res.send(Base64.encodeURI(JSON.stringify({filename:__newFilename})));
+							this.icons = this.getIconList(this.iconPath);
+						}.bind(this));
+					}.bind(this));
+				}else{
+					log4js.logger.error('fsError: ' + req.file.filename + ' not found <upload_icon>');
+					res.send(Base64.encodeURI(JSON.stringify({error: 'fsError', message:req.file.filename + ' not found'})));
+				}
+			}.bind(this))
 		}.bind(this));
 		
 		this.app.post('/upload_image',  function (req, res) {
-			imageUploader(req, res, function (err) {
-				//添加错误处理
+			this.imageUploader(req, res, function (err) {
 				if (err) {
 					log4js.logger.error(err.name + ': ' + err.message + ' <upload_image>');
 					res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
 					return;
-				} 
-				//文件信息在req.file或者req.files中显示。
-				res.send(Base64.encodeURI(JSON.stringify({filename:req.file.filename})));
-			})
+				}
+				
+				let __filename = this.imagePath + '/' + req.file.filename;
+				if (fs.existsSync(__filename)){
+					fs.readFile(__filename, function(err, buf) {
+						let __fileFormat = (req.file.filename).split(".");
+						let __newFilename =  md5(buf) + "." + __fileFormat[__fileFormat.length - 1]
+						fs.rename(__filename, this.imagePath + '/' + __newFilename, function(err){
+							if (err) {
+								log4js.logger.error(err.name + ': ' + err.message + ' <upload_image>');
+								res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
+								return;
+							}
+							
+							res.send(Base64.encodeURI(JSON.stringify({filename:__newFilename})));
+						}.bind(this));
+					}.bind(this));
+				}else{
+					log4js.logger.error('fsError: ' + req.file.filename + ' not found <upload_image>');
+					res.send(Base64.encodeURI(JSON.stringify({error: 'fsError', message:req.file.filename + ' not found'})));
+				}
+			}.bind(this))
 		}.bind(this));
 		
 		log4js.logger.info('===== Initialize EQCarServer finish =====');

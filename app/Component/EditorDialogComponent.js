@@ -933,7 +933,6 @@ export default class EditorDialogComponent extends React.Component {
 									switch (value)
 									{
 										case 'object':
-											console.log('fqfqfqfqfqfq')
 											//__newValue = [];
 											break;
 										case 'string':
@@ -1116,16 +1115,33 @@ export default class EditorDialogComponent extends React.Component {
 									})
 								}}
 								onStart={(file) => {
-								console.log('onStart', file.name);
-								// this.refs.inner.abort(file);
+									console.log('onStart', file.name);
+									// this.refs.inner.abort(file);
 								}}
 								onSuccess={(file) => {
 									console.log('onSuccess', file);
+									let __b = true;
 									this.setState(function(prevState, props) {
-										prevState.images.push('/images/'+file);
+										let __json = JSON.parse(Base64.decode(file));
+										let __filename = 'images/' + __json.filename;
+										for (let i=0; i<prevState.images.length; i++){
+											if (prevState.images[i] == __filename){
+												__b = false;
+												break;
+											}
+										}
+			
+										if (__b){
+											prevState.images.push(__filename);
+										}
 									    prevState.progress = false;
      									return prevState;
 									})
+
+									if (!__b){
+										this.isCheckError = true;
+										this.props.onMessage('This image has been upload', 0);
+									}
 								}}
 								onProgress={(step, file) => {
 									console.log('onProgress', Math.round(step.percent), file.name);
