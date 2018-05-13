@@ -7,6 +7,7 @@ import IconSelectorComponent from './IconSelectorComponent';
 import Avatar from 'material-ui/Avatar';
 import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
+import GlobalVariable from '../../Common/GlobalVariable';
 import GlobalConstant from '../../Common/GlobalConstant';
 import GlobalFunction from '../../Common/GlobalFunction';
 import {D3ForceSimulation} from './D3ForceSimulation';
@@ -236,7 +237,7 @@ export default class EditNodeComponent extends React.Component {
             );
         }
 
-        let __datasource = ['<connect number>'].concat(GlobalConstant.propertyList);
+        let __datasource = ['<connect number>'].concat(GlobalVariable.propertyList);
 
         return (
             <div style={{

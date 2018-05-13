@@ -8,6 +8,7 @@ D3ForceSimulation.simulation = null;
 D3ForceSimulation.svg = null;
 D3ForceSimulation.x = 0;
 D3ForceSimulation.y = 0;
+D3ForceSimulation.zoom = 1;
 D3ForceSimulation.tx = 1920;
 D3ForceSimulation.ty = 1080;
 D3ForceSimulation.showedImage = false;
@@ -67,7 +68,8 @@ D3ForceSimulation.create = function(el, props, state) {
                 .on("drag", function (){
                     D3ForceSimulation.svg.attr("transform", 
                         'translate(' + (D3ForceSimulation.x - (D3ForceSimulation.tx - d3.event.x)) + ',' 
-                        + (D3ForceSimulation.y - (D3ForceSimulation.ty - d3.event.y)) + ')')
+                        + (D3ForceSimulation.y - (D3ForceSimulation.ty - d3.event.y)) + ')'+
+                        'scale(' + D3ForceSimulation.zoom + ')')
                 })
                 .on("end", function (){
                     D3ForceSimulation.x = D3ForceSimulation.x - (D3ForceSimulation.tx - d3.event.x);
@@ -128,7 +130,38 @@ D3ForceSimulation.create = function(el, props, state) {
     getStyles(props);
 };
 
-D3ForceSimulation.dragstarted = function dragstarted(d) {
+D3ForceSimulation.zoomRestore = function(){
+    D3ForceSimulation.zoom = 1;
+    D3ForceSimulation.svg
+        .transition().duration(185)
+        .attr("transform", 
+        'translate(' + D3ForceSimulation.x + ',' + D3ForceSimulation.y + ')'+
+        'scale(' + D3ForceSimulation.zoom + ')')
+}
+
+D3ForceSimulation.zoomIn = function(){
+    D3ForceSimulation.zoom += 0.15;
+    D3ForceSimulation.svg
+        .transition().duration(185)
+        .attr("transform", 
+        'translate(' + D3ForceSimulation.x + ',' + D3ForceSimulation.y + ')'+
+        'scale(' + D3ForceSimulation.zoom + ')')
+}
+
+D3ForceSimulation.zoomOut = function(){
+    if (D3ForceSimulation.zoom < 0.15){
+        return;
+    }
+
+    D3ForceSimulation.zoom -= 0.15;
+    D3ForceSimulation.svg
+        .transition().duration(185)
+        .attr("transform", 
+        'translate(' + D3ForceSimulation.x + ',' + D3ForceSimulation.y + ')'+
+        'scale(' + D3ForceSimulation.zoom + ')')
+}
+
+D3ForceSimulation.dragstarted = function (d) {
     if (D3ForceSimulation.connectMode < 0){
         if (!d3.event.active) {
             D3ForceSimulation.simulation.alphaTarget(0.3).restart();
@@ -139,14 +172,14 @@ D3ForceSimulation.dragstarted = function dragstarted(d) {
     }
 }
 
-D3ForceSimulation.dragged = function dragged(d) {
+D3ForceSimulation.dragged = function (d) {
     if (D3ForceSimulation.connectMode < 0){
         d.fx = d3.event.x;
         d.fy = d3.event.y;
     }
 }
 
-D3ForceSimulation.dragended = function dragended(d) {
+D3ForceSimulation.dragended = function (d) {
     if (D3ForceSimulation.connectMode < 0){
         if (!d3.event.active) {
             D3ForceSimulation.simulation.alphaTarget(0);
@@ -580,8 +613,11 @@ D3ForceSimulation.ScreenMoveTo = function(d){
             .attr('transform','translate(' + -(d.size / 2) + ','+ -(d.size / 2 ) +')')
     }
 
-    D3ForceSimulation.svg.attr("transform", 
-        'translate(' + D3ForceSimulation.x + ',' + D3ForceSimulation.y +')');
+    D3ForceSimulation.svg
+        .transition().duration(185)
+        .attr("transform", 
+        'translate(' + D3ForceSimulation.x + ',' + D3ForceSimulation.y + ')'+
+        'scale(' + D3ForceSimulation.zoom + ')')
 }
 
 D3ForceSimulation.update = function(el, props, state) {

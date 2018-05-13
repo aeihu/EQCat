@@ -61,7 +61,6 @@ export default class CypherBarComponent extends React.Component {
                                 });
                             }}
                             onChange={(editor, data, value) => {
-                                console.log(editor.lineCount());
                                 if (editor.lineCount() <= 6){
                                     editor.setSize('100%', (10 + 24 * editor.lineCount()).toString() +'px')
                                     this.setState(function(prevState, props) {

@@ -26,6 +26,7 @@ import Upload from 'rc-upload';
 import CircularProgress from 'material-ui/CircularProgress';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import GlobalVariable from '../../Common/GlobalVariable';
 import GlobalConstant from '../../Common/GlobalConstant';
 import GlobalFunction from '../../Common/GlobalFunction';
 import ImageLooksOne from 'material-ui/svg-icons/image/looks-one';
@@ -142,10 +143,10 @@ export default class EditorDialogComponent extends React.Component {
 	};
 
 	setPropertiesByLabel = (labelName) => {
-		if (GlobalConstant.templateList.hasOwnProperty(labelName)){
+		if (GlobalVariable.templateList.hasOwnProperty(labelName)){
 			this.setState(function(prevState, props) {
 				let __isHas = false;
-				for (let key in GlobalConstant.templateList[labelName]){
+				for (let key in GlobalVariable.templateList[labelName]){
 					__isHas = false;
 					for (let i = 0; i < prevState.properties.length; i++){
 						if (prevState.properties[i].key == key){
@@ -156,7 +157,7 @@ export default class EditorDialogComponent extends React.Component {
 					
 					if (!__isHas){
 						let __val = '';
-						switch (GlobalConstant.templateList[labelName][key]){
+						switch (GlobalVariable.templateList[labelName][key]){
 							case 'boolean':
 								__val = true;
 								break;
@@ -170,7 +171,7 @@ export default class EditorDialogComponent extends React.Component {
 						}
 						prevState.properties.push({
 							key : key,
-							type : GlobalConstant.templateList[labelName][key],
+							type : GlobalVariable.templateList[labelName][key],
 							value : __val
 						});
 					}
@@ -638,7 +639,7 @@ export default class EditorDialogComponent extends React.Component {
 							searchText={this.state.labels[i]}
 							onUpdateInput={(searchText)=>this.updateInputForLabel(searchText, i)}
 							onNewRequest={(value)=>this.newRequestForLabel(value, i)}
-							dataSource={GlobalConstant.labelList}
+							dataSource={GlobalVariable.labelList}
 							filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
 							openOnFocus={false}
 							maxSearchResults={6}
@@ -695,7 +696,7 @@ export default class EditorDialogComponent extends React.Component {
 						searchText={this.state.type}
 						onUpdateInput={this.updateInputForLabel}
 						onNewRequest={this.newRequestForLabel}
-						dataSource={GlobalConstant.relationshipTypeList}
+						dataSource={GlobalVariable.relationshipTypeList}
 						filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
 						openOnFocus={false}
 						maxSearchResults={6}
@@ -726,7 +727,7 @@ export default class EditorDialogComponent extends React.Component {
 						searchText={this.state.properties[i].key}
 						onUpdateInput={(searchText) => this.updateInputForPropertyKey(searchText, i)}
 						onNewRequest={(chosenRequest) => this.newRequestForPropertyKey(chosenRequest, i)}
-						dataSource={GlobalConstant.propertyList}
+						dataSource={GlobalVariable.propertyList}
 						filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
 						style={{height:'48px'}}
 						maxSearchResults={6}

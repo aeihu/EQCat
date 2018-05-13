@@ -1,4 +1,4 @@
-import GlobalConstant from './GlobalConstant';
+import GlobalVariable from './GlobalVariable';
 
 const ArrayEquals= function (arrayA, arrayB) {        
     if (typeof arrayA != 'object' || typeof arrayB != 'object'){
@@ -34,10 +34,10 @@ const GetTemplate = function() {
             if (__json.hasOwnProperty('error')){
                 console.log(__json.message);
             }else{
-                GlobalConstant.templateList = __json.templates;
-                GlobalConstant.labelList = __json.labels;
-                GlobalConstant.propertyList = __json.propertyKeys;
-                GlobalConstant.relationshipTypeList = __json.relationshipTypes;
+                GlobalVariable.templateList = __json.templates;
+                GlobalVariable.labelList = __json.labels;
+                GlobalVariable.propertyList = __json.propertyKeys;
+                GlobalVariable.relationshipTypeList = __json.relationshipTypes;
             }
         }
     }.bind(this)
@@ -94,11 +94,35 @@ const CheckName = function (str){
     return '';
 }
 
+const sendAjax = function(onSuccess, onError, url, parameter){
+    let __xmlhttp = new XMLHttpRequest()
+    let __url = parameter === 'undefind' ? url : url + Base64.encodeURI(JSON.stringify(parameter));
+    
+    __xmlhttp.onreadystatechange = function(){
+        if (__xmlhttp.readyState==4 && __xmlhttp.status==200){
+            let __json = JSON.parse(Base64.decode(__xmlhttp.responseText));
+            if (__json.hasOwnProperty('error')){
+                if (typeof onError == 'function'){
+                    onError(__json);
+                }
+            }else{
+                if (typeof onSuccess == 'function'){
+                    onSuccess();
+                }
+            }
+        }
+    }
+
+    __xmlhttp.open("GET", __url, true);
+    __xmlhttp.send();
+}
+
 const GlobalFunction = {
     ArrayEquals: ArrayEquals,
     GetTemplate: GetTemplate,
     MathAngle: MathAngle,
     CheckName: CheckName,
+    sendAjax: sendAjax,
 }
 
 module.exports = GlobalFunction;

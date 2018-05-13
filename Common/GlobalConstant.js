@@ -7,10 +7,6 @@ const GlobalConstant = {
     memoOfProperty: 'MEMO_EQCat',
     defaultIcon: 'icons/default/node.svg',
     addImageIcon: 'icons/default/addImage.svg',
-    labelList: [],
-    propertyList: [],
-    relationshipTypeList: [],
-    templateList: {},
     defaultNodeStyle: function(){
         return {
             icon: 'icons/default/node.svg',

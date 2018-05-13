@@ -18,9 +18,11 @@ class EQCarServer{
 	DBDriver = null;
 	templates = {};
 	styles = {};
+	favorites = {};
 	icons = [];
 	configPath = './server/Config/config.json';
 	templatePath = './server/Config/templates.json';
+	favoritesPath = './server/Config/favorites.json';
 	stylePath = './server/Config/styles.json';
 	iconPath = './public/icons';
 	imagePath = './public/images';
@@ -83,6 +85,8 @@ class EQCarServer{
 		this.templates = this.readCongfigFile(this.templatePath);
 		log4js.logger.info('Loading style files');
 		this.styles = this.readCongfigFile(this.stylePath);
+		log4js.logger.info('Loading favorites files');
+		this.favorites = this.readCongfigFile(this.favoritesPath);
 		log4js.logger.info('Loading icon files');
 		this.icons = this.getIconList(this.iconPath);
 

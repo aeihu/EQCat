@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import CardComponent from './CardComponent';
 import {D3ForceSimulation} from './D3ForceSimulation';
 import EditStyleComponent from './EditStyleComponent';
+import GlobalVariable from '../../Common/GlobalVariable';
 import GlobalConstant from '../../Common/GlobalConstant';
 import GlobalFunction from '../../Common/GlobalFunction';
 import Chip from 'material-ui/Chip';
@@ -39,6 +40,9 @@ import Popover from 'material-ui/Popover/Popover';
 import { SketchPicker } from 'react-color';
 import IconButton from 'material-ui/IconButton';
 import Tooltip from 'material-ui/internal/Tooltip';
+import ActionZoomIn from 'material-ui/svg-icons/action/zoom-in';
+import ActionZoomOut from 'material-ui/svg-icons/action/zoom-out';
+import ActionYoutubeSearchedFor from 'material-ui/svg-icons/action/youtube-searched-for';
 
 export default class GraphForDataComponent extends React.Component {
     constructor(props) {
@@ -769,6 +773,27 @@ export default class GraphForDataComponent extends React.Component {
                                             case 'Unselect All':
                                                 this.unselectAll();
                                                 break;
+                                            case 'Zoom Restore':
+                                                D3ForceSimulation.zoomRestore();
+                                                this.setState(function(prevState, props) {
+                                                    prevState.menu.open = false;
+                                                    return prevState;
+                                                })
+                                                break;
+                                            case 'Zoom In':
+                                                D3ForceSimulation.zoomIn();
+                                                this.setState(function(prevState, props) {
+                                                    prevState.menu.open = false;
+                                                    return prevState;
+                                                })
+                                                break;
+                                            case 'Zoom Out':
+                                                D3ForceSimulation.zoomOut();
+                                                this.setState(function(prevState, props) {
+                                                    prevState.menu.open = false;
+                                                    return prevState;
+                                                })
+                                                break;
                                             case 'Delete':
                                                 this.preDeleteNodesAndEdges([...this.state.tooltip.selected.nodes], [...this.state.tooltip.selected.edges])
                                                 break;
@@ -788,6 +813,10 @@ export default class GraphForDataComponent extends React.Component {
                                     primaryText="Show Image" 
                                     leftIcon={<ImageFilter />}
                                     rightIcon={this.state.tooltip.showedImage ? <ActionDone /> : ''} />
+                                <Divider />
+                                <MenuItem value="Zoom Restore" primaryText="Zoom Restore" leftIcon={<ActionYoutubeSearchedFor />} />
+                                <MenuItem value="Zoom In" primaryText="Zoom In" leftIcon={<ActionZoomIn />} />
+                                <MenuItem value="Zoom Out" primaryText="Zoom Out" leftIcon={<ActionZoomOut />} />
                                 <Divider />
                                 <MenuItem value="Show Views" primaryText="Show Views" leftIcon={<RemoveRedEye />} />
                                 <MenuItem value="Hide Views" primaryText="Hide Views" leftIcon={<ActionVisibilityOff />} />
@@ -825,7 +854,7 @@ export default class GraphForDataComponent extends React.Component {
                                                 return prevState;
                                             });
                                         }}
-                                        dataSource={GlobalConstant.relationshipTypeList}
+                                        dataSource={GlobalVariable.relationshipTypeList}
                                         filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
                                         openOnFocus={false}
                                         maxSearchResults={6}
@@ -901,6 +930,27 @@ export default class GraphForDataComponent extends React.Component {
                                 }
                             }}>
                             <CommunicationCallMade />
+                        </IconButton>
+                        <IconButton 
+                            tooltip="Zoom Restore"
+                            style={{borderBottom: '1px solid #ddd',}}
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            onClick={D3ForceSimulation.zoomRestore}>
+                            <ActionYoutubeSearchedFor />
+                        </IconButton>
+                        <IconButton 
+                            tooltip="Zoom In"
+                            style={{borderBottom: '1px solid #ddd',}}
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            onClick={D3ForceSimulation.zoomIn}>
+                            <ActionZoomIn />
+                        </IconButton>
+                        <IconButton 
+                            tooltip="Zoom Out"
+                            style={{borderBottom: '1px solid #ddd',}}
+                            hoveredStyle={{backgroundColor:'SkyBlue'}}
+                            onClick={D3ForceSimulation.zoomOut}>
+                            <ActionZoomOut />
                         </IconButton>
                         <IconButton 
                             tooltip="Info"

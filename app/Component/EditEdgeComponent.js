@@ -3,6 +3,7 @@ import Chip from 'material-ui/Chip';
 import RaisedButton from 'material-ui/RaisedButton';
 import Popover from 'material-ui/Popover/Popover';
 import { SketchPicker } from 'react-color';
+import GlobalVariable from '../../Common/GlobalVariable';
 import GlobalConstant from '../../Common/GlobalConstant';
 import {D3ForceSimulation} from './D3ForceSimulation';
 import AutoComplete from 'material-ui/AutoComplete';
@@ -270,7 +271,7 @@ export default class EditEdgeComponent extends React.Component {
                     searchText={D3ForceSimulation.getEdgeStyle(this.props.chipName).stroke_property}
                     onUpdateInput={this.setPropertyForStroke}
                     onNewRequest={this.setPropertyForStroke}
-                    dataSource={GlobalConstant.propertyList}
+                    dataSource={GlobalVariable.propertyList}
                     filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
                     openOnFocus={false}
                     maxSearchResults={6}
