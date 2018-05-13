@@ -3,6 +3,7 @@ import AddBox from 'material-ui/svg-icons/content/add-box';
 import IconButton from 'material-ui/IconButton';
 import Upload from 'rc-upload';
 import CircularProgress from 'material-ui/CircularProgress';
+import GlobalFunction from '../../Common/GlobalFunction';
 
 export default class IconSelectorComponent extends React.Component {
     constructor(props) {
@@ -33,25 +34,17 @@ export default class IconSelectorComponent extends React.Component {
 
     getIconList = function()
     {
-        let xmlhttp = new XMLHttpRequest()
-        
-        xmlhttp.onreadystatechange = function(){
-            if (xmlhttp.readyState==4 && xmlhttp.status==200){
-				let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-                if (__json.hasOwnProperty('error')){
-                    this.props.onMessage(__json.message, 0);
-                }else{
-                    this.setState(function(prevState, props) {
-                        prevState.icons = __json.icons;
-                        prevState.progress = false;
-                        return prevState;
-                    });
-                }
-            }
-        }.bind(this)
-
-        xmlhttp.open("Get", "/icon", true);
-        xmlhttp.send();
+        GlobalFunction.SendAjax(
+            (result)=>{
+                this.setState(function(prevState, props) {
+                    prevState.icons = result.icons;
+                    prevState.progress = false;
+                    return prevState;
+                });
+            },
+            (error)=>{props.onMessage(error.message, 0)},
+            "/icon"
+        );
     }.bind(this)
 
     render(){

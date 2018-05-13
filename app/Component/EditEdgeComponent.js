@@ -56,21 +56,23 @@ export default class EditEdgeComponent extends React.Component {
                     this.props.onMessage('There is same level key', 0);
                     break;
                 default:
-                    this.props.onSendStyle(
-                        {
-                            mode: GlobalConstant.mode.edge,
-                            type: this.props.chipName,
-                            property: 'stroke_level',
-                            value: this.state.levelMenu.level
-                        },
-                        ()=>{
+                    GlobalFunction.SendAjax(
+                        (result)=>{
                             this.setState(function(prevState, props) {
                                 D3ForceSimulation.setStyle(GlobalConstant.mode.edge, this.props.chipName, 'stroke_level', this.state.levelMenu.level);
                                 prevState.levelMenu.open = false;
                                 return prevState;
                             }.bind(this));
+                        },
+                        (error)=>{this.props.onMessage(error.message, 0)},
+                        "/setStyle?style=",
+                        {
+                            mode: GlobalConstant.mode.edge,
+                            type: this.props.chipName,
+                            property: 'stroke_level',
+                            value: this.state.levelMenu.level
                         }
-                    )
+                    );
                     break;
 
             }
@@ -84,19 +86,22 @@ export default class EditEdgeComponent extends React.Component {
 
     setPropertyForStroke = function(property){
         if (property != D3ForceSimulation.getEdgeStyle(this.props.chipName).stroke_property){
-            this.props.onSendStyle(
+            GlobalFunction.SendAjax(
+                (result)=>{
+                    this.setState(function(prevState, props) {
+                        D3ForceSimulation.setStyle(GlobalConstant.mode.edge, this.props.chipName, 'stroke_property', property);
+                        return prevState;
+                    }.bind(this));
+                },
+                (error)=>{this.props.onMessage(error.message, 0)},
+                "/setStyle?style=",
                 {
                     mode: GlobalConstant.mode.edge,
                     type: this.props.chipName,
                     property: 'stroke_property',
                     value: property
-                },
-                ()=>{
-                    this.setState(function(prevState, props) {
-                        D3ForceSimulation.setStyle(GlobalConstant.mode.edge, this.props.chipName, 'stroke_property', property);
-                        return prevState;
-                    }.bind(this));
-                })
+                }
+            );
         }
     }.bind(this)
 
@@ -244,6 +249,12 @@ export default class EditEdgeComponent extends React.Component {
                     className="edgeChip" 
                     labelStyle={{fontSize: '12px'}}
                 >
+                    <Avatar
+                        className='edgeAvatar'
+                        style={{
+                            backgroundColor:D3ForceSimulation.getEdgeStyle(__name).color
+                        }}
+                    />
                     {__name}
                 </Chip>
                 
@@ -316,17 +327,20 @@ export default class EditEdgeComponent extends React.Component {
                         color={D3ForceSimulation.getEdgeStyle(__name).color}
                         onChange={({hex}) => {
                             if (D3ForceSimulation.getEdgeStyle(this.props.chipName).color != hex){
-                                this.props.onSendStyle(
+                                GlobalFunction.SendAjax(
+                                    (result)=>{
+                                        D3ForceSimulation.setStyle(GlobalConstant.mode.edge, this.props.chipName, 'color', hex);
+                                        this.props.onChange();
+                                    },
+                                    (error)=>{this.props.onMessage(error.message, 0)},
+                                    "/setStyle?style=",
                                     {
                                         mode: GlobalConstant.mode.edge,
                                         type: this.props.chipName,
                                         property: 'color',
                                         value: hex
-                                    }, 
-                                    ()=>{
-                                        D3ForceSimulation.setStyle(GlobalConstant.mode.edge, this.props.chipName, 'color', hex);
-                                        this.props.onChange();
-                                    });
+                                    }
+                                );
                             }
                         }}
                     />

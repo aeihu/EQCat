@@ -36,22 +36,12 @@ D3ForceSimulation.NEStyles = {
 let menuFlag = true;
 
 function getStyles(props) {
-    let xmlhttp = new XMLHttpRequest()
-    
-    xmlhttp.onreadystatechange = function(){
-        if (xmlhttp.readyState==4 && xmlhttp.status==200){
-            let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-            if (__json.hasOwnProperty('error')){
-                props.onMessage(__json.message, 0);
-            }else{
-                D3ForceSimulation.NEStyles = __json.styles;
-                //console.log(D3ForceSimulation.NEStyles)
-            }
-        }
-    }.bind(this)
-
-    xmlhttp.open("GET", "/getStyles", true);
-    xmlhttp.send();
+    GlobalFunction.SendAjax(
+        (result)=>{
+            D3ForceSimulation.NEStyles = result.styles;},
+        (error)=>{props.onMessage(error.message, 0)},
+        "/getStyles"
+    );
 }
 
 D3ForceSimulation.create = function(el, props, state) {
@@ -749,28 +739,19 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                         case 0:{
                             let __message = GlobalFunction.CheckName(state.tooltip.relationshipType);
                             if (__message == ''){
-                                let __edge = {
-                                    source: D3ForceSimulation.conncetLine.attr('source'),
-                                    target: d.id,
-                                    type: state.tooltip.relationshipType
-                                }
-                                
-                                let xmlhttp = new XMLHttpRequest()
-                    
-                                xmlhttp.onreadystatechange = function(){
-                                    if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                                        let __edge = JSON.parse(Base64.decode(xmlhttp.responseText));
-                                        if (__edge.hasOwnProperty('error')){
-                                            props.onMessage(__edge.message, 0);
-                                        }else{
-                                            props.onAddEdge(__edge);
-                                            props.onMessage('Add edge is success', 1);
-                                        }
+                                GlobalFunction.SendAjax(
+                                    (result)=>{
+                                        props.onAddEdge(result);
+                                        props.onMessage('Add edge is success', 1);
+                                    },
+                                    (error)=>{props.onMessage(error.message, 0)},
+                                    "/addEdge?edge=",
+                                    {
+                                        source: D3ForceSimulation.conncetLine.attr('source'),
+                                        target: d.id,
+                                        type: state.tooltip.relationshipType
                                     }
-                                }.bind(this)
-        
-                                xmlhttp.open("GET", '/addEdge?edge="' + Base64.encodeURI(JSON.stringify(__edge)) + '"', true);
-                                xmlhttp.send();
+                                );
                             }else{
                                 props.onMessage(__message, 0);
                             }
@@ -788,24 +769,16 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                                     edge: D3ForceSimulation.conncetLine.attr('id').substr(8),
                                     type: state.tooltip.relationshipType
                                 }
-                                console.log(D3ForceSimulation.conncetLine.attr('id').substr(8))
-                                
-                                let xmlhttp = new XMLHttpRequest()
-                    
-                                xmlhttp.onreadystatechange = function(){
-                                    if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                                        let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-                                        if (__json.hasOwnProperty('error')){
-                                            props.onMessage(__json.message, 0);
-                                        }else{
-                                            props.onMergeEdge(__json, __edge.edge);
-                                            props.onMessage('Merge edge is success', 1);
-                                        }
-                                    }
-                                }.bind(this)
-        
-                                xmlhttp.open("GET", '/directEdge?edge="' + Base64.encodeURI(JSON.stringify(__edge)) + '"', true);
-                                xmlhttp.send();
+
+                                GlobalFunction.SendAjax(
+                                    (result)=>{
+                                        props.onMergeEdge(result, __edge.edge);
+                                        props.onMessage('Merge edge is success', 1);
+                                    },
+                                    (error)=>{props.onMessage(error.message, 0)},
+                                    "/directEdge?edge=",
+                                    __edge
+                                );
                             }else{
                                 props.onMessage(__message, 0);
                             }
@@ -915,14 +888,6 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
             }
 
             __tmplinks[d['STID']].push({data: d, flag:__b});
-
-            if (!d.hasOwnProperty('selected')){
-                d['selected'] = false;
-            }
-
-            D3ForceSimulation.svg.select('#defs_path_id_' + d.id)
-                .attr('class', d.selected ? 'defs_path defs_path_selected' : 'defs_path');
-
             return 'links'
         })
         .on("contextmenu", function(d, i) {
@@ -988,7 +953,13 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
     }
 
     let __defsInLink = __link.select('.defs_path')
-        .attr('id', (d) => {return 'defs_path_id_'+ d.id});
+        .attr('id', (d) => {return 'defs_path_id_'+ d.id})
+        .attr('class', (d)=>{
+            if (!d.hasOwnProperty('selected')){
+                d['selected'] = false;
+            }
+            return d.selected ? 'defs_path defs_path_selected' : 'defs_path';
+        })
 
     let __pathInLink = __link.select('.link_path')
         .attr('id', (d)=> {return 'link_path_id_'+ d.id})

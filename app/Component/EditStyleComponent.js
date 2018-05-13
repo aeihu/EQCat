@@ -14,27 +14,7 @@ export default class EditStyleComponent extends React.Component {
             parameter: {},
             name: '',
         }
-    }  
-
-	sendSetStyle = function(style, func){
-        let xmlhttp = new XMLHttpRequest()
-        
-        xmlhttp.onreadystatechange = function(){
-            if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-                if (__json.hasOwnProperty('error')){
-                    this.props.onMessage(__json.message, 0);
-                }else{
-                    if (typeof func == 'function'){
-                        func();
-                    }
-                }
-            }
-        }.bind(this)
-
-        xmlhttp.open("GET", '/setStyle?style="' + Base64.encodeURI(JSON.stringify(style)) + '"', true);
-        xmlhttp.send();
-    }.bind(this)
+    }
 
     componentWillMount()
     {
@@ -126,7 +106,6 @@ export default class EditStyleComponent extends React.Component {
                         data={this.props.data.nodes} 
                         chipName={this.state.name}
                         onMessage={this.props.onMessage}
-                        onSendStyle={this.sendSetStyle}
                         onChange={this.props.onChange}
                     />
                 : this.state.parameter.mode == GlobalConstant.mode.edge ?
@@ -134,7 +113,6 @@ export default class EditStyleComponent extends React.Component {
                         data={this.props.data.edges} 
                         chipName={this.state.name} 
                         onMessage={this.props.onMessage}
-                        onSendStyle={this.sendSetStyle}
                         onChange={this.props.onChange}
                     />
                 :

@@ -238,23 +238,16 @@ export default class EditorDialogComponent extends React.Component {
 
 		__node.labels = [...this.state.labels];
 
-		let xmlhttp = new XMLHttpRequest()
-		
-		xmlhttp.onreadystatechange = function(){
-			if (xmlhttp.readyState==4 && xmlhttp.status==200){
-				let __node = JSON.parse(Base64.decode(xmlhttp.responseText));
-				if (__node.hasOwnProperty('error')){
-					this.props.onMessage(__node.message, 0);
-				}else{
-					this.props.onChangeData(__node);
-					this.props.onMessage('Add node is success', 1);
-					this.closeDialog();
-				}
-			}
-		}.bind(this)
-
-		xmlhttp.open("GET", '/addNode?node="' + Base64.encodeURI(JSON.stringify(__node)) + '"', true);
-		xmlhttp.send();
+		GlobalFunction.SendAjax(
+			(result)=>{
+				this.props.onChangeData(result);
+				this.props.onMessage('Add node is success', 1);
+				this.closeDialog();
+			},
+			(error)=>{this.props.onMessage(error.message, 0)},
+			"/addNode?node=",
+			__node
+		);
 	}.bind(this)
 	
 	arrangePropertiesForMerge = function(){
@@ -367,23 +360,16 @@ export default class EditorDialogComponent extends React.Component {
 		}
 		
 		if (__hasChanged){
-			let xmlhttp = new XMLHttpRequest()
-			
-			xmlhttp.onreadystatechange = function(){
-				if (xmlhttp.readyState==4 && xmlhttp.status==200){
-					let __edge = JSON.parse(Base64.decode(xmlhttp.responseText));
-					if (__edge.hasOwnProperty('error')){
-						this.props.onMessage(__edge.message, 0);
-					}else{
-						this.props.onChangeData(__edge, this.props.data.id);
-						this.props.onMessage('Merge edge is success', 1);
-						this.closeDialog();
-					}
-				}
-			}.bind(this)
-
-			xmlhttp.open("GET", '/mergeEdge?edge="' + Base64.encodeURI(JSON.stringify(__edge)) + '"', true);
-			xmlhttp.send();
+			GlobalFunction.SendAjax(
+				(result)=>{
+					this.props.onChangeData(result, this.props.data.id);
+					this.props.onMessage('Merge edge is success', 1);
+					this.closeDialog();
+				},
+				(error)=>{this.props.onMessage(error.message, 0)},
+				"/mergeEdge?edge=",
+				__edge
+			);
 		}else{
 			this.props.onMessage('Merge node is success', 1);
 			this.closeDialog();
@@ -434,23 +420,16 @@ export default class EditorDialogComponent extends React.Component {
 			Object.keys(__node.properties.merge).length > 0 ||
 			__node.properties.remove.length > 0)
 		{
-			let xmlhttp = new XMLHttpRequest()
-			
-			xmlhttp.onreadystatechange = function(){
-				if (xmlhttp.readyState==4 && xmlhttp.status==200){
-					let __node = JSON.parse(Base64.decode(xmlhttp.responseText));
-					if (__node.hasOwnProperty('error')){
-						this.props.onMessage(__node.message, 0);
-					}else{
-						this.props.onChangeData(__node);
-						this.props.onMessage('Merge node is success', 1);
-						this.closeDialog();
-					}
-				}
-			}.bind(this)
-
-			xmlhttp.open("GET", '/mergeNode?node="' + Base64.encodeURI(JSON.stringify(__node)) + '"', true);
-			xmlhttp.send();
+			GlobalFunction.SendAjax(
+				(result)=>{
+					this.props.onChangeData(result);
+					this.props.onMessage('Merge node is success', 1);
+					this.closeDialog();
+				},
+				(error)=>{this.props.onMessage(error.message, 0)},
+				"/mergeNode?node=",
+				__node
+			);
 		}else{
 			this.props.onMessage('Merge node is success', 1);
 			this.closeDialog();

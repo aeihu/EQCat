@@ -39,38 +39,43 @@ export default class EditNodeComponent extends React.Component {
 
     setCaption = function (propertyName){
         if (propertyName != D3ForceSimulation.getNodeStyle(this.props.chipName).caption){
-            this.props.onSendStyle(
+            GlobalFunction.SendAjax(
+                (result)=>{
+                    this.setState(function(prevState, props) {
+                        D3ForceSimulation.setStyle(GlobalConstant.mode.node, this.props.chipName, 'caption', propertyName);
+                        return prevState;
+                    }.bind(this))
+                },
+                (error)=>{this.props.onMessage(error.message, 0)},
+                "/setStyle?style=",
                 {
                     mode: GlobalConstant.mode.node,
                     label: this.props.chipName,
                     property: 'caption',
                     value: propertyName
-                },
-                ()=>{
-                    this.setState(function(prevState, props) {
-                        D3ForceSimulation.setStyle(GlobalConstant.mode.node, this.props.chipName, 'caption', propertyName);
-                        return prevState;
-                    }.bind(this))
                 }
-            )
+            );
         }
     }.bind(this)
 
     setPropertyForSize = function (property){
         if (property != D3ForceSimulation.getNodeStyle(this.props.chipName).size_property){
-            this.props.onSendStyle(
+            GlobalFunction.SendAjax(
+                (result)=>{
+                    this.setState(function(prevState, props) {
+                        D3ForceSimulation.setStyle(GlobalConstant.mode.node, this.props.chipName, 'size_property', property);
+                        return prevState;
+                    }.bind(this));
+                },
+                (error)=>{this.props.onMessage(error.message, 0)},
+                "/setStyle?style=",
                 {
                     mode: GlobalConstant.mode.node,
                     label: this.props.chipName,
                     property: 'size_property',
                     value: property
-                },
-                ()=>{
-                    this.setState(function(prevState, props) {
-                        D3ForceSimulation.setStyle(GlobalConstant.mode.node, this.props.chipName, 'size_property', property);
-                        return prevState;
-                    }.bind(this));
-                })
+                }
+            );
         }
     }.bind(this)
 
@@ -103,21 +108,23 @@ export default class EditNodeComponent extends React.Component {
                     this.props.onMessage('There is invalid level value', 0);
                     break;
                 default:
-                    this.props.onSendStyle(
-                        {
-                            mode: GlobalConstant.mode.node,
-                            label: this.props.chipName,
-                            property: 'size_level',
-                            value: this.state.levelMenu.level
-                        },
-                        ()=>{
+                    GlobalFunction.SendAjax(
+                        (result)=>{
                             this.setState(function(prevState, props) {
                                 D3ForceSimulation.setStyle(GlobalConstant.mode.node, this.props.chipName, 'size_level', this.state.levelMenu.level);
                                 prevState.levelMenu.open = false;
                                 return prevState;
                             }.bind(this));
+                        },
+                        (error)=>{this.props.onMessage(error.message, 0)},
+                        "/setStyle?style=",
+                        {
+                            mode: GlobalConstant.mode.node,
+                            label: this.props.chipName,
+                            property: 'size_level',
+                            value: this.state.levelMenu.level
                         }
-                    )
+                    );
                     break;
 
             }
@@ -393,19 +400,20 @@ export default class EditNodeComponent extends React.Component {
                         onMessage={this.props.onMessage}
                         onChange={(icon) => {
                             if (icon != D3ForceSimulation.getNodeStyle(this.props.chipName).icon){
-                                this.props.onSendStyle(
+                                GlobalFunction.SendAjax(
+                                    (result)=>{
+                                        D3ForceSimulation.setStyle(GlobalConstant.mode.node, this.props.chipName, 'icon', icon);
+                                        this.props.onChange();
+                                    },
+                                    (error)=>{this.props.onMessage(error.message, 0)},
+                                    "/setStyle?style=",
                                     {
                                         mode: GlobalConstant.mode.node,
                                         label: this.props.chipName,
                                         property: 'icon',
                                         value: icon
-                                    }, 
-                                    ()=>{
-                                            D3ForceSimulation.setStyle(GlobalConstant.mode.node, this.props.chipName, 'icon', icon);
-                                            this.props.onChange();
-                                        }
-                                    );
-                                
+                                    }
+                                );
                             }
                         }}
                     />
