@@ -94,10 +94,11 @@ const CheckName = function (str){
     return '';
 }
 
-const sendAjax = function(onSuccess, onError, url, parameter){
+const SendAjax = function(onSuccess, onError, url, parameter){
     let __xmlhttp = new XMLHttpRequest()
-    let __url = parameter === 'undefind' ? url : url + Base64.encodeURI(JSON.stringify(parameter));
-    
+    let __url = typeof parameter === 'undefined' ? url : url + Base64.encodeURI(JSON.stringify(parameter));
+    console.log(parameter)
+    console.log(__url)
     __xmlhttp.onreadystatechange = function(){
         if (__xmlhttp.readyState==4 && __xmlhttp.status==200){
             let __json = JSON.parse(Base64.decode(__xmlhttp.responseText));
@@ -107,7 +108,7 @@ const sendAjax = function(onSuccess, onError, url, parameter){
                 }
             }else{
                 if (typeof onSuccess == 'function'){
-                    onSuccess();
+                    onSuccess(__json);
                 }
             }
         }
@@ -122,7 +123,7 @@ const GlobalFunction = {
     GetTemplate: GetTemplate,
     MathAngle: MathAngle,
     CheckName: CheckName,
-    sendAjax: sendAjax,
+    SendAjax: SendAjax,
 }
 
 module.exports = GlobalFunction;
