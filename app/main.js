@@ -65,6 +65,42 @@ class App extends React.Component {
         GlobalFunction.GetTemplate();
     }
 
+    flagForTTC = {};
+    flagForCBC = {};
+    getFlagForSomeComponent = function(flag){
+		if (Object.keys(flag).length > 0){
+            let __result = {...flag};
+            for (let key in flag){
+                delete flag[key];
+            }
+            return __result;
+        }
+        return {};
+    }
+
+    saveCypher = function(statement){
+        GlobalFunction.SendAjax(
+            (result)=>{
+                this.flagForTTC = {statement: statement};
+                this.setState(function(prevState, props) {
+                    prevState.data.graph.refreshType = -1;
+                    return prevState;
+                })
+            },
+            (error)=>{this.showSnackbar(error.message, 0);},
+            "/addFavorites?cypher=",
+            {statement: statement}
+        )
+    }.bind(this)
+
+    setCypher = function(statement){
+        this.flagForCBC = {text: statement};
+		this.setState(function(prevState, props) {
+            prevState.data.graph.refreshType = -1;
+            return prevState;
+        })
+    }.bind(this)
+
     showAlert = function (title, message, action){
 		this.setState(function(prevState, props) {
             prevState.data.graph.refreshType = -1;
@@ -94,197 +130,216 @@ class App extends React.Component {
 		})
     }.bind(this);
     
+    countNodeForRunCypher = function(nodes, data, count){
+        let __b = true;
+        for (let i = 0; i < nodes.length; i++){
+            if (nodes[i].id == data.id){
+                __b = false;
+                break;
+            }
+        }
+
+        if (__b){
+            nodes.push(data);
+
+            for (let i = 0; i < data.labels.length; i++){
+                let __label = data.labels[i];
+                if (count.nodes.hasOwnProperty(__label)){
+                    count.nodes[__label].total++;
+                }else{
+                    count.nodes[__label] = {
+                        total:1, 
+                        propertiesList: {
+                            '<id>':1
+                        }
+                    };
+                }
+                
+                for (let propertyName in data.properties){
+                    if (propertyName != GlobalConstant.imagesOfProperty &&
+                        propertyName != GlobalConstant.memoOfProperty){
+                            count.nodes[__label].propertiesList[propertyName] = 
+                                count.nodes[__label].propertiesList.hasOwnProperty(propertyName) ?
+                                    count.nodes[__label].propertiesList[propertyName] + 1
+                                    :
+                                    1;
+                    }
+                }
+                
+                count.nodes['*'].total++;
+            }
+        }
+    }
+
+    countEdgeForRunCypher = function(edges, data){
+        let __b = true;
+        for (let i = 0; i < edges.length; i++){
+            if (edges[i].id == data.id){
+                __b = false;
+                break;
+            }
+        }
+
+        if (__b){
+            edges.push(data);
+        }
+    }
+
     runCypher = function(statement) {
         if (statement.trim() == ''){
             this.showSnackbar('Cypher statement is expected to be a non-empty string', 0);
             return;
         }
-
-        let xmlhttp = new XMLHttpRequest()
         
-        xmlhttp.onreadystatechange = function(){
-            if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-                if (__json.hasOwnProperty('error')){
-                    this.setState(function(prevState, props) {
-                        prevState.progress.open = false;
-                        prevState.data.graph.refreshType = -1;
-                        return prevState;
-                    });
-                    this.showSnackbar(__json.message, 0);
-                }else{
-                    let __nodes = [];
-                    let __edges = [];
-                    let __rows = [];
-                    let __columns = [];
-                    let __count = {
-                        nodes: {
-                            '*': {
-                                total: 0,
-                                propertiesList: {
-                                    '<id>': 1
-                                }
-                            }
-                        },
-                        edges: {
-                            '*': 0
-                        }
-                    };
-                    let __isFirst = true;
-                    __json.forEach(function (v, k) {
-                        if (__isFirst){
-                            for (let key in v)
-                                __columns.push(key);
-                            
-                            __isFirst = false;
-                        }
-
-                        let __row = []
-                        for (let key in v) {
-                            if (v[key].hasOwnProperty("id") 
-                                && v[key].hasOwnProperty("labels") 
-                                && v[key].hasOwnProperty("properties")){
-                                
-                                let __b = true;
-                                for (let i = 0; i < __nodes.length; i++){
-                                    if (__nodes[i].id == v[key].id){
-                                        __b = false;
-                                        break;
-                                    }
-                                }
-
-                                if (__b){
-                                    __nodes.push(v[key]);
-
-                                    for (let i = 0; i < v[key].labels.length; i++){
-                                        let __label = v[key].labels[i];
-                                        if (__count.nodes.hasOwnProperty(__label)){
-                                            __count.nodes[__label].total++;
-                                        }else{
-                                            __count.nodes[__label] = {
-                                                total:1, 
-                                                propertiesList: {
-                                                    '<id>':1
-                                                }
-                                            };
-                                        }
-                                        
-                                        for (let propertyName in v[key].properties){
-                                            if (propertyName != GlobalConstant.imagesOfProperty &&
-                                                propertyName != GlobalConstant.memoOfProperty){
-                                                __count.nodes[__label].propertiesList[propertyName] = 
-                                                    __count.nodes[__label].propertiesList.hasOwnProperty(propertyName) ?
-                                                        __count.nodes[__label].propertiesList[propertyName] + 1
-                                                        :
-                                                        1;
-                                            }
-                                        }
-                                        
-                                        __count.nodes['*'].total++;
-                                    }
-                                }
-                                
-                                __row.push(JSON.stringify(
-                                    {
-                                        id: v[key].id,
-                                        labels: v[key].labels,
-                                        properties: v[key].properties
-                                    }
-                                    , null, 2));
-                            }else if (v[key].hasOwnProperty("id") 
-                                && v[key].hasOwnProperty("type") 
-                                && v[key].hasOwnProperty("properties")
-                                && v[key].hasOwnProperty("source")
-                                && v[key].hasOwnProperty("target")){
-
-                                let __b = true;
-                                for (let i = 0; i < __edges.length; i++){
-                                    if (__edges[i].id == v[key].id){
-                                        __b = false;
-                                        break;
-                                    }
-                                }
-
-                                if (__b){
-                                    __edges.push(v[key]);
-                                }
-
-                                __row.push(JSON.stringify(
-                                    {
-                                        id: v[key].id,
-                                        type: v[key].type,
-                                        properties: v[key].properties
-                                    }
-                                    , null, 2));
-                            }else{
-                                __row.push(v[key]);
+        GlobalFunction.SendAjax(
+            (result)=>{
+                let __nodes = [];
+                let __edges = [];
+                let __rows = [];
+                let __columns = [];
+                let __count = {
+                    nodes: {
+                        '*': {
+                            total: 0,
+                            propertiesList: {
+                                '<id>': 1
                             }
                         }
+                    },
+                    edges: {
+                        '*': 0
+                    }
+                };
 
-                        __rows.push(__row);
-                    }.bind(this));
+                let __isFirst = true;
+                result.forEach(function (v, k) {
+                    if (__isFirst){
+                        for (let key in v)
+                            __columns.push(key);
+                        
+                        __isFirst = false;
+                    }
 
-                    for (let i = __edges.length - 1; i >= 0; i--){
-                        let __srcIdx = -1;
-                        let __tgtIdx = -1;
-                        for (let j = 0; j < __nodes.length; j++){
-                            if (__srcIdx < 0){
-                                if (__edges[i].source == __nodes[j].id){
-                                    __srcIdx = j;
+                    let __row = []
+                    for (let key in v) {
+                        if (v[key].hasOwnProperty("id") 
+                            && v[key].hasOwnProperty("labels") 
+                            && v[key].hasOwnProperty("properties")){
+                            this.countNodeForRunCypher(__nodes, v[key], __count);
+
+                            __row.push(JSON.stringify(
+                                {
+                                    id: v[key].id,
+                                    labels: v[key].labels,
+                                    properties: v[key].properties
                                 }
-                            } 
-                            
-                            if (__tgtIdx < 0){
-                                if (__edges[i].target == __nodes[j].id){
-                                    __tgtIdx = j;
+                                , null, 2));
+                        }else if (v[key].hasOwnProperty("id") 
+                            && v[key].hasOwnProperty("type") 
+                            && v[key].hasOwnProperty("properties")
+                            && v[key].hasOwnProperty("source")
+                            && v[key].hasOwnProperty("target")){
+                            this.countEdgeForRunCypher(__edges, v[key]);
+
+                            __row.push(JSON.stringify(
+                                {
+                                    id: v[key].id,
+                                    type: v[key].type,
+                                    properties: v[key].properties
+                                }
+                                , null, 2));
+                        }else if (v[key].hasOwnProperty("length") 
+                            && v[key].hasOwnProperty("segments")){
+                            for (let i=0; i<v[key].segments.length; i++){
+                                for (let pro in v[key].segments[i]){
+                                    switch (pro){
+                                        case 'start':
+                                        case 'end':
+                                            this.countNodeForRunCypher(__nodes, v[key].segments[i][pro], __count);
+                                            break;
+                                        case 'relationship':
+                                            this.countEdgeForRunCypher(__edges, v[key].segments[i][pro]);
+                                            break;
+                                    }
                                 }
                             }
 
-                            if (__srcIdx >= 0 && __tgtIdx >= 0){
-                                break;
+                            __row.push(JSON.stringify(v[key], null, 2));
+                        }else{
+                            __row.push(v[key]);
+                        }
+                    }
+
+                    __rows.push(__row);
+                }.bind(this));
+
+                for (let i = __edges.length - 1; i >= 0; i--){
+                    let __srcIdx = -1;
+                    let __tgtIdx = -1;
+                    for (let j = 0; j < __nodes.length; j++){
+                        if (__srcIdx < 0){
+                            if (__edges[i].source == __nodes[j].id){
+                                __srcIdx = j;
+                            }
+                        } 
+                        
+                        if (__tgtIdx < 0){
+                            if (__edges[i].target == __nodes[j].id){
+                                __tgtIdx = j;
                             }
                         }
 
                         if (__srcIdx >= 0 && __tgtIdx >= 0){
-                            if (!__nodes[__srcIdx].hasOwnProperty('sourceEdges'))
-                                __nodes[__srcIdx]['sourceEdges'] = [];
-
-                            __nodes[__srcIdx].sourceEdges.push(__edges[i]);
-                            
-                            if (!__nodes[__tgtIdx].hasOwnProperty('targetEdges'))
-                                __nodes[__tgtIdx]['targetEdges'] = [];
-
-                            __nodes[__tgtIdx].targetEdges.push(__edges[i]);
-                                
-                            if (__count.edges.hasOwnProperty(__edges[i].type))
-                                __count.edges[__edges[i].type]++;
-                            else
-                                __count.edges[__edges[i].type] = 1;
-
-                            __count.edges['*']++;
-                        }else{
-                            __edges.splice(i, 1);
+                            break;
                         }
                     }
 
-                    this.setState(function(prevState, props) {
-                        prevState.progress.open = false;
-                        prevState.data.graph.refreshType = 0;
-                        prevState.data.statement = statement;
-                        prevState.data.records = __json;
-                        prevState.data.graph.nodes = __nodes;
-                        prevState.data.graph.edges = __edges;
-                        prevState.data.graph.count = __count;
-                        prevState.data.table.rows = __rows;
-                        prevState.data.table.columns = __columns;
-                        return prevState;
-                    });
-                }
-            }
-        }.bind(this)
+                    if (__srcIdx >= 0 && __tgtIdx >= 0){
+                        if (!__nodes[__srcIdx].hasOwnProperty('sourceEdges'))
+                            __nodes[__srcIdx]['sourceEdges'] = [];
 
-        xmlhttp.open("GET", '/example?cypher="' + Base64.encodeURI(statement) + '"', true);
-        xmlhttp.send();
+                        __nodes[__srcIdx].sourceEdges.push(__edges[i]);
+                        
+                        if (!__nodes[__tgtIdx].hasOwnProperty('targetEdges'))
+                            __nodes[__tgtIdx]['targetEdges'] = [];
+
+                        __nodes[__tgtIdx].targetEdges.push(__edges[i]);
+                            
+                        if (__count.edges.hasOwnProperty(__edges[i].type))
+                            __count.edges[__edges[i].type]++;
+                        else
+                            __count.edges[__edges[i].type] = 1;
+
+                        __count.edges['*']++;
+                    }else{
+                        __edges.splice(i, 1);
+                    }
+                }
+
+                this.setState(function(prevState, props) {
+                    prevState.progress.open = false;
+                    prevState.data.graph.refreshType = 0;
+                    prevState.data.statement = statement;
+                    prevState.data.records = result;
+                    prevState.data.graph.nodes = __nodes;
+                    prevState.data.graph.edges = __edges;
+                    prevState.data.graph.count = __count;
+                    prevState.data.table.rows = __rows;
+                    prevState.data.table.columns = __columns;
+                    return prevState;
+                });
+            },
+            (error)=>{
+                this.setState(function(prevState, props) {
+                    prevState.progress.open = false;
+                    prevState.data.graph.refreshType = -1;
+                    return prevState;
+                });
+                this.showSnackbar(error.message, 0);
+            },
+            "/example?cypher=",
+            { statement: statement }
+        );
 
         this.setState(function(prevState, props) {
             prevState.data.graph.refreshType = -1;
@@ -399,7 +454,6 @@ class App extends React.Component {
 
                             prevState.data.graph.nodes[i].labels = node[0][keyName].labels;
                             prevState.data.graph.nodes[i].properties = node[0][keyName].properties;
-                            console.log(prevState.data.graph.nodes[i].properties)
                             prevState.data.graph.refreshType = 1;
                             return prevState;
                         });
@@ -708,10 +762,17 @@ class App extends React.Component {
                 <div style={{
                         display: 'flex',
                         flexDirection: 'column'}}>
-                    <TooltipComponent />
+                    <TooltipComponent 
+                        flag={this.getFlagForSomeComponent(this.flagForTTC)}
+                        onMessage={this.showSnackbar}
+                        onSetCypher={this.setCypher}/>
                 </div>
                 <div id='mainpanel'>
-                    <CypherBarComponent runCypher={this.runCypher} text={this.state.data.statement} />
+                    <CypherBarComponent
+                        runCypher={this.runCypher}
+                        saveCypher={this.saveCypher}
+                        flag={this.getFlagForSomeComponent(this.flagForCBC)}
+                    />
                     <VisualizationComponent 
                         data={this.state.data} 
                         onAddNode={this.addNode}

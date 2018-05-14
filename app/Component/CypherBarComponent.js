@@ -23,6 +23,16 @@ export default class CypherBarComponent extends React.Component {
         }
     }
 
+    componentWillReceiveProps(newProps)
+    {
+        if (newProps.flag.hasOwnProperty('text')){
+            this.setState(function(prevState, props) {
+                prevState.text = newProps.flag.text;
+                return prevState;
+            });
+        }
+    }
+
     render() {
         return (
             <Toolbar style={{width:"98%", 
@@ -54,20 +64,16 @@ export default class CypherBarComponent extends React.Component {
                             }}
                             onBeforeChange={(editor, data, value) => {
                                 this.setState(function(prevState, props) {
-                                    return {
-                                        text: value,
-                                        height: prevState.height
-                                    }
+                                    prevState.text = value;
+                                    return prevState;
                                 });
                             }}
                             onChange={(editor, data, value) => {
                                 if (editor.lineCount() <= 6){
                                     editor.setSize('100%', (10 + 24 * editor.lineCount()).toString() +'px')
                                     this.setState(function(prevState, props) {
-                                        return {
-                                            text: prevState.text,
-                                            height: 33 + 24 * editor.lineCount()
-                                        }
+                                        prevState.height = 33 + 24 * editor.lineCount();
+                                        return prevState;
                                     });
                                 }
                             }}
@@ -88,10 +94,20 @@ export default class CypherBarComponent extends React.Component {
                     >
                         <AvPlayArrow />
                     </FloatingActionButton>
-                    <FloatingActionButton mini={true} style={{margin: 10}}>
+                    <FloatingActionButton mini={true} style={{margin: 10}}
+                        onClick={
+                            function(event){
+                                this.props.saveCypher(this.state.text);
+                            }.bind(this)
+                        }>
                         <ActionGrade />
                     </FloatingActionButton>
-                    <FloatingActionButton mini={true} style={{margin: 10}}>
+                    <FloatingActionButton mini={true} style={{margin: 10}}
+                        onClick={()=>this.setState(function(prevState, props) {
+                                prevState.text = '';
+                                return prevState;
+                            })
+                        }>
                         <Clear />
                     </FloatingActionButton>
                 </ToolbarGroup>

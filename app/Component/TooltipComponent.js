@@ -4,6 +4,7 @@ import MenuItem from 'material-ui/MenuItem';
 import RaisedButton from 'material-ui/RaisedButton';
 import IconButton from 'material-ui/IconButton';
 import ActionGrade from 'material-ui/svg-icons/action/grade';
+import DeviceStorage from 'material-ui/svg-icons/device/storage';
 import Paper from 'material-ui/Paper';
 import DBInfoComponent from './DBInfoComponent';
 import FavoritesComponent from './FavoritesComponent';
@@ -22,10 +23,15 @@ export default class TooltipComponent extends React.Component {
         if (this.state.open){
             switch (this.state.type){
                 case 0:
-                    __page.push(<DBInfoComponent />);
+                    __page.push(<DBInfoComponent 
+                        onMessage={this.props.onMessage}
+                        onSetCypher={this.props.onSetCypher} />);
                     break;
                 case 1:
-                    __page.push(<FavoritesComponent />);
+                    __page.push(<FavoritesComponent 
+                        flag={this.props.flag}
+                        onMessage={this.props.onMessage}
+                        onSetCypher={this.props.onSetCypher} />);
                     break;
             }
         }
@@ -56,7 +62,7 @@ export default class TooltipComponent extends React.Component {
                             })
                         }.bind(this)}
                     >
-                        <ActionGrade />
+                        <DeviceStorage />
                     </IconButton>
                     <IconButton 
                         //tooltip="Favorites"

@@ -25,7 +25,7 @@ export default class DBInfoComponent extends React.Component {
                         <Chip 
                             className="labelChip" 
                             labelStyle={{fontSize: '12px'}}
-                            //onClick={}
+                            onClick={()=>this.props.onSetCypher('MATCH (n:' + item + ') RETURN n')}
                         >
                             <Avatar src={D3ForceSimulation.getNodeStyle(item).icon} 
                                 style={{
@@ -45,7 +45,7 @@ export default class DBInfoComponent extends React.Component {
                         <Chip 
                             className="edgeChip" 
                             labelStyle={{fontSize: '12px'}}
-                            //onClick={}
+                            onClick={()=>this.props.onSetCypher('MATCH p=()-[r:' + item + ']->() RETURN p')}
                         >
                             <Avatar
                                 className='edgeAvatar'
@@ -63,7 +63,9 @@ export default class DBInfoComponent extends React.Component {
                         <Chip 
                             className="edgeChip" 
                             labelStyle={{fontSize: '12px'}}
-                            //onClick={}
+                            onClick={()=>this.props.onSetCypher('MATCH (n) WHERE EXISTS(n.' + item + ') RETURN DISTINCT "node" as entity, '+
+                                'n.' + item + ' AS ' + item + ' UNION ALL MATCH ()-[r]-() WHERE EXISTS(r.' + item + ') RETURN DISTINCT ' +
+                                '"relationship" AS entity, r.' + item + ' AS ' + item)}
                         >
                             {item}
                         </Chip>
