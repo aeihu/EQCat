@@ -25,6 +25,83 @@ export default class FavoritesComponent extends React.Component {
         }
     }
 
+    onDrag = function (event){
+        console.log('document.body.drop')
+        // e.stopImmediatePropagation();
+        event.stopPropagation();
+        event.preventDefault();
+
+        if (event.target.id.indexOf(']^[') >= 0){
+			try{
+                let __tgr = event.target.id.split("]^[");
+                let __data = JSON.parse(event.dataTransfer.getData("textDrag"));
+                if (__tgr[1] == 'folder'){
+                    if (__data.dir != __tgr[0]){
+                        GlobalFunction.SendAjax(
+                            (result)=>{
+                                this.setState(function(prevState, props) {
+                                    let __key = prevState.favorites[__data.dir][__data.index];
+                                    let __val = prevState.favorites[__data.dir][__data.index+1];
+                                    prevState.favorites[__data.dir].splice(__data.index, 2);
+                                    prevState.favorites[__tgr[0]].push(__key);
+                                    prevState.favorites[__tgr[0]].push(__val);
+                                    prevState.dataForDrag.dir = '';
+                                    prevState.dataForDrag.index = -1;
+                                    return prevState;
+                                })},
+                            (error)=>{this.props.onMessage(error.message, 0)},
+                            "/moveFavorites?data=",
+                            {oldDir: __data.dir, oldIndex:__data.index, newDir:__tgr[0], newIndex:-1}
+                        );
+                    }else{
+                        this.setState(function(prevState, props) {
+                            prevState.dataForDrag.dir = '';
+                            prevState.dataForDrag.index = -1;
+                            return prevState;
+                        });
+                    }
+                }else{
+                    let __index = Number(__tgr[1]);
+                    if (!isNaN(__index)){
+                        if (__data.dir != __tgr[0] || __data.index != __index){
+                            GlobalFunction.SendAjax(
+                                (result)=>{
+                                    this.setState(function(prevState, props) {
+                                        let __key = prevState.favorites[__data.dir][__data.index];
+                                        let __val = prevState.favorites[__data.dir][__data.index+1];
+                                        prevState.favorites[__data.dir].splice(__data.index, 2);
+                                        
+                                        if (__data.dir != __tgr[0]){
+                                            prevState.favorites[__tgr[0]].splice(__index+2, 0, __val);
+                                            prevState.favorites[__tgr[0]].splice(__index+2, 0, __key);
+                                        }else{
+                                            prevState.favorites[__tgr[0]].splice(__index, 0, __val);
+                                            prevState.favorites[__tgr[0]].splice(__index, 0, __key);
+                                        }
+            
+                                        prevState.dataForDrag.dir = '';
+                                        prevState.dataForDrag.index = -1;
+                                        return prevState;
+                                    })},
+                                (error)=>{this.props.onMessage(error.message, 0)},
+                                "/moveFavorites?data=",
+                                {oldDir: __data.dir, oldIndex:__data.index, newDir:__tgr[0], newIndex:__index}
+                            );
+                        }else{
+                            this.setState(function(prevState, props) {
+                                prevState.dataForDrag.dir = '';
+                                prevState.dataForDrag.index = -1;
+                                return prevState;
+                            });
+                        }
+                    }
+                }
+            }catch (err){
+				console.log(err.name + ': ' + err.message);
+			}
+        }
+    }.bind(this)
+
     componentWillReceiveProps(newProps)
     {
         if (newProps.flag.hasOwnProperty('statement')){
@@ -41,6 +118,10 @@ export default class FavoritesComponent extends React.Component {
         }
     }
 
+    componentWillUnmount(){
+        document.body.removeEventListener('drop', this.onDrag, true);
+    }
+
     componentDidMount()
     {
         GlobalFunction.SendAjax(
@@ -52,6 +133,8 @@ export default class FavoritesComponent extends React.Component {
             (error)=>{this.props.onMessage(error.message, 0)},
             "/getFavorites"
         );
+
+        document.body.addEventListener('drop', this.onDrag, true);
     }
     
     render() {
@@ -63,6 +146,7 @@ export default class FavoritesComponent extends React.Component {
             for (let i=0; i<this.state.favorites[key].length; i+=2){
                 __scr.push(
                     <ListItem
+                        key={'scr_'+ key + i}
                         draggable="true"
                         leftIcon={<AvPlayCircleFilled />}
                         onClick={()=>this.props.onSetCypher(this.state.favorites[key][i+1])}
@@ -125,44 +209,10 @@ export default class FavoritesComponent extends React.Component {
                             </div>
                         }
                     >
-                        <div draggable={true} 
-                            onDrop={function (event){
-                                event.preventDefault();
-                                let data = JSON.parse(event.dataTransfer.getData("text"));
-                                if (data.dir != key || data.index != i){
-                                    GlobalFunction.SendAjax(
-                                        (result)=>{
-                                            this.setState(function(prevState, props) {
-                                                let __key = prevState.favorites[data.dir][data.index];
-                                                let __val = prevState.favorites[data.dir][data.index+1];
-                                                prevState.favorites[data.dir].splice(data.index, 2);
-                                                
-                                                if (data.dir != key){
-                                                    prevState.favorites[key].splice(i+2, 0, __val);
-                                                    prevState.favorites[key].splice(i+2, 0, __key);
-                                                }else{
-                                                    prevState.favorites[key].splice(i, 0, __val);
-                                                    prevState.favorites[key].splice(i, 0, __key);
-                                                }
-    
-                                                prevState.dataForDrag.dir = '';
-                                                prevState.dataForDrag.index = -1;
-                                                return prevState;
-                                            })},
-                                        (error)=>{this.props.onMessage(error.message, 0)},
-                                        "/moveFavorites?data=",
-                                        {oldDir: data.dir, oldIndex:data.index, newDir:key, newIndex:i}
-                                    );
-                                }else{
-                                    this.setState(function(prevState, props) {
-                                        prevState.dataForDrag.dir = '';
-                                        prevState.dataForDrag.index = -1;
-                                        return prevState;
-                                    });
-                                }
-                            }.bind(this)} 
+                        <div draggable={true}
+                            id={key+']^['+i}
                             onDragStart={function (event){
-                                event.dataTransfer.setData("text", JSON.stringify({dir:key, index:i}));
+                                event.dataTransfer.setData("textDrag", JSON.stringify({dir:key, index:i}));
                             }}
                             onDragExit={function (event){
                                 event.preventDefault();
@@ -194,40 +244,14 @@ export default class FavoritesComponent extends React.Component {
             }else{
                 __scripts.push(
                     <ListItem
+                        key={'dir_'+key}
                         style={{
                             backgroundColor: this.state.dataForDrag.dir != key ? '#00000000' : 'SkyBlue'
                         }}
                         leftIcon={<FileFolder />}
                         primaryText={
                             <div
-                                onDrop={function (event){
-                                    event.preventDefault();
-                                    let data = JSON.parse(event.dataTransfer.getData("text"));
-                                    if (data.dir != key){
-                                        GlobalFunction.SendAjax(
-                                            (result)=>{
-                                                this.setState(function(prevState, props) {
-                                                    let __key = prevState.favorites[data.dir][data.index];
-                                                    let __val = prevState.favorites[data.dir][data.index+1];
-                                                    prevState.favorites[data.dir].splice(data.index, 2);
-                                                    prevState.favorites[key].push(__key);
-                                                    prevState.favorites[key].push(__val);
-                                                    prevState.dataForDrag.dir = '';
-                                                    prevState.dataForDrag.index = -1;
-                                                    return prevState;
-                                                })},
-                                            (error)=>{this.props.onMessage(error.message, 0)},
-                                            "/moveFavorites?data=",
-                                            {oldDir: data.dir, oldIndex:data.index, newDir:key, newIndex:-1}
-                                        );
-                                    }else{
-                                        this.setState(function(prevState, props) {
-                                            prevState.dataForDrag.dir = '';
-                                            prevState.dataForDrag.index = -1;
-                                            return prevState;
-                                        });
-                                    }
-                                }.bind(this)} 
+                                id={key+']^[folder'}
                                 onDragExit={function (event){
                                     event.preventDefault();
                                     this.setState(function(prevState, props) {
