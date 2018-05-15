@@ -107,7 +107,13 @@ class EQCarServer{
 		}.bind(this));
 		
 		this.app.get('/example?:cypher', function (req, res) {
-			this.DBDriver.runStatement(Base64.decode(req.query.cypher), {}, res);
+			try{
+				let __json = JSON.parse(Base64.decode(req.query.cypher));
+				this.DBDriver.runStatement(__json.statement, {}, res);
+			}catch (err){
+				log4js.logger.error(err.name + ': ' + err.message + ' <setStyle>');
+				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
+			}
 		}.bind(this));
 		
 		this.app.get('/template', function (req, res) {
@@ -121,6 +127,147 @@ class EQCarServer{
 			res.send(Base64.encodeURI(JSON.stringify(__result)));
 		}.bind(this));
 		
+		this.app.get('/getFavorites', function (req, res) {
+			let __result = {
+				favorites: this.favorites,
+			}
+			
+			res.send(Base64.encodeURI(JSON.stringify(__result)));
+		}.bind(this));
+
+		this.app.get('/addFavorites?:cypher', function (req, res) {
+			try{
+				let __json = JSON.parse(Base64.decode(req.query.cypher));
+				if (!this.favorites.hasOwnProperty('default')){
+					this.favorites.default = [];
+				}
+
+				this.favorites.default.push(__json.statement);
+				this.favorites.default.push(__json.statement);
+				
+				fs.writeFile(this.favoritesPath, JSON.stringify(this.favorites, null, 2),
+					function(err, written, buffer){
+						if(err) {
+							log4js.logger.error(err.name + ': ' + err.message + ' <addFavorites>');
+						}else{
+							log4js.logger.info('add favorite: ' + __json.statement);
+						}
+					}
+				);
+				res.send(Base64.encodeURI('{}'));
+			}catch (err){
+				log4js.logger.error(err.name + ': ' + err.message + ' <addFavorites>');
+				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
+			}
+		}.bind(this));
+
+		this.app.get('/removeFavorites?:data', function (req, res) {
+			try{
+				let __json = JSON.parse(Base64.decode(req.query.data));
+				if (this.favorites.hasOwnProperty(__json.key)){
+					this.favorites[__json.key].splice(__json.index, 2);
+
+					fs.writeFile(this.favoritesPath, JSON.stringify(this.favorites, null, 2),
+						function(err, written, buffer){
+							if(err) {
+								log4js.logger.error(err.name + ': ' + err.message + ' <removeFavorites>');
+							}else{
+								log4js.logger.info('remove favorite: ' + __json.key);
+							}
+						}
+					);
+				}else{
+					log4js.logger.warn('there is no "' + __json.key + '" folder');
+				}
+				
+				res.send(Base64.encodeURI('{}'));
+			}catch (err){
+				log4js.logger.error(err.name + ': ' + err.message + ' <removeFavorites>');
+				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
+			}
+		}.bind(this));
+		
+		this.app.get('/moveFavorites?:data', function (req, res) {
+			try{
+				let __json = JSON.parse(Base64.decode(req.query.data));
+				let __key = '';
+				let __val = '';
+				if (this.favorites.hasOwnProperty(__json.oldDir)){
+					__key = this.favorites[__json.oldDir][__json.oldIndex];
+					__val = this.favorites[__json.oldDir][__json.oldIndex+1];
+					this.favorites[__json.oldDir].splice(__json.oldIndex, 2);
+
+					if (__json.newIndex < 0){
+						this.favorites[__json.newDir].push(__key);
+						this.favorites[__json.newDir].push(__val);
+					}else{
+						if (__json.newDir != __json.oldDir){
+							this.favorites[__json.newDir].splice(__json.newIndex+2, 0, __val);
+							this.favorites[__json.newDir].splice(__json.newIndex+2, 0, __key);
+						}else{
+							this.favorites[__json.newDir].splice(__json.newIndex, 0, __val);
+							this.favorites[__json.newDir].splice(__json.newIndex, 0, __key);
+						}
+					}
+
+					fs.writeFile(this.favoritesPath, JSON.stringify(this.favorites, null, 2),
+						function(err, written, buffer){
+							if(err) {
+								log4js.logger.error(err.name + ': ' + err.message + ' <moveFavorites>');
+							}else{
+								log4js.logger.info('move favorite: ' + __key);
+							}
+						}
+					);
+				}else{
+					log4js.logger.warn('there is no "' + __json.oldDir + '" folder');
+				}
+				
+				res.send(Base64.encodeURI('{}'));
+			}catch (err){
+				log4js.logger.error(err.name + ': ' + err.message + ' <moveFavorites>');
+				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
+			}
+		}.bind(this));
+
+		this.app.get('/editFavorites?:cypher', function (req, res) {
+			try{
+				let __json = JSON.parse(Base64.decode(req.query.cypher));
+				let __flag = true;
+				if (!this.favorites.hasOwnProperty(__json.folder)){
+					this.favorites[__json.folder] = [];
+				}
+
+				for (let i=0; i<this.favorites[__json.folder].length; i+=2){
+					if (this.favorites[__json.folder][i] == __json.name){
+						this.favorites[__json.folder][i+1] = __json.statement;
+						__flag = false;
+						break;
+					}
+				}
+
+				if (__flag){
+					this.favorites[__json.folder].push(__json.name);
+					this.favorites[__json.folder].push(__json.statement);
+				}
+				
+				fs.writeFile(this.favoritesPath, JSON.stringify(this.favorites, null, 2),
+					function(err, written, buffer){
+						if(err) {
+							log4js.logger.error(err.name + ': ' + err.message + ' <setStyle>');
+						}else{
+							log4js.logger.info('set favorites ' +
+								' style (' + __json.property + ': ' + __json.value + ')');
+						}
+					}
+				);
+				res.send(Base64.encodeURI('{}'));
+			}catch (err){
+				log4js.logger.error(err.name + ': ' + err.message + ' <setStyle>');
+				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
+			}
+		}.bind(this));
+
 		this.app.get('/getStyles', function (req, res) {
 			let __result = {
 				styles: this.styles,
