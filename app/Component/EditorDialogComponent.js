@@ -474,6 +474,13 @@ export default class EditorDialogComponent extends React.Component {
 					value: '',
 					type: 'string'
 				};
+				
+				prevState.properties.push(prevState.memo);
+				prevState.properties.push({
+					key: GlobalConstant.imagesOfProperty,
+					value: prevState.images,
+					type: 'listString'
+				});
 				return prevState;
 			});
 		}else{
