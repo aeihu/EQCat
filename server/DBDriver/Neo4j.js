@@ -442,7 +442,18 @@ export default class Neo4j
                         __result.push(__record)
                     }.bind(this));
 
-                    res.send(Base64.encodeURI(JSON.stringify(__result)));
+                    if (result.summary.statementType.indexOf('w') >= 0){
+                        this.getPropertyKeys();
+                        this.getLabels()
+                        this.getRelationshipTypes();
+                    }
+        
+                    res.send(Base64.encodeURI(JSON.stringify({
+                        records: __result, 
+                        type: result.summary.statementType,
+                        counters: result.summary.counters._stats,
+                        server: result.summary.server,
+                    })));
                     __session.close();
                 }.bind(this))
                 .catch(function (error) {

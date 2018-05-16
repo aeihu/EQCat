@@ -232,17 +232,17 @@ export default class GraphForDataComponent extends React.Component {
                         }
 
                         __message += '<br/><br/><b>Edges:</b>'
-                        for (let i=0; i<result.length; i++){
-                            if (result[i].r.source == result[i].n.id){
-                                __source = result[i].n;
-                                __target = result[i].m;
+                        for (let i=0; i<result.records.length; i++){
+                            if (result.records[i].r.source == result.records[i].n.id){
+                                __source = result.records[i].n;
+                                __target = result.records[i].m;
                             }else{
-                                __source = result[i].m;
-                                __target = result[i].n;
+                                __source = result.records[i].m;
+                                __target = result.records[i].n;
                             }
                         
                             for (let j=0; j<__tmpEdgeIDs.length; j++){
-                                if (__tmpEdgeIDs[j] == result[i].r.id){
+                                if (__tmpEdgeIDs[j] == result.records[i].r.id){
                                     __isContinue = true;
                                     break;
                                 }
@@ -253,16 +253,16 @@ export default class GraphForDataComponent extends React.Component {
                                 continue;
                             }
                             
-                            __tmpEdgeIDs.push(result[i].r.id);
+                            __tmpEdgeIDs.push(result.records[i].r.id);
                             __message += '<br/>&emsp;<b>'+__count+':</b>&emsp;'+
                                 this.nodeToStrForMessage(__source, true)+
                                 '-'+
-                                this.edgeToStrForMessage(result[i].r, true)+
+                                this.edgeToStrForMessage(result.records[i].r, true)+
                                 '->'+
                                 this.nodeToStrForMessage(__target, true);
 
                             for (let j=__edges.length-1; j>=0; j--){
-                                if (__edges[j].id == result[i].r.id){
+                                if (__edges[j].id == result.records[i].r.id){
                                     __edges.splice(j, 1);
                                 }
                             }
@@ -319,13 +319,35 @@ export default class GraphForDataComponent extends React.Component {
             __json.edges.length > 0){
             GlobalFunction.SendAjax(
                 (result)=>{
+                    GlobalVariable.flagForGetTemplate = true;
                     this.props.onDeleteNode(nodes);
                     this.props.onDeleteEdge(__json.edges);
+
+                    for (let i=0; i<this.cards.nodes.length; i++){
+                        for (let j=0; j<__json.nodes.length; j++){
+                            if (this.cards.nodes[i].data.id == __json.nodes[j]){
+                                this.cards.nodes.splice(i, 1);
+                                break;
+                            }
+                        }
+                    }
+
+                    for (let i=0; i<this.cards.edges.length; i++){
+                        for (let j=0; j<__json.edges.length; j++){
+                            if (this.cards.edges[i].data.id == __json.edges[j]){
+                                this.cards.edges.splice(i, 1);
+                                break;
+                            }
+                        }
+                    }
+
                     this.setState(function(prevState, props) {
                         prevState.tooltip.selected.nodes = [];
                         prevState.tooltip.selected.edges = [];
                         return prevState;
                     });
+
+                    this.props.onMessage(GlobalFunction.DBCounterDataToString(result.counters), 1);
                 },
                 (error)=>{this.props.onMessage(error.message, 0)},
                 "/deleteNE?NE=",
@@ -355,9 +377,9 @@ export default class GraphForDataComponent extends React.Component {
                     }
 
                     __message += '<br/><br/><b>Edges:</b>'
-                    for (let i=0; i<result.length; i++){
+                    for (let i=0; i<result.records.length; i++){
                         for (let j=0; j<__tmpEdgeIDs.length; j++){
-                            if (__tmpEdgeIDs[j] == result[i].r.id){
+                            if (__tmpEdgeIDs[j] == result.records[i].r.id){
                                 __isContinue = true;
                                 break;
                             }
@@ -368,19 +390,19 @@ export default class GraphForDataComponent extends React.Component {
                             continue;
                         }
 
-                        __tmpEdgeIDs.push(result[i].r.id);
-                        if (result[i].r.source == result[i].n.id){
-                            __source = result[i].n;
-                            __target = result[i].m;
+                        __tmpEdgeIDs.push(result.records[i].r.id);
+                        if (result.records[i].r.source == result.records[i].n.id){
+                            __source = result.records[i].n;
+                            __target = result.records[i].m;
                         }else{
-                            __source = result[i].m;
-                            __target = result[i].n;
+                            __source = result.records[i].m;
+                            __target = result.records[i].n;
                         }
                         
                         __message += '<br/>&emsp;<b>'+__count+':</b>&emsp;'+
                             this.nodeToStrForMessage(__source, true)+
                             '-'+
-                            this.edgeToStrForMessage(result[i].r, true)+
+                            this.edgeToStrForMessage(result.records[i].r, true)+
                             '->'+
                             this.nodeToStrForMessage(__target, true);
                         
@@ -388,6 +410,7 @@ export default class GraphForDataComponent extends React.Component {
                     }
                     
                     __message = 'You will delete ' + nodes.length + ' nodes and ' + __count + ' edges:<br/><b>Nodes:</b>' + __message;
+
                     this.props.onAlert('Delete Nodes', __message, ()=>this.deleteNodes(nodes))
 				},
 				(error)=>{this.props.onMessage(error.message, 0)},
@@ -412,7 +435,29 @@ export default class GraphForDataComponent extends React.Component {
         if (__nodes.length > 0){
             GlobalFunction.SendAjax(
                 (result)=>{
+                    GlobalVariable.flagForGetTemplate = true;
                     this.props.onDeleteNode(nodes);
+                    
+                    for (let j=0; j<__nodes.length; j++){
+                        for (let i=0; i<this.cards.nodes.length; i++){
+                            if (this.cards.nodes[i].data.id == __nodes[j]){
+                                this.cards.nodes.splice(i, 1);
+                                break;
+                            }
+                        }
+                        
+                        for (let i=this.cards.edges.length-1; i>=0; i--){
+                            if (this.cards.edges[i].data.source.id == __nodes[j]){
+                                this.cards.edges.splice(i, 1);
+                                continue;
+                            }
+
+                            if (this.cards.edges[i].data.target.id == __nodes[j]){
+                                this.cards.edges.splice(i, 1);
+                            }
+                        }
+                    }
+                 
                     this.setState(function(prevState, props) {
                         let __b = false;
                         for (let i=0; i<nodes.length; i++){
@@ -453,6 +498,8 @@ export default class GraphForDataComponent extends React.Component {
                         prevState.tooltip.selected.nodesOpen = prevState.tooltip.selected.nodesOpen ? prevState.tooltip.selected.nodes.length > 0 : false;
                         return prevState;
                     }.bind(this));
+
+                    this.props.onMessage(GlobalFunction.DBCounterDataToString(result.counters), 1);
                 },
                 (error)=>{this.props.onMessage(error.message, 0)},
                 "/deleteNode?nodes=",
@@ -494,7 +541,18 @@ export default class GraphForDataComponent extends React.Component {
 		if (__edges.length > 0){
 			GlobalFunction.SendAjax(
 				(result)=>{
+                    GlobalVariable.flagForGetTemplate = true;
                     this.props.onDeleteEdge(__edges);
+                    
+                    for (let i=0; i<this.cards.edges.length; i++){
+                        for (let j=0; j<__edges.length; j++){
+                            if (this.cards.edges[i].data.id == __edges[j]){
+                                this.cards.edges.splice(i, 1);
+                                break;
+                            }
+                        }
+                    }
+
                     this.setState(function(prevState, props) {
                         for (let i=0; i<__edges.length; i++){
                             for (let j=prevState.tooltip.selected.edges.length-1; j>=0; j--){
@@ -508,6 +566,8 @@ export default class GraphForDataComponent extends React.Component {
                         prevState.tooltip.selected.edgesOpen = prevState.tooltip.selected.edgesOpen ? prevState.tooltip.selected.edges.length > 0 : false;
                         return prevState;
                     });
+                    
+                    this.props.onMessage(GlobalFunction.DBCounterDataToString(result.counters), 1);
 				},
 				(error)=>{this.props.onMessage(error.message, 0)},
 				"/deleteEdge?edges=",

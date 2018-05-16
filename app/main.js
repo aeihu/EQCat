@@ -35,12 +35,8 @@ class App extends React.Component {
                 records:[],
                 graph: {
                     refreshType: -1,
-                    nodes: [
-                        //{id:"0", name : "0", age:12},
-                    ],
-                    edges: [
-                        //{source:"0", target:"1"},
-                    ],
+                    nodes: [],
+                    edges: [],
                     count: {
                         nodes: {
                             '*': {
@@ -193,6 +189,10 @@ class App extends React.Component {
         
         GlobalFunction.SendAjax(
             (result)=>{
+                if (result.type.indexOf('w') >= 0){
+                    GlobalVariable.flagForGetTemplate = true;
+                }
+
                 let __nodes = [];
                 let __edges = [];
                 let __rows = [];
@@ -212,7 +212,7 @@ class App extends React.Component {
                 };
 
                 let __isFirst = true;
-                result.forEach(function (v, k) {
+                result.records.forEach(function (v, k) {
                     if (__isFirst){
                         for (let key in v)
                             __columns.push(key);
@@ -320,7 +320,7 @@ class App extends React.Component {
                     prevState.progress.open = false;
                     prevState.data.graph.refreshType = 0;
                     prevState.data.statement = statement;
-                    prevState.data.records = result;
+                    prevState.data.records = result.records;
                     prevState.data.graph.nodes = __nodes;
                     prevState.data.graph.edges = __edges;
                     prevState.data.graph.count = __count;

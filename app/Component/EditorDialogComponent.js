@@ -190,7 +190,6 @@ export default class EditorDialogComponent extends React.Component {
 	};
 
 	delLabel = (key) => {
-		console.log(key);
         for (let i = 0; i < this.state.labels.length; i++){
             if (i == key){
                 this.setState(function(prevState, props) {
@@ -240,7 +239,8 @@ export default class EditorDialogComponent extends React.Component {
 
 		GlobalFunction.SendAjax(
 			(result)=>{
-				this.props.onChangeData(result);
+                GlobalVariable.flagForGetTemplate = true;
+				this.props.onChangeData(result.records);
 				this.props.onMessage('Add node is success', 1);
 				this.closeDialog();
 			},
@@ -362,7 +362,8 @@ export default class EditorDialogComponent extends React.Component {
 		if (__hasChanged){
 			GlobalFunction.SendAjax(
 				(result)=>{
-					this.props.onChangeData(result, this.props.data.id);
+					GlobalVariable.flagForGetTemplate = true;
+					this.props.onChangeData(result.records, this.props.data.id);
 					this.props.onMessage('Merge edge is success', 1);
 					this.closeDialog();
 				},
@@ -422,7 +423,8 @@ export default class EditorDialogComponent extends React.Component {
 		{
 			GlobalFunction.SendAjax(
 				(result)=>{
-					this.props.onChangeData(result);
+					GlobalVariable.flagForGetTemplate = true;
+					this.props.onChangeData(result.records);
 					this.props.onMessage('Merge node is success', 1);
 					this.closeDialog();
 				},
@@ -449,6 +451,11 @@ export default class EditorDialogComponent extends React.Component {
             return prevState;
         });
 	}
+
+    componentWillMount()
+    {
+        GlobalFunction.GetTemplate();
+    }
 	
     componentWillReceiveProps(newProps)
     {
@@ -456,6 +463,7 @@ export default class EditorDialogComponent extends React.Component {
 			return;
 		}
 
+        GlobalFunction.GetTemplate();
 		if (newProps.mode == -1){
 			this.setState(function(prevState, props) {
 				prevState.labels = [];

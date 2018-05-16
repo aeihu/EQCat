@@ -26,24 +26,19 @@ const ArrayEquals= function (arrayA, arrayB) {
 }
 
 const GetTemplate = function() {
-    let xmlhttp = new XMLHttpRequest()
-    
-    xmlhttp.onreadystatechange = function(){
-        if (xmlhttp.readyState==4 && xmlhttp.status==200){
-            let __json = JSON.parse(Base64.decode(xmlhttp.responseText));
-            if (__json.hasOwnProperty('error')){
-                console.log(__json.message);
-            }else{
-                GlobalVariable.templateList = __json.templates;
-                GlobalVariable.labelList = __json.labels;
-                GlobalVariable.propertyList = __json.propertyKeys;
-                GlobalVariable.relationshipTypeList = __json.relationshipTypes;
-            }
-        }
-    }.bind(this)
-
-    xmlhttp.open("GET", "/template", true);
-    xmlhttp.send();
+    if (GlobalVariable.flagForGetTemplate){
+        GlobalFunction.SendAjax(
+            (result)=>{
+                GlobalVariable.templateList = result.templates;
+                GlobalVariable.labelList = result.labels;
+                GlobalVariable.propertyList = result.propertyKeys;
+                GlobalVariable.relationshipTypeList = result.relationshipTypes;
+                GlobalVariable.flagForGetTemplate = false;
+            },
+            (error)=>{console.log(error.message)},
+            "/template"
+        );
+    }
 }.bind(this)
 
 const MathAngle = function (x1, y1, x2, y2)
@@ -118,12 +113,45 @@ const SendAjax = function(onSuccess, onError, url, parameter){
     __xmlhttp.send();
 }
 
+const DBCounterDataToString = function(counter){
+    console.log(counter)
+    let __created = counter.nodesCreated > 0 ? counter.nodesCreated + ' node(s), ' : '';
+    __created += counter.relationshipsCreated > 0 ? counter.nodesCreated + ' relationship(s), ' : '';
+    if (__created != ''){
+        __created = 'created ' + __created;
+    }
+
+    let __deleted = counter.nodesDeleted > 0 ? counter.nodesDeleted + ' node(s), ' : '';
+    __deleted += counter.relationshipsDeleted > 0 ? counter.relationshipsDeleted + ' relationship(s), ' : '';
+    if (__deleted != ''){
+        __deleted = 'deleted ' + __deleted;
+    }
+
+    let __added = counter.labelsAdded > 0 ? counter.labelsAdded + ' label(s), ' : '';
+    __added += counter.indexesAdded > 0 ? counter.indexesAdded + ' index(es), ' : '';
+    __added += counter.constraintsAdded > 0 ? counter.constraintsAdded + ' constraint(s), ' : '';
+    if (__added != ''){
+        __added = 'added ' + __added;
+    }
+
+    let __removed = counter.labelsRemoved > 0 ? counter.labelsRemoved + ' label(s), ' : '';
+    __removed += counter.indexesRemoved > 0 ? counter.indexesRemoved + ' index(es), ' : '';
+    __removed += counter.constraintsRemoved > 0 ? counter.constraintsRemoved + ' constraint(s), ' : '';
+    if (__removed != ''){
+        __removed = 'removed ' + __removed;
+    }
+
+    let __set = counter.propertiesSet > 0 ? 'set ' + counter.propertiesSet + ' property(s), ' : '';
+    return __created + __deleted + __set + __added + __removed;
+}
+
 const GlobalFunction = {
     ArrayEquals: ArrayEquals,
     GetTemplate: GetTemplate,
     MathAngle: MathAngle,
     CheckName: CheckName,
     SendAjax: SendAjax,
+    DBCounterDataToString: DBCounterDataToString,
 }
 
 module.exports = GlobalFunction;

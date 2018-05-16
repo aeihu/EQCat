@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import GlobalConstant from '../../Common/GlobalConstant';
 import GlobalFunction from '../../Common/GlobalFunction';
+import GlobalVariable from '../../Common/GlobalVariable';
 
 export const D3ForceSimulation = {};
 
@@ -741,7 +742,8 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                             if (__message == ''){
                                 GlobalFunction.SendAjax(
                                     (result)=>{
-                                        props.onAddEdge(result);
+                                        GlobalVariable.flagForGetTemplate = true;
+                                        props.onAddEdge(result.records);
                                         props.onMessage('Add edge is success', 1);
                                     },
                                     (error)=>{props.onMessage(error.message, 0)},
@@ -772,7 +774,8 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
 
                                 GlobalFunction.SendAjax(
                                     (result)=>{
-                                        props.onMergeEdge(result, __edge.edge);
+                                        GlobalVariable.flagForGetTemplate = true;
+                                        props.onMergeEdge(result.records, __edge.edge);
                                         props.onMessage('Merge edge is success', 1);
                                     },
                                     (error)=>{props.onMessage(error.message, 0)},

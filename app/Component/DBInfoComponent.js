@@ -1,5 +1,6 @@
 import React from 'react';
 import GlobalVariable from '../../Common/GlobalVariable';
+import GlobalFunction from '../../Common/GlobalFunction';
 import Chip from 'material-ui/Chip';
 import Avatar from 'material-ui/Avatar';
 import {D3ForceSimulation} from './D3ForceSimulation';
@@ -7,6 +8,17 @@ import {D3ForceSimulation} from './D3ForceSimulation';
 export default class DBInfoComponent extends React.Component {
     constructor(props) {
         super(props);
+    }
+
+    
+    componentWillReceiveProps(newProps)
+    {
+        GlobalFunction.GetTemplate();
+    }
+
+    componentWillMount()
+    {
+        GlobalFunction.GetTemplate();
     }
 
     render() {
