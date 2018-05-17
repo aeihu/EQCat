@@ -181,6 +181,53 @@ class App extends React.Component {
         }
     }
 
+    parseObj(obj, nodes, edges, count){
+        if (typeof obj == 'object'){
+            switch (obj.constructor){
+                case Array:
+                    for (let i=0; i<obj.length; i++){
+                        this.parseObj(obj[i], nodes, edges, count);
+                    }
+                    break;
+                default:
+                    if (Object.keys(obj).length == 3
+                        && obj.hasOwnProperty("id") 
+                        && obj.hasOwnProperty("labels") 
+                        && obj.hasOwnProperty("properties")){
+                        this.countNodeForRunCypher(nodes, obj, count);
+                    }else if (Object.keys(obj).length == 5
+                        && obj.hasOwnProperty("id") 
+                        && obj.hasOwnProperty("type") 
+                        && obj.hasOwnProperty("properties")
+                        && obj.hasOwnProperty("source")
+                        && obj.hasOwnProperty("target")){
+                        this.countEdgeForRunCypher(edges, obj);
+                    }else if (Object.keys(obj).length == 2
+                        && obj.hasOwnProperty("length") 
+                        && obj.hasOwnProperty("segments")){
+                        for (let i=0; i<obj.segments.length; i++){
+                            for (let pro in obj.segments[i]){
+                                switch (pro){
+                                    case 'start':
+                                    case 'end':
+                                        this.countNodeForRunCypher(nodes, obj.segments[i][pro], count);
+                                        break;
+                                    case 'relationship':
+                                        this.countEdgeForRunCypher(edges, obj.segments[i][pro]);
+                                        break;
+                                }
+                            }
+                        }
+                    }else{
+                        for (let key in obj){
+                            this.parseObj(obj[key], nodes, edges, count);
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+
     runCypher = function(statement) {
         if (statement.trim() == ''){
             this.showSnackbar('Cypher statement is expected to be a non-empty string', 0);
@@ -210,7 +257,7 @@ class App extends React.Component {
                         '*': 0
                     }
                 };
-
+                //console.log(result.records)
                 let __isFirst = true;
                 result.records.forEach(function (v, k) {
                     if (__isFirst){
@@ -222,52 +269,8 @@ class App extends React.Component {
 
                     let __row = []
                     for (let key in v) {
-                        if (v[key].hasOwnProperty("id") 
-                            && v[key].hasOwnProperty("labels") 
-                            && v[key].hasOwnProperty("properties")){
-                            this.countNodeForRunCypher(__nodes, v[key], __count);
-
-                            __row.push(JSON.stringify(
-                                {
-                                    id: v[key].id,
-                                    labels: v[key].labels,
-                                    properties: v[key].properties
-                                }
-                                , null, 2));
-                        }else if (v[key].hasOwnProperty("id") 
-                            && v[key].hasOwnProperty("type") 
-                            && v[key].hasOwnProperty("properties")
-                            && v[key].hasOwnProperty("source")
-                            && v[key].hasOwnProperty("target")){
-                            this.countEdgeForRunCypher(__edges, v[key]);
-
-                            __row.push(JSON.stringify(
-                                {
-                                    id: v[key].id,
-                                    type: v[key].type,
-                                    properties: v[key].properties
-                                }
-                                , null, 2));
-                        }else if (v[key].hasOwnProperty("length") 
-                            && v[key].hasOwnProperty("segments")){
-                            for (let i=0; i<v[key].segments.length; i++){
-                                for (let pro in v[key].segments[i]){
-                                    switch (pro){
-                                        case 'start':
-                                        case 'end':
-                                            this.countNodeForRunCypher(__nodes, v[key].segments[i][pro], __count);
-                                            break;
-                                        case 'relationship':
-                                            this.countEdgeForRunCypher(__edges, v[key].segments[i][pro]);
-                                            break;
-                                    }
-                                }
-                            }
-
-                            __row.push(JSON.stringify(v[key], null, 2));
-                        }else{
-                            __row.push(v[key]);
-                        }
+                        this.parseObj(v[key], __nodes, __edges, __count);
+                        __row.push(JSON.stringify(v[key], null, 2));
                     }
 
                     __rows.push(__row);

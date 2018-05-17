@@ -44,14 +44,6 @@ export default class Neo4j
         return val;
     }
 
-    arrayToJson(val)
-    {
-        //////////////
-        //////////////
-        //////////////
-        return __result;
-    }
-
     propertiesToJson(val)
     {
         let __result = {};
@@ -343,6 +335,84 @@ export default class Neo4j
         this.runStatement(__statement, {}, res);
     }
 
+    convertRelationship(record){
+        return { 
+            id: this.ifIntegerThenToNumberOrString(record.identity).toString(),
+            type: record.type,
+            source: this.ifIntegerThenToNumberOrString(record.start).toString(),
+            target: this.ifIntegerThenToNumberOrString(record.end).toString(),
+            properties: this.propertiesToJson(record.properties)
+        };
+    }
+
+    convertNode(record){
+        return { 
+            id: this.ifIntegerThenToNumberOrString(record.identity).toString(),
+            labels: record.labels,
+            properties: this.propertiesToJson(record.properties)
+        };
+    }
+
+    parseObject(obj){
+        let __result;
+        if (typeof obj == 'object'){
+            switch (obj.constructor){
+                case neo4j.types.Relationship:
+                    __result = this.convertRelationship(obj);
+                break;
+                case neo4j.types.Node:
+                    __result = this.convertNode(obj);
+                break;
+                case neo4j.types.PathSegment:
+                    console.log('PathSegment')
+                break;
+                case neo4j.types.Path:
+                    __result = {
+                        length: obj.length,
+                        segments: []
+                    };
+
+                    for (let j=0; j<obj.segments.length; j++){
+                        let __path = {};
+                        for (let key in obj.segments[j]){
+                            switch (key){
+                                case 'start':
+                                case 'end':
+                                    __path[key] = this.convertNode(obj.segments[j][key]);
+                                    break;
+                                case 'relationship':
+                                    __path[key] = this.convertRelationship(obj.segments[j][key]);
+                                    break;
+                            }
+                        }
+                        __result.segments.push(__path);
+                    }
+                break;
+                case Array:
+                    __result = [];
+                    for (let i=0; i<obj.length; i++){
+                        __result.push(this.parseObject(obj[i]));
+                    }
+                break;
+                default:
+                    if (neo4j.isInt(obj)){
+                        __result = this.ifIntegerThenToNumberOrString(obj);
+                    }else{
+                        __result = {};
+                        for (let key in obj){
+                            __result[key] = this.parseObject(obj[key]);
+                        }
+                    }
+                break;
+            }
+        }
+        else{
+            __result = obj;
+        }
+
+        return __result;
+    }
+
     runStatement(statement, param, res)
     {
         if (this._driver == null){
@@ -362,81 +432,7 @@ export default class Neo4j
                     result.records.forEach(function (value, key, record) {
                         let __record = {};
                         for (let i = 0; i < value.length; i++){
-                            if (typeof value.get(value.keys[i]) == 'object'){
-                                switch (value.get(value.keys[i]).constructor){
-                                    case neo4j.types.Relationship:
-                                        __record[value.keys[i]] = { 
-                                            id: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).identity).toString(),
-                                            type: value.get(value.keys[i]).type,
-                                            source: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).start).toString(),
-                                            target: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).end).toString(),
-                                            properties: this.propertiesToJson(value.get(value.keys[i]).properties)
-                                        };
-                                    break;
-                                    case neo4j.types.Node:
-                                        __record[value.keys[i]] = { 
-                                            id: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).identity).toString(),
-                                            labels: value.get(value.keys[i]).labels,
-                                            properties: this.propertiesToJson(value.get(value.keys[i]).properties)
-                                        };
-                                    break;
-                                    case neo4j.types.PathSegment:
-                                        console.log('PathSegment')
-                                    break;
-                                    case neo4j.types.Path:
-                                        __record[value.keys[i]] = {
-                                            length: value.get(value.keys[i]).length,
-                                            segments: []
-                                        };
-
-                                        for (let j=0; j<value.get(value.keys[i]).segments.length; j++){
-                                            let __path = {};
-                                            for (let key in value.get(value.keys[i]).segments[j]){
-                                                switch (key){
-                                                    case 'start':
-                                                    case 'end':
-                                                        __path[key] = {
-                                                            id: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).segments[j][key].identity).toString(),
-                                                            labels: value.get(value.keys[i]).segments[j][key].labels,
-                                                            properties: this.propertiesToJson(value.get(value.keys[i]).segments[j][key].properties)
-                                                        }
-                                                        break;
-                                                    case 'relationship':
-                                                        __path[key] = {
-                                                            id: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).segments[j][key].identity).toString(),
-                                                            type: value.get(value.keys[i]).segments[j][key].type,
-                                                            source: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).segments[j][key].start).toString(),
-                                                            target: this.ifIntegerThenToNumberOrString(value.get(value.keys[i]).segments[j][key].end).toString(),
-                                                            properties: this.propertiesToJson(value.get(value.keys[i]).segments[j][key].properties)
-                                                        }
-                                                        break;
-                                                }
-                                            }
-                                            __record[value.keys[i]].segments.push(__path);
-                                        }
-                                    break;
-                                    case Array:
-                                        if (value.get(value.keys[i]).length > 0){
-                                            if (neo4j.isInt(value.get(value.keys[i])[0])){
-                                                // /__record[value.keys[i]] = this.arrayToJson(value.get(value.keys[i]));
-                                                ////////
-
-
-                                                
-                                                continue;
-                                            }
-                                        }
-
-                                        __record[value.keys[i]] = value.get(value.keys[i]);
-                                    break;
-                                    default:
-                                        __record[value.keys[i]] = this.ifIntegerThenToNumberOrString(value.get(value.keys[i]));
-                                    break;
-                                }
-                            }
-                            else{
-                                __record[value.keys[i]] = value.get(value.keys[i]);
-                            }
+                            __record[value.keys[i]] = this.parseObject(value.get(value.keys[i]));
                         }
 
                         __result.push(__record)
@@ -457,6 +453,7 @@ export default class Neo4j
                     __session.close();
                 }.bind(this))
                 .catch(function (error) {
+                    //console.log(error)
                     let __msg = error.message.substr(0, error.message.indexOf('\r'));
                     this._logger.addContext('statementType', 'e');
                     this._logger.addContext('parameters', error.code);
