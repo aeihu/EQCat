@@ -122,11 +122,14 @@ export default class CardComponent extends React.Component {
                                 {typeof this.state.card.data.properties[key] == 'boolean' ? 
                                     this.state.card.data.properties[key] ? '√' : '×'
                                     :
-                                    this.state.card.data.properties[key].toLowerCase().indexOf('http://') == 0 ||
-                                    this.state.card.data.properties[key].toLowerCase().indexOf('https://') == 0 ?
-                                        <a href={this.state.card.data.properties[key]} target="_blank">{this.state.card.data.properties[key]}</a>
-                                        :
+                                    typeof this.state.card.data.properties[key] == 'number' ?
                                         this.state.card.data.properties[key]
+                                        :
+                                        this.state.card.data.properties[key].toLowerCase().indexOf('http://') == 0 ||
+                                        this.state.card.data.properties[key].toLowerCase().indexOf('https://') == 0 ?
+                                            <a href={this.state.card.data.properties[key]} target="_blank">{this.state.card.data.properties[key]}</a>
+                                            :
+                                            this.state.card.data.properties[key]
                                 }
                             </span>
                         }

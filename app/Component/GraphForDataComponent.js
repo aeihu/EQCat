@@ -709,7 +709,9 @@ export default class GraphForDataComponent extends React.Component {
                 />
                 <div style={{display: 'flex', flexDirection: 'row', flex:'1 1 auto', width:'100%'}}>
                     <div id="displayContent" 
-                        style={{backgroundColor: 'Gainsboro', width:'100%', flex:'1 1 auto'}} 
+                        style={{backgroundColor: D3ForceSimulation.connectMode >= 0 ? 'Tan' : 'Gainsboro', 
+                            width:'100%', 
+                            flex:'1 1 auto'}} 
                         onClick={function () {
                             if (this.styleEditor.mode != -1){
                                 this.setState(function(prevState, props) {
@@ -861,7 +863,7 @@ export default class GraphForDataComponent extends React.Component {
                                 }}>
                                     <AutoComplete
                                         hintText="Relationship Type"
-										errorStyle={{fontSize: '10px', lineHeight:'0px'}}
+										errorStyle={{fontSize: '10px', lineHeight:'0px', bottom:'5px'}}
                                         searchText={this.state.tooltip.relationshipType}
                                         onUpdateInput={(searchText)=>{
                                             this.setState(function(prevState, props) {
