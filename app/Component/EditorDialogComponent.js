@@ -2,13 +2,9 @@ import React from 'react';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
 import RaisedButton from 'material-ui/RaisedButton';
-import {RadioButton, RadioButtonGroup} from 'material-ui/RadioButton';
 import AutoComplete from 'material-ui/AutoComplete';
 import Chip from 'material-ui/Chip';
-import FloatingActionButton from 'material-ui/FloatingActionButton';
-import Divider from 'material-ui/Divider';
 import TextField from 'material-ui/TextField';
-import Toggle from 'material-ui/Toggle';
 import IconMenu from 'material-ui/IconMenu';
 import MenuItem from 'material-ui/MenuItem';
 import IconButton from 'material-ui/IconButton';
@@ -617,15 +613,43 @@ export default class EditorDialogComponent extends React.Component {
 						display: 'flex',
 						alignItems: 'center',
 						paddingRight: '8px',
-						borderRadius: '10px',
+						borderRadius: '30px',
 						backgroundColor: 'Gainsboro',
 						margin: '3px',
-						height: '25px'
+						height: '25px',
+						border: GlobalVariable.templateList.hasOwnProperty(this.state.labels[i]) ? '2px solid tomato' : '2px solid Gainsboro'
 					}}>
-						<Avatar
-							src={D3ForceSimulation.getNodeStyle(this.state.labels[i]).icon}
-							className='labelAvatar'
-						/>
+						{GlobalVariable.templateList.hasOwnProperty(this.state.labels[i]) ?
+							<IconButton 
+								tooltip="Delete Label"
+								style={{
+									marginLeft: '-1px',
+									marginRight: '6px',
+									backgroundColor: 'tomato',
+									borderRadius: '50%',
+									padding: '0px',
+									width: '28px',
+									height: '28px'
+								}}
+								onClick={()=>{this.setPropertiesByLabel(this.state.labels[i])}}
+							>
+								<img src={D3ForceSimulation.getNodeStyle(this.state.labels[i]).icon} 
+									width='28px'
+									height='28px'
+								/>
+							</IconButton>
+							:
+							<Avatar
+								src={D3ForceSimulation.getNodeStyle(this.state.labels[i]).icon}
+								style={{
+									width: '28px',
+									height: '28px',
+									marginLeft: '-1px',
+									marginRight: '6px',
+									backgroundColor: '#00000000'
+								}}
+							/>
+						}
 						<AutoComplete
 							//floatingLabelText="Label"
 							errorStyle={{fontSize: '10px', lineHeight:'0px'}}
@@ -731,8 +755,8 @@ export default class EditorDialogComponent extends React.Component {
 						<Checkbox
 							label=""
 							style={{width:'256px', }}
-							  checked={this.state.properties[i].value}
-							  onCheck={function(event, isInputChecked){
+							checked={this.state.properties[i].value}
+							onCheck={function(event, isInputChecked){
 								this.setState(function(prevState, props) {
 									this.state.properties[i].value = isInputChecked;
 									return prevState;
@@ -1179,7 +1203,7 @@ export default class EditorDialogComponent extends React.Component {
 				<div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
 					<h2>Properties</h2>
 					{__propertiesElement}
-					<div>
+					<div style={{display: 'flex', flexDirection: 'row'}}>
 						<RaisedButton
 							onClick={this.addProperty}
 							label="Add Property"
