@@ -1,19 +1,22 @@
 import React from 'react';
-import Chip from 'material-ui/Chip';
-import IconButton from 'material-ui/IconButton';
-import TextField from 'material-ui/TextField';
-import Popover from 'material-ui/Popover/Popover';
+
 import IconSelectorComponent from './IconSelectorComponent';
-import Avatar from 'material-ui/Avatar';
-import Menu from 'material-ui/Menu';
-import MenuItem from 'material-ui/MenuItem';
 import GlobalVariable from '../../Common/GlobalVariable';
 import GlobalConstant from '../../Common/GlobalConstant';
 import GlobalFunction from '../../Common/GlobalFunction';
 import {D3ForceSimulation} from './D3ForceSimulation';
+
+import Chip from 'material-ui/Chip';
+import IconButton from 'material-ui/IconButton';
+import TextField from 'material-ui/TextField';
+import Popover from 'material-ui/Popover/Popover';
+import Avatar from 'material-ui/Avatar';
+import Menu from 'material-ui/Menu';
+import AutoComplete from 'material-ui/AutoComplete';
+import MenuItem from 'material-ui/MenuItem';
+
 import ContentAdd from 'material-ui/svg-icons/content/add';
 import Clear from 'material-ui/svg-icons/content/clear';
-import AutoComplete from 'material-ui/AutoComplete';
 
 export default class EditNodeComponent extends React.Component {
     constructor(props) {

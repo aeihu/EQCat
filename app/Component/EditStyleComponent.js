@@ -2,10 +2,11 @@ import React from 'react';
 import EditEdgeComponent from './EditEdgeComponent';
 import EditNodeComponent from './EditNodeComponent';
 import {D3ForceSimulation} from './D3ForceSimulation';
+
+import GlobalConstant from '../../Common/GlobalConstant';
+
 import Chip from 'material-ui/Chip';
 import Avatar from 'material-ui/Avatar';
-import FlatButton from 'material-ui/FlatButton';
-import GlobalConstant from '../../Common/GlobalConstant';
 
 export default class EditStyleComponent extends React.Component {
     constructor(props) {

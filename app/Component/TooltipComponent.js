@@ -1,13 +1,12 @@
 import React from 'react';
-import Drawer from 'material-ui/Drawer';
-import MenuItem from 'material-ui/MenuItem';
-import RaisedButton from 'material-ui/RaisedButton';
-import IconButton from 'material-ui/IconButton';
-import ActionGrade from 'material-ui/svg-icons/action/grade';
-import DeviceStorage from 'material-ui/svg-icons/device/storage';
-import Paper from 'material-ui/Paper';
 import DBInfoComponent from './DBInfoComponent';
 import FavoritesComponent from './FavoritesComponent';
+
+import IconButton from 'material-ui/IconButton';
+import Paper from 'material-ui/Paper';
+
+import ActionGrade from 'material-ui/svg-icons/action/grade';
+import DeviceStorage from 'material-ui/svg-icons/device/storage';
 
 export default class TooltipComponent extends React.Component {
     constructor(props) {

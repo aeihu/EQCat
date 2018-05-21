@@ -1,20 +1,23 @@
 import React from 'react';
+import { SketchPicker } from 'react-color';
+
+import {D3ForceSimulation} from './D3ForceSimulation';
+import GlobalVariable from '../../Common/GlobalVariable';
+import GlobalConstant from '../../Common/GlobalConstant';
+import GlobalFunction from '../../Common/GlobalFunction';
+
 import Chip from 'material-ui/Chip';
 import RaisedButton from 'material-ui/RaisedButton';
 import Popover from 'material-ui/Popover/Popover';
-import { SketchPicker } from 'react-color';
-import GlobalVariable from '../../Common/GlobalVariable';
-import GlobalConstant from '../../Common/GlobalConstant';
-import {D3ForceSimulation} from './D3ForceSimulation';
 import AutoComplete from 'material-ui/AutoComplete';
-import GlobalFunction from '../../Common/GlobalFunction';
 import IconButton from 'material-ui/IconButton';
-import ContentAdd from 'material-ui/svg-icons/content/add';
 import Avatar from 'material-ui/Avatar';
 import TextField from 'material-ui/TextField';
-import Clear from 'material-ui/svg-icons/content/clear';
 import IconMenu from 'material-ui/IconMenu';
 import MenuItem from 'material-ui/MenuItem';
+
+import ContentAdd from 'material-ui/svg-icons/content/add';
+import Clear from 'material-ui/svg-icons/content/clear';
 
 export default class EditEdgeComponent extends React.Component {
     constructor(props) {

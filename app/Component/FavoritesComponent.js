@@ -1,15 +1,11 @@
 import React from 'react';
 import GlobalFunction from '../../Common/GlobalFunction';
-import GlobalVariable from '../../Common/GlobalVariable';
-import Chip from 'material-ui/Chip';
-import Avatar from 'material-ui/Avatar';
-import {D3ForceSimulation} from './D3ForceSimulation';
+
 import IconButton from 'material-ui/IconButton';
 import {List, ListItem} from 'material-ui/List';
+
 import FileFolder from 'material-ui/svg-icons/file/folder';
 import AvPlayCircleFilled from 'material-ui/svg-icons/av/play-circle-filled';
-import ActionCode from 'material-ui/svg-icons/action/code';
-import ContentRemoveCircleOutline from 'material-ui/svg-icons/content/remove-circle-outline';
 import ActionDelete from 'material-ui/svg-icons/action/delete';
 import ImageEdit from 'material-ui/svg-icons/image/edit';
 

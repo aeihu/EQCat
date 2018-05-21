@@ -1,27 +1,20 @@
 import React from 'react';
-import { Card, CardActions, CardHeader, CardMedia, CardTitle, CardText } from 'material-ui/Card';
-import FlatButton from 'material-ui/FlatButton';
 import Draggable from 'react-draggable';
-
-import MenuItem from 'material-ui/MenuItem';
-import DropDownMenu from 'material-ui/DropDownMenu';
-import RaisedButton from 'material-ui/RaisedButton';
-import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
-
-import Chip from 'material-ui/Chip';
-import TextField from 'material-ui/TextField';
-import Divider from 'material-ui/Divider';
-
-import AppBar from 'material-ui/AppBar';
-import IconButton from 'material-ui/IconButton';
-import NavigationClose from 'material-ui/svg-icons/navigation/close';
-import Paper from 'material-ui/Paper';
-import {D3ForceSimulation} from './D3ForceSimulation';
-import Avatar from 'material-ui/Avatar';
 import { Carousel } from 'react-responsive-carousel';
 import styles from 'react-responsive-carousel/lib/styles/carousel.min.css';
+
+import {D3ForceSimulation} from './D3ForceSimulation';
 import GlobalConstant from '../../Common/GlobalConstant';
+
+import Chip from 'material-ui/Chip';
+import Divider from 'material-ui/Divider';
+import AppBar from 'material-ui/AppBar';
+import IconButton from 'material-ui/IconButton';
+import Paper from 'material-ui/Paper';
+import Avatar from 'material-ui/Avatar';
+
 import ImageEdit from 'material-ui/svg-icons/image/edit';
+import NavigationClose from 'material-ui/svg-icons/navigation/close';
 
 export default class CardComponent extends React.Component {
     constructor(props) {

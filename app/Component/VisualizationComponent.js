@@ -1,8 +1,8 @@
-import PropTypes from 'prop-types';
-import {Tabs, Tab} from 'material-ui/Tabs';
+import React from 'react';
 import GraphForDataComponent from './GraphForDataComponent';
 import TableForDataComponent from './TableForDataComponent';
-import React from 'react';
+
+import {Tabs, Tab} from 'material-ui/Tabs';
 
 export default class VisualizationComponent extends React.Component {
     constructor(props) {

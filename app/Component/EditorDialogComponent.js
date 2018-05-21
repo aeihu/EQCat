@@ -1,37 +1,36 @@
 import React from 'react';
+import Upload from 'rc-upload';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import { Base64 } from 'js-base64';
+
+import {D3ForceSimulation} from './D3ForceSimulation';
+import GlobalVariable from '../../Common/GlobalVariable';
+import GlobalConstant from '../../Common/GlobalConstant';
+import GlobalFunction from '../../Common/GlobalFunction';
+
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
 import RaisedButton from 'material-ui/RaisedButton';
 import AutoComplete from 'material-ui/AutoComplete';
-import Chip from 'material-ui/Chip';
 import TextField from 'material-ui/TextField';
 import IconMenu from 'material-ui/IconMenu';
 import MenuItem from 'material-ui/MenuItem';
 import IconButton from 'material-ui/IconButton';
-import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
-import Add from 'material-ui/svg-icons/content/add';
-import Clear from 'material-ui/svg-icons/content/clear';
-import {D3ForceSimulation} from './D3ForceSimulation';
 import Avatar from 'material-ui/Avatar';
-import AddBox from 'material-ui/svg-icons/content/add-box';
-import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import {GridList, GridTile} from 'material-ui/GridList';
-import StarBorder from 'material-ui/svg-icons/toggle/star-border';
 import Checkbox from 'material-ui/Checkbox';
-import Upload from 'rc-upload';
 import CircularProgress from 'material-ui/CircularProgress';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
-import GlobalVariable from '../../Common/GlobalVariable';
-import GlobalConstant from '../../Common/GlobalConstant';
-import GlobalFunction from '../../Common/GlobalFunction';
+import SelectField from 'material-ui/SelectField';
+
+import Clear from 'material-ui/svg-icons/content/clear';
+import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
+import StarBorder from 'material-ui/svg-icons/toggle/star-border';
 import ImageLooksOne from 'material-ui/svg-icons/image/looks-one';
 import ContentFontDownload from 'material-ui/svg-icons/content/font-download';
 import SocialPoll from 'material-ui/svg-icons/social/poll';
 import ToggleCheckBox from 'material-ui/svg-icons/toggle/check-box';
 import ContentAdd from 'material-ui/svg-icons/content/add';
-import { Base64 } from 'js-base64';
-import SelectField from 'material-ui/SelectField';
 	
 export default class EditorDialogComponent extends React.Component {
     constructor(props) {

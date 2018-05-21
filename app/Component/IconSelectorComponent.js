@@ -1,9 +1,11 @@
 import React from 'react';
-import AddBox from 'material-ui/svg-icons/content/add-box';
-import IconButton from 'material-ui/IconButton';
 import Upload from 'rc-upload';
-import CircularProgress from 'material-ui/CircularProgress';
 import GlobalFunction from '../../Common/GlobalFunction';
+
+import IconButton from 'material-ui/IconButton';
+import CircularProgress from 'material-ui/CircularProgress';
+
+import AddBox from 'material-ui/svg-icons/content/add-box';
 
 export default class IconSelectorComponent extends React.Component {
     constructor(props) {

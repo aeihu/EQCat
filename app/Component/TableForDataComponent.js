@@ -58,20 +58,6 @@ export default class TableForDataComponent extends React.Component {
                         </TableRow> 
                     ))}
                 </TableBody>
-                {/* <TableFooter
-                    adjustForCheckbox={this.state.showCheckboxes}
-                >
-                    <TableRow>
-                    <TableRowColumn>ID</TableRowColumn>
-                    <TableRowColumn>Name</TableRowColumn>
-                    <TableRowColumn>Status</TableRowColumn>
-                    </TableRow>
-                    <TableRow>
-                    <TableRowColumn colSpan="3" style={{textAlign: 'center'}}>
-                        Super Footer
-                    </TableRowColumn>
-                    </TableRow>
-                </TableFooter> */}
             </Table>
         )
     }
