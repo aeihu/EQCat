@@ -104,8 +104,14 @@ export default class EditorDialogComponent extends React.Component {
 	updateInputForLabel = (searchText, index) => {
 		this.setState(function(prevState, props) {
 			if (props.mode != GlobalConstant.mode.edge){
+				if (prevState.labelForTemplate == prevState.labels[index]){
+					prevState.labelForTemplate = '';
+				}
 				prevState.labels[index] = searchText;
 			}else{
+				if (prevState.labelForTemplate == prevState.type){
+					prevState.labelForTemplate = '';
+				}
 				prevState.type = searchText;
 			}
 
@@ -116,8 +122,14 @@ export default class EditorDialogComponent extends React.Component {
 	newRequestForLabel = (value, index) => {
 		this.setState(function(prevState, props) {
 			if (props.mode != GlobalConstant.mode.edge){
+				if (prevState.labelForTemplate == prevState.labels[index]){
+					prevState.labelForTemplate = '';
+				}
 				prevState.labels[index] = value;
 			}else{
+				if (prevState.labelForTemplate == prevState.type){
+					prevState.labelForTemplate = '';
+				}
 				prevState.type = value;
 			}
 			
@@ -139,11 +151,12 @@ export default class EditorDialogComponent extends React.Component {
         });
 	};
 
-	setPropertiesByLabel = (labelName) => {
-		if (GlobalVariable.templateList.hasOwnProperty(labelName)){
+	setProperties = (labelName) => {
+		let __json = this.props.mode == GlobalConstant.mode.edge ? GlobalVariable.templateList.edges : GlobalVariable.templateList.nodes;
+		if (__json.hasOwnProperty(labelName)){
 			this.setState(function(prevState, props) {
 				let __isHas = false;
-				for (let key in GlobalVariable.templateList[labelName]){
+				for (let key in __json[labelName]){
 					__isHas = false;
 					for (let i = 0; i < prevState.properties.length; i++){
 						if (prevState.properties[i].key == key){
@@ -154,7 +167,7 @@ export default class EditorDialogComponent extends React.Component {
 					
 					if (!__isHas){
 						let __val = '';
-						switch (GlobalVariable.templateList[labelName][key]){
+						switch (__json[labelName][key]){
 							case 'boolean':
 								__val = true;
 								break;
@@ -168,7 +181,7 @@ export default class EditorDialogComponent extends React.Component {
 						}
 						prevState.properties.push({
 							key : key,
-							type : GlobalVariable.templateList[labelName][key],
+							type : __json[labelName][key],
 							value : __val
 						});
 					}
@@ -184,18 +197,6 @@ export default class EditorDialogComponent extends React.Component {
             prevState.labels.push('');
             return prevState;
         });
-	};
-
-	delLabel = (key) => {
-        for (let i = 0; i < this.state.labels.length; i++){
-            if (i == key){
-                this.setState(function(prevState, props) {
-                    prevState.labels.splice(i, 1);
-                    return prevState;
-				});
-				break;
-            }
-		}
 	};
 
 	addNode = function() {
@@ -460,23 +461,38 @@ export default class EditorDialogComponent extends React.Component {
 
     setTemplate = function () {
 		this.isCheckError = true;
-		if (this.state.labelForTemplate.trim() == ''){
-			this.props.onMessage('"Select Label" field is empty.', 0)
-			return
+		let __name;
+		let __mode;
+		if (this.props.mode == GlobalConstant.mode.edge){
+			if (this.state.type.trim() == ''){
+				this.props.onMessage('"Relationship Type" field is empty.', 0)
+				return
+			}
+			__name = this.state.type;
+			__mode = 'edges';
+		}else{
+			if (this.state.labelForTemplate.trim() == ''){
+				this.props.onMessage('"Select Label" field is empty.', 0)
+				return
+			}
+			__name = this.state.labelForTemplate;
+			__mode = 'nodes';
 		}
 		
 		let __json = {};
-		let __flag = GlobalVariable.templateList.hasOwnProperty(this.state.labelForTemplate);
+		let __flag = GlobalVariable.templateList[__mode].hasOwnProperty(__name);
 		let __needSend = false;
 		
 		for (let i=0; i<this.state.properties.length; i++){
-			if (this.state.properties[i].key == GlobalConstant.imagesOfProperty || this.state.properties[i].key == GlobalConstant.memoOfProperty){
+			if (this.state.properties[i].key == GlobalConstant.imagesOfProperty || 
+				this.state.properties[i].key == GlobalConstant.memoOfProperty ||
+				this.state.properties[i].key.trim() == ''){
 				continue;
 			}
 
 			if (__flag && !__needSend){
-				if (GlobalVariable.templateList[this.state.labelForTemplate].hasOwnProperty(this.state.properties[i].key)){
-					if (GlobalVariable.templateList[this.state.labelForTemplate][this.state.properties[i].key] != this.state.properties[i].type){
+				if (GlobalVariable.templateList[__mode][__name].hasOwnProperty(this.state.properties[i].key)){
+					if (GlobalVariable.templateList[__mode][__name][this.state.properties[i].key] != this.state.properties[i].type){
 						console.log(1)
 						__needSend = true;
 					}
@@ -493,7 +509,7 @@ export default class EditorDialogComponent extends React.Component {
 		}
 
 		if (!__needSend){
-			if (Object.keys(__json).length != Object.keys(GlobalVariable.templateList[this.state.labelForTemplate]).length){
+			if (Object.keys(__json).length != Object.keys(GlobalVariable.templateList[__mode][__name]).length){
 				console.log(4)
 				__needSend = true;
 			}
@@ -502,15 +518,15 @@ export default class EditorDialogComponent extends React.Component {
 		if (__needSend){
 			GlobalFunction.SendAjax(
 				(result)=>{
-					GlobalVariable.templateList[this.state.labelForTemplate] = __json;
-					this.props.onMessage(this.state.labelForTemplate + "'s Template has been saved.", 1)
+					GlobalVariable.templateList[__mode][__name] = __json;
+					this.props.onMessage(__name + "'s Template has been saved.", 1)
 				},
 				(error)=>{this.props.onMessage(error.message, 0)},
 				"/setTemplate?template=",
-				{key:this.state.labelForTemplate, value:__json}
+				{key:__name, value:__json, mode:__mode}
 			);
 		}else{
-			this.props.onMessage(this.state.labelForTemplate + "'s Template has been saved.", 1)
+			this.props.onMessage(__name + "'s Template has been saved.", 1)
 		}
 	}.bind(this)
 
@@ -532,6 +548,7 @@ export default class EditorDialogComponent extends React.Component {
 				prevState.labels = [];
 				prevState.properties=[];
 				prevState.images = [];
+				prevState.labelForTemplate = '';
 				prevState.memo = {
 					key: GlobalConstant.memoOfProperty,
 					value: '',
@@ -550,6 +567,7 @@ export default class EditorDialogComponent extends React.Component {
 			this.setState(function(prevState, props) {
 				if (props.mode != GlobalConstant.mode.edge){
 					prevState.labels = [...newProps.data.labels];
+					prevState.labelForTemplate = '';
 				}else{
 					prevState.type = newProps.data.type;
 				}
@@ -684,11 +702,11 @@ export default class EditorDialogComponent extends React.Component {
 						backgroundColor: 'Gainsboro',
 						margin: '3px',
 						height: '25px',
-						border: GlobalVariable.templateList.hasOwnProperty(this.state.labels[i]) ? '2px solid tomato' : '2px solid Gainsboro'
+						border: GlobalVariable.templateList['nodes'].hasOwnProperty(this.state.labels[i]) ? '2px solid tomato' : '2px solid Gainsboro'
 					}}>
-						{GlobalVariable.templateList.hasOwnProperty(this.state.labels[i]) ?
+						{GlobalVariable.templateList['nodes'].hasOwnProperty(this.state.labels[i]) ?
 							<IconButton 
-								tooltip="Delete Label"
+								tooltip="Set Properties"
 								style={{
 									marginLeft: '-1px',
 									marginRight: '6px',
@@ -698,7 +716,7 @@ export default class EditorDialogComponent extends React.Component {
 									width: '28px',
 									height: '28px'
 								}}
-								onClick={()=>{this.setPropertiesByLabel(this.state.labels[i])}}
+								onClick={()=>{this.setProperties(this.state.labels[i])}}
 							>
 								<img src={D3ForceSimulation.getNodeStyle(this.state.labels[i]).icon} 
 									width='28px'
@@ -769,16 +787,32 @@ export default class EditorDialogComponent extends React.Component {
 					borderRadius: '3px',
 					backgroundColor: 'Gainsboro',
 					margin: '3px',
-					height: '25px'
+					height: '25px',
+					border: GlobalVariable.templateList['edges'].hasOwnProperty(this.state.type) ? '2px solid tomato' : '2px solid Gainsboro'
 				}}>
-				
-					<Avatar
-                        className='edgeAvatar'
-						style={{
-							marginRight:'6px', 
-							backgroundColor:D3ForceSimulation.getEdgeStyle(this.state.type).color
-						}} 
-					/>
+					{GlobalVariable.templateList['edges'].hasOwnProperty(this.state.type) ?
+						<IconButton 
+							tooltip="Set Properties"
+							style={{
+								marginLeft: '6px',
+								marginRight: '6px',
+								backgroundColor:D3ForceSimulation.getEdgeStyle(this.state.type).color,
+								//borderRadius: '50%',
+								padding: '0px',
+								width: '18px',
+								height: '18px'
+							}}
+							onClick={()=>{this.setProperties(this.state.type)}}
+						/>
+						:
+						<Avatar
+							className='edgeAvatar'
+							style={{
+								marginRight:'6px', 
+								backgroundColor:D3ForceSimulation.getEdgeStyle(this.state.type).color
+							}} 
+						/>
+					}
 					<AutoComplete
 						errorStyle={{fontSize: '10px', lineHeight:'0px'}}s
 						errorText={GlobalFunction.CheckName(this.state.type)}
@@ -1173,7 +1207,6 @@ export default class EditorDialogComponent extends React.Component {
 											''
 										}
 										<IconButton 
-											//tooltip="Delete Image"
 											onClick={function(event) {
 												this.setState(function(prevState, props) {
 													prevState.images.splice(index, 1);
@@ -1282,21 +1315,24 @@ export default class EditorDialogComponent extends React.Component {
 							primary={true}
 						/>
 						<div style={{display: 'flex', alignItems: 'flex-end', flexDirection: 'row'}}>
-							<SelectField
-								hintText="Select Label"
-								value={this.state.labelForTemplate}
-								style={{width: 150,}}
-								onChange={(event, index, value)=>{
-									this.setState(function(prevState, props) {
-										prevState.labelForTemplate = value;
-										return prevState;
-									})
-								}}
-							>
-								{this.state.labels.map((item, index)=>(
-									<MenuItem value={item} primaryText={item} />
-								))}
-							</SelectField>
+							{this.props.mode != GlobalConstant.mode.edge ?
+								<SelectField
+									hintText="Select Label"
+									value={this.state.labelForTemplate}
+									style={{width: 150,}}
+									onChange={(event, index, value)=>{
+										this.setState(function(prevState, props) {
+											prevState.labelForTemplate = value;
+											return prevState;
+										})
+									}}
+								>
+									{this.state.labels.map((item, index)=>(
+										<MenuItem value={item} primaryText={item} />
+									))}
+								</SelectField>
+								:
+								''}
 							<RaisedButton
 								onClick={this.setTemplate}
 								label="Save Template"

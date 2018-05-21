@@ -1,15 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import GlobalConstant from '../Common/GlobalConstant';
+import GlobalFunction from '../Common/GlobalFunction';
+
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import TooltipComponent from './Component/TooltipComponent';
 import VisualizationComponent from './Component/VisualizationComponent'
 import AlertDialogComponent from './Component/AlertDialogComponent'
 import CypherBarComponent from './Component/CypherBarComponent'
+
 import CircularProgress from 'material-ui/CircularProgress';
 import Dialog from 'material-ui/Dialog';
 import Snackbar from 'material-ui/Snackbar';
-import GlobalConstant from '../Common/GlobalConstant';
-import GlobalFunction from '../Common/GlobalFunction';
 
 class App extends React.Component {
     constructor(props) {

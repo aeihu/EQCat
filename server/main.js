@@ -128,13 +128,25 @@ class EQCarServer{
 		}.bind(this));
 		
 		this.app.get('/getTemplate', function (req, res) {
+			if (!this.templates.hasOwnProperty('nodes')){
+				this.templates['nodes'] = {};
+			}
+
+			if (!this.templates.hasOwnProperty('edges')){
+				this.templates['edges'] = {};
+			}
+
 			res.send(Base64.encodeURI(JSON.stringify(this.templates)));
 		}.bind(this));
 		
 		this.app.get('/setTemplate?:template', function (req, res) {
 			try{
 				let __json = JSON.parse(Base64.decode(req.query.template));
-				this.templates[__json.key] = __json.value
+				if (!this.templates.hasOwnProperty(__json.mode)){
+					this.templates[__json.mode] = {};
+				}
+
+				this.templates[__json.mode][__json.key] = __json.value
 				
 				fs.writeFile(this.templatePath, JSON.stringify(this.templates, null, 2),
 					function(err, written, buffer){
