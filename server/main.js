@@ -118,13 +118,38 @@ class EQCarServer{
 		
 		this.app.get('/template', function (req, res) {
 			let __result = {
-				templates: this.templates,
+				//templates: this.templates,
 				labels: this.DBDriver._labels,
 				propertyKeys: this.DBDriver._propertyKeys,
 				relationshipTypes: this.DBDriver._relationshipTypes,
 			}
 			
 			res.send(Base64.encodeURI(JSON.stringify(__result)));
+		}.bind(this));
+		
+		this.app.get('/getTemplate', function (req, res) {
+			res.send(Base64.encodeURI(JSON.stringify(this.templates)));
+		}.bind(this));
+		
+		this.app.get('/setTemplate?:template', function (req, res) {
+			try{
+				let __json = JSON.parse(Base64.decode(req.query.template));
+				this.templates[__json.key] = __json.value
+				
+				fs.writeFile(this.templatePath, JSON.stringify(this.templates, null, 2),
+					function(err, written, buffer){
+						if(err) {
+							log4js.logger.error(err.name + ': ' + err.message + ' <saveTemplate>');
+						}else{
+							log4js.logger.info('save template: ' + __json.key);
+						}
+					}
+				);
+				res.send(Base64.encodeURI('{}'));
+			}catch (err){
+				log4js.logger.error(err.name + ': ' + err.message + ' <saveTemplate>');
+				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
+			}
 		}.bind(this));
 		
 		this.app.get('/getFavorites', function (req, res) {
@@ -336,10 +361,6 @@ class EQCarServer{
 			}
 			
 			res.send(Base64.encodeURI(JSON.stringify(__result)));
-		}.bind(this));
-		
-		this.app.get('/template/save?:template', function (req, res) {
-		
 		}.bind(this));
 		
 		this.app.get('/addNode?:node', function (req, res) {

@@ -13,12 +13,12 @@ export default class DBInfoComponent extends React.Component {
     
     componentWillReceiveProps(newProps)
     {
-        GlobalFunction.GetTemplate();
+        GlobalFunction.GetLTP();
     }
 
     componentWillMount()
     {
-        GlobalFunction.GetTemplate();
+        GlobalFunction.GetLTP();
     }
 
     render() {

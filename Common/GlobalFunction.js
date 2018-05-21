@@ -25,20 +25,30 @@ const ArrayEquals= function (arrayA, arrayB) {
     return true;
 }
 
-const GetTemplate = function() {
-    if (GlobalVariable.flagForGetTemplate){
+const GetLTP = function() {
+    if (GlobalVariable.flagForGetLTP){
         GlobalFunction.SendAjax(
             (result)=>{
-                GlobalVariable.templateList = result.templates;
+                //GlobalVariable.templateList = result.templates;
                 GlobalVariable.labelList = result.labels;
                 GlobalVariable.propertyList = result.propertyKeys;
                 GlobalVariable.relationshipTypeList = result.relationshipTypes;
-                GlobalVariable.flagForGetTemplate = false;
+                GlobalVariable.flagForGetLTP = false;
             },
             (error)=>{console.log(error.message)},
             "/template"
         );
     }
+}.bind(this)
+
+const GetTemplate = function() {
+    GlobalFunction.SendAjax(
+        (result)=>{
+            GlobalVariable.templateList = result;
+        },
+        (error)=>{console.log(error.message)},
+        "/getTemplate"
+    );
 }.bind(this)
 
 const MathAngle = function (x1, y1, x2, y2)
@@ -147,11 +157,12 @@ const DBCounterDataToString = function(counter){
 
 const GlobalFunction = {
     ArrayEquals: ArrayEquals,
-    GetTemplate: GetTemplate,
+    GetLTP: GetLTP,
     MathAngle: MathAngle,
     CheckName: CheckName,
     SendAjax: SendAjax,
     DBCounterDataToString: DBCounterDataToString,
+    GetTemplate: GetTemplate,
 }
 
 module.exports = GlobalFunction;

@@ -31,12 +31,14 @@ import SocialPoll from 'material-ui/svg-icons/social/poll';
 import ToggleCheckBox from 'material-ui/svg-icons/toggle/check-box';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 import { Base64 } from 'js-base64';
+import SelectField from 'material-ui/SelectField';
 	
 export default class EditorDialogComponent extends React.Component {
     constructor(props) {
         super(props);
 		this.state = {
 			progress: false,
+			labelForTemplate: '',
 
 			memo: {},
 			images: [],
@@ -235,12 +237,15 @@ export default class EditorDialogComponent extends React.Component {
 
 		GlobalFunction.SendAjax(
 			(result)=>{
-                GlobalVariable.flagForGetTemplate = true;
+                GlobalVariable.flagForGetLTP = true;
 				this.props.onChangeData(result.records);
 				this.props.onMessage('Add node is success', 1);
 				this.closeDialog();
 			},
-			(error)=>{this.props.onMessage(error.message, 0)},
+			(error)=>{
+				this.isCheckError = true;
+				this.props.onMessage(error.message, 0)
+			},
 			"/addNode?node=",
 			__node
 		);
@@ -358,12 +363,15 @@ export default class EditorDialogComponent extends React.Component {
 		if (__hasChanged){
 			GlobalFunction.SendAjax(
 				(result)=>{
-					GlobalVariable.flagForGetTemplate = true;
+					GlobalVariable.flagForGetLTP = true;
 					this.props.onChangeData(result.records, this.props.data.id);
 					this.props.onMessage('Merge edge is success', 1);
 					this.closeDialog();
 				},
-				(error)=>{this.props.onMessage(error.message, 0)},
+				(error)=>{
+					this.isCheckError = true;
+					this.props.onMessage(error.message, 0)
+				},
 				"/mergeEdge?edge=",
 				__edge
 			);
@@ -419,12 +427,15 @@ export default class EditorDialogComponent extends React.Component {
 		{
 			GlobalFunction.SendAjax(
 				(result)=>{
-					GlobalVariable.flagForGetTemplate = true;
+					GlobalVariable.flagForGetLTP = true;
 					this.props.onChangeData(result.records);
 					this.props.onMessage('Merge node is success', 1);
 					this.closeDialog();
 				},
-				(error)=>{this.props.onMessage(error.message, 0)},
+				(error)=>{
+					this.isCheckError = true;
+					this.props.onMessage(error.message, 0)
+				},
 				"/mergeNode?node=",
 				__node
 			);
@@ -448,9 +459,65 @@ export default class EditorDialogComponent extends React.Component {
         });
 	}
 
+    setTemplate = function () {
+		this.isCheckError = true;
+		if (this.state.labelForTemplate.trim() == ''){
+			this.props.onMessage('"Select Label" field is empty.', 0)
+			return
+		}
+		
+		let __json = {};
+		let __flag = GlobalVariable.templateList.hasOwnProperty(this.state.labelForTemplate);
+		let __needSend = false;
+		
+		for (let i=0; i<this.state.properties.length; i++){
+			if (this.state.properties[i].key == GlobalConstant.imagesOfProperty || this.state.properties[i].key == GlobalConstant.memoOfProperty){
+				continue;
+			}
+
+			if (__flag && !__needSend){
+				if (GlobalVariable.templateList[this.state.labelForTemplate].hasOwnProperty(this.state.properties[i].key)){
+					if (GlobalVariable.templateList[this.state.labelForTemplate][this.state.properties[i].key] != this.state.properties[i].type){
+						console.log(1)
+						__needSend = true;
+					}
+				}else{
+					console.log(2)
+					__needSend = true;
+				}
+			}else{
+				console.log(3)
+				__needSend = true;
+			}
+
+			__json[this.state.properties[i].key] = this.state.properties[i].type;
+		}
+
+		if (!__needSend){
+			if (Object.keys(__json).length != Object.keys(GlobalVariable.templateList[this.state.labelForTemplate]).length){
+				console.log(4)
+				__needSend = true;
+			}
+		}
+
+		if (__needSend){
+			GlobalFunction.SendAjax(
+				(result)=>{
+					GlobalVariable.templateList[this.state.labelForTemplate] = __json;
+					this.props.onMessage(this.state.labelForTemplate + "'s Template has been saved.", 1)
+				},
+				(error)=>{this.props.onMessage(error.message, 0)},
+				"/setTemplate?template=",
+				{key:this.state.labelForTemplate, value:__json}
+			);
+		}else{
+			this.props.onMessage(this.state.labelForTemplate + "'s Template has been saved.", 1)
+		}
+	}.bind(this)
+
     componentWillMount()
     {
-        GlobalFunction.GetTemplate();
+		GlobalFunction.GetLTP();
     }
 	
     componentWillReceiveProps(newProps)
@@ -459,7 +526,8 @@ export default class EditorDialogComponent extends React.Component {
 			return;
 		}
 
-        GlobalFunction.GetTemplate();
+        GlobalFunction.GetLTP();
+		GlobalFunction.GetLTP();
 		if (newProps.mode == -1){
 			this.setState(function(prevState, props) {
 				prevState.labels = [];
@@ -674,6 +742,10 @@ export default class EditorDialogComponent extends React.Component {
 							}}
 							onClick={function(event) {
 								this.setState(function(prevState, props) {
+									if (prevState.labelForTemplate == prevState.labels[i]){
+										prevState.labelForTemplate = '';
+									}
+
 									prevState.labels.splice(i, 1);
 									return prevState;
 								});
@@ -1203,13 +1275,36 @@ export default class EditorDialogComponent extends React.Component {
 				<div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
 					<h2>Properties</h2>
 					{__propertiesElement}
-					<div style={{display: 'flex', flexDirection: 'row'}}>
+					<div style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-end', justifyContent:'space-between'}}>
 						<RaisedButton
 							onClick={this.addProperty}
 							label="Add Property"
 							style={{margin: 12}}
 							primary={true}
 						/>
+						<div style={{display: 'flex', alignItems: 'flex-end', flexDirection: 'row'}}>
+							<SelectField
+								hintText="Select Label"
+								value={this.state.labelForTemplate}
+								style={{width: 150,}}
+								onChange={(event, index, value)=>{
+									this.setState(function(prevState, props) {
+										prevState.labelForTemplate = value;
+										return prevState;
+									})
+								}}
+							>
+								{this.state.labels.map((item, index)=>(
+									<MenuItem value={item} primaryText={item} />
+								))}
+							</SelectField>
+							<RaisedButton
+								onClick={this.setTemplate}
+								label="Save Template"
+								style={{margin: 12}}
+								primary={true}
+							/>
+						</div>
 					</div>
 				</div>
 				<div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >

@@ -319,7 +319,7 @@ export default class GraphForDataComponent extends React.Component {
             __json.edges.length > 0){
             GlobalFunction.SendAjax(
                 (result)=>{
-                    GlobalVariable.flagForGetTemplate = true;
+                    GlobalVariable.flagForGetLTP = true;
                     this.props.onDeleteNode(nodes);
                     this.props.onDeleteEdge(__json.edges);
 
@@ -435,7 +435,7 @@ export default class GraphForDataComponent extends React.Component {
         if (__nodes.length > 0){
             GlobalFunction.SendAjax(
                 (result)=>{
-                    GlobalVariable.flagForGetTemplate = true;
+                    GlobalVariable.flagForGetLTP = true;
                     this.props.onDeleteNode(nodes);
                     
                     for (let j=0; j<__nodes.length; j++){
@@ -541,7 +541,7 @@ export default class GraphForDataComponent extends React.Component {
 		if (__edges.length > 0){
 			GlobalFunction.SendAjax(
 				(result)=>{
-                    GlobalVariable.flagForGetTemplate = true;
+                    GlobalVariable.flagForGetLTP = true;
                     this.props.onDeleteEdge(__edges);
                     
                     for (let i=0; i<this.cards.edges.length; i++){

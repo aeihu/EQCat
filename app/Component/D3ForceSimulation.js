@@ -742,7 +742,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                             if (__message == ''){
                                 GlobalFunction.SendAjax(
                                     (result)=>{
-                                        GlobalVariable.flagForGetTemplate = true;
+                                        GlobalVariable.flagForGetLTP = true;
                                         props.onAddEdge(result.records);
                                         props.onMessage('Add edge is success', 1);
                                     },
@@ -774,7 +774,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
 
                                 GlobalFunction.SendAjax(
                                     (result)=>{
-                                        GlobalVariable.flagForGetTemplate = true;
+                                        GlobalVariable.flagForGetLTP = true;
                                         props.onMergeEdge(result.records, __edge.edge);
                                         props.onMessage('Merge edge is success', 1);
                                     },

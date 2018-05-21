@@ -58,7 +58,8 @@ class App extends React.Component {
             }
         };
         
-        GlobalFunction.GetTemplate();
+        GlobalFunction.GetLTP();
+		GlobalFunction.GetTemplate();
     }
 
     flagForTTC = {};
@@ -237,7 +238,7 @@ class App extends React.Component {
         GlobalFunction.SendAjax(
             (result)=>{
                 if (result.type.indexOf('w') >= 0){
-                    GlobalVariable.flagForGetTemplate = true;
+                    GlobalVariable.flagForGetLTP = true;
                 }
 
                 let __nodes = [];
