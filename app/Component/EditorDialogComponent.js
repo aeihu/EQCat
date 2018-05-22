@@ -876,7 +876,7 @@ export default class EditorDialogComponent extends React.Component {
 								borderBottom: '1px solid rgb(224, 224, 224)',
 								marginBottom: '10px',
 								paddingBottom: '3px',
-								width:'525px',
+								width:'600px',
 								display: 'flex', 
 								flexWrap: 'wrap',
 								flexDirection: 'row', 
@@ -1024,7 +1024,7 @@ export default class EditorDialogComponent extends React.Component {
 							:
 							<TextField 
 								id={this.state.properties[i].key}
-								style={{width:'330px'}} 
+								style={{width:'332px'}} 
 								errorStyle={{fontSize: '10px', lineHeight:'0px'}}
 								hintText={'Value[' + this.state.properties[i].type + ']'} 
 								onChange={function (event, newValue) {

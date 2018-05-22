@@ -77,10 +77,10 @@ D3ForceSimulation.create = function(el, props, state) {
                         if (D3ForceSimulation.conncetLine.attr('id') == 'conncet_line'){
                             __x = __x + (__x < D3ForceSimulation.conncetLine.attr('x1') ? 8 : -8);
                             D3ForceSimulation.conncetLine
-                                .attr('x2', __x)
-                                .attr('y2', __y);
+                                .attr('x2', __x / D3ForceSimulation.zoom)
+                                .attr('y2', __y / D3ForceSimulation.zoom);
                         }else{
-                            moveExistEdge(D3ForceSimulation.conncetLine, __x, __y);
+                            moveExistEdge(D3ForceSimulation.conncetLine, __x / D3ForceSimulation.zoom, __y / D3ForceSimulation.zoom);
                         }
                     }
                 }
