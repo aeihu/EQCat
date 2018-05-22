@@ -1024,6 +1024,7 @@ export default class EditorDialogComponent extends React.Component {
 							:
 							<TextField 
 								id={this.state.properties[i].key}
+								style={{width:'330px'}} 
 								errorStyle={{fontSize: '10px', lineHeight:'0px'}}
 								hintText={'Value[' + this.state.properties[i].type + ']'} 
 								onChange={function (event, newValue) {

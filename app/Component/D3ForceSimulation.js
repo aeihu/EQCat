@@ -716,7 +716,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
             return d.selected ? 'nodes nodes_selected' : 'nodes'
         })
         .on("dblclick", function(d){
-            state.showCard(d, {mode: GlobalConstant.mode.node, x: d3.event.clientX-80, y: d3.event.clientY-100}); 
+            state.showCard(d, {mode: GlobalConstant.mode.node, x: d3.event.clientX-80-(d3.select('.tooltip_open').empty() ? 0 : 380), y: d3.event.clientY-100}); 
         })
         .on("click", function(d){
             if (D3ForceSimulation.connectMode >= 0){
@@ -932,7 +932,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
             }
         })
         .on("dblclick", function(d){
-            state.showCard(d, {mode: GlobalConstant.mode.edge, x: d3.event.clientX-80, y: d3.event.clientY-100}); 
+            state.showCard(d, {mode: GlobalConstant.mode.node, x: d3.event.clientX-80-(d3.select('.tooltip_open').empty() ? 0 : 380), y: d3.event.clientY-100}); 
         })
         .on("mouseover", function(d){
             D3ForceSimulation.svg.select('#defs_path_id_' + d.id)
