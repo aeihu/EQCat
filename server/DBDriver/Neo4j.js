@@ -200,6 +200,11 @@ export default class Neo4j
         __statement += ' return n';
         this.runStatement(__statement, node.properties.merge, res);
     }
+
+    expandNode(param, res){
+        let __statement = 'Match (n)-[r]-(m) where id(n)=' + param.id + ' and not id(r) in ' + JSON.stringify(param.showed) + ' return DISTINCT r, m';
+        this.runStatement(__statement, {}, res);
+    }
     
     preDeleteNodes(nodes, res){
         let __statement = 'Match (n)-[r]-(m) where ';

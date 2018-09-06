@@ -36,7 +36,7 @@ class App extends React.Component {
                 statement:'',
                 records:[],
                 graph: {
-                    refreshType: -1,
+                    refreshType: -1, //-1:不刷新  0:全刷新并关闭所有card窗口  1:全刷新不关闭card窗口  2:删除元素后的刷新，并关闭删除元素的窗口
                     nodes: [],
                     edges: [],
                     count: {
@@ -354,6 +354,134 @@ class App extends React.Component {
         });
     }.bind(this)
 
+    expand = function(nodes, edges, nid){
+        if (edges.length < 1){
+            return;
+        }
+
+        this.setState(function(prevState, props) {
+            let __flag = true;
+            let __selectedNode = null;
+            let __count = prevState.data.graph.count;
+            
+            for (let i = 0; i<edges.length; i++){
+                //====================================
+                //  整理node数据
+                //====================================
+                __flag = true;
+                for (let j = 0; j<prevState.data.graph.nodes.length; j++){
+                    let __node = prevState.data.graph.nodes[j];
+
+                    console.log(__node.id + ' ：' + nid);
+                    if (__selectedNode == null && __node.id == nid){
+                        console.log('sayayayyayayayyayayayay');
+                        __selectedNode = __node;
+                    }
+                    
+                    if (__flag && nodes[i].id == __node.id){
+                        __flag = false;
+                        
+                        if (edges[i].source == __node.id){
+                            if (!__node.hasOwnProperty('sourceEdges')){
+                                __node['sourceEdges'] = [];
+                            }
+
+                            __node.sourceEdges.push(edges[i]);
+                        }
+                        if (edges[i].target == __node.id){
+                            if (!__node.hasOwnProperty('targetEdges')){
+                                __node['targetEdges'] = [];
+                            }
+
+                            __node.targetEdges.push(edges[i]);
+                        }
+                    }
+
+                    if (__selectedNode != null && !__flag){
+                        break;
+                    }
+                }
+
+                if (__flag){
+                    if (edges[i].source == nodes[i].id){
+                        if (!nodes[i].hasOwnProperty('sourceEdges'))
+                            nodes[i]['sourceEdges'] = [];
+
+                        nodes[i].sourceEdges.push(edges[i]);
+                    }
+                    if (edges[i].target == nodes[i].id){
+                        if (!nodes[i].hasOwnProperty('targetEdges'))
+                            nodes[i]['targetEdges'] = [];
+
+                        nodes[i].targetEdges.push(edges[i]);
+                    }
+                    
+                    prevState.data.graph.nodes.push(nodes[i]);
+
+                    let __label;
+                    for (let j=0; j<nodes[i].labels.length; j++){
+                        __label = nodes[i].labels[j];
+                        
+                        if (__count.nodes.hasOwnProperty(__label)){
+                            __count.nodes[__label].total++;
+                        }
+                        else{
+                            __count.nodes[__label] = {
+                                total: 1, 
+                                propertiesList: {
+                                    '<id>': 1
+                                }
+                            }
+                        }
+                        __count.nodes['*'].total++;
+
+                        for (let key in nodes[i].properties){
+                            if (key != GlobalConstant.imagesOfProperty &&
+                                key != GlobalConstant.memoOfProperty){
+                                    __count.nodes[__label].propertiesList[key] = 
+                                    __count.nodes[__label].propertiesList.hasOwnProperty(key) ?
+                                    __count.nodes[__label].propertiesList[key] + 1
+                                    :
+                                    1;
+                            }
+                        }
+                    }
+                }
+                
+                //====================================
+                //  整理edge数据
+                //====================================
+                prevState.data.graph.edges.push(edges[i]);
+                __count.edges['*']++;
+                if (__count.edges.hasOwnProperty(edges[i].type)){
+                    __count.edges[edges[i].type]++;
+                }
+                else{
+                    __count.edges[edges[i].type] = 1;
+                }
+
+                //====================================
+                //  整理选中node的相邻edge的数据
+                //====================================
+                if (edges[i].source == __selectedNode.id){
+                    if (!__selectedNode.hasOwnProperty('sourceEdges'))
+                        __selectedNode['sourceEdges'] = [];
+
+                    __selectedNode.sourceEdges.push(edges[i]);
+                }
+                if (edges[i].target == __selectedNode.id){
+                    if (!__selectedNode.hasOwnProperty('targetEdges'))
+                        __selectedNode['targetEdges'] = [];
+
+                     __selectedNode.targetEdges.push(edges[i]);
+                }
+            }
+
+            prevState.data.graph.refreshType = 1;
+            return prevState;
+        })
+    }.bind(this)
+
     addNode = function(node){
         if (node.length > 0){
             for (let keyName in node[0]){
@@ -472,7 +600,6 @@ class App extends React.Component {
 
     deleteNodes = function(nodes){
         this.setState(function(prevState, props) {
-            let prevNodeID = '';
             let __countNode = prevState.data.graph.count.nodes;
             let __countEdge = prevState.data.graph.count.edges;
 
@@ -571,7 +698,7 @@ class App extends React.Component {
 
                     prevState.data.graph.count.edges = __countEdge;
                     prevState.data.graph.edges.push(edge[0][keyName]);
-                    console.log(edge[0][keyName])
+                    
                     let __isSource = false;
                     let __isTarget = false;
                     for (let i=0; i<prevState.data.graph.nodes.length; i++){
@@ -781,6 +908,7 @@ class App extends React.Component {
                     />
                     <VisualizationComponent 
                         data={this.state.data} 
+                        onExpand={this.expand}
                         onAddNode={this.addNode}
                         onAddEdge={this.addEdge}
                         onMergeNode={this.mergeNode}

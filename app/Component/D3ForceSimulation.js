@@ -89,7 +89,7 @@ D3ForceSimulation.create = function(el, props, state) {
         .on("contextmenu", function(data, index) {
             if (menuFlag){
                 d3.event.preventDefault();
-                state.showMenu(d3.event);
+                state.showMenu(d3.event, 100, {});
             }else{
                 menuFlag = true;
             }
@@ -715,6 +715,11 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
 
             return d.selected ? 'nodes nodes_selected' : 'nodes'
         })
+        .on("contextmenu", function (d, i) {
+            d3.event.stopPropagation();
+            d3.event.preventDefault();
+            state.showMenu(d3.event, GlobalConstant.mode.node, d);
+        })
         .on("dblclick", function(d){
             state.showCard(d, {mode: GlobalConstant.mode.node, x: d3.event.clientX-80-(d3.select('.tooltip_open').empty() ? 0 : 380), y: d3.event.clientY-100}); 
         })
@@ -903,6 +908,9 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
                     state.fillRelationshipTypeToAuto(d.type);
                     menuFlag = false;
                 }
+            }else{
+                d3.event.stopPropagation();
+                state.showMenu(d3.event, GlobalConstant.mode.edge, d);
             }
         })
         .on("click", function(d){
@@ -932,7 +940,7 @@ D3ForceSimulation._drawNodesAndEdges = function(el, props, state){
             }
         })
         .on("dblclick", function(d){
-            state.showCard(d, {mode: GlobalConstant.mode.node, x: d3.event.clientX-80-(d3.select('.tooltip_open').empty() ? 0 : 380), y: d3.event.clientY-100}); 
+            state.showCard(d, {mode: GlobalConstant.mode.edge, x: d3.event.clientX-80-(d3.select('.tooltip_open').empty() ? 0 : 380), y: d3.event.clientY-100}); 
         })
         .on("mouseover", function(d){
             D3ForceSimulation.svg.select('#defs_path_id_' + d.id)

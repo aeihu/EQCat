@@ -17,6 +17,7 @@ import AutoComplete from 'material-ui/AutoComplete';
 import Popover from 'material-ui/Popover/Popover';
 import IconButton from 'material-ui/IconButton';
 
+import MapsZoomOutMap from 'material-ui/svg-icons/maps/zoom-out-map';
 import Clear from 'material-ui/svg-icons/content/clear';
 import NotificationDoNotDisturb from 'material-ui/svg-icons/notification/do-not-disturb';
 import RemoveRedEye from 'material-ui/svg-icons/image/remove-red-eye';
@@ -51,7 +52,8 @@ export default class GraphForDataComponent extends React.Component {
             selectEdge: this.selectEdge,
             fillRelationshipTypeToAuto: this.fillRelationshipTypeToAuto,
             menu: {
-                open: false,
+                selectedEl: {},
+                open: -1, //-1: close; 0:menu; 1:node
                 x: 0,
                 y: 0,
                 anchorEl: null
@@ -89,7 +91,7 @@ export default class GraphForDataComponent extends React.Component {
         })
     }.bind(this)
 
-    showMenu = function(event) {
+    showMenu = function(event, value, selectedEl) {
         // This prevents ghost click.
         event.preventDefault();
         
@@ -99,7 +101,8 @@ export default class GraphForDataComponent extends React.Component {
     
             this.setState(function(prevState, props) {
                 prevState.menu = {
-                    open: true,
+                    selectedEl: selectedEl,
+                    open: value,
                     x: __x,
                     y: __y,
                     anchorEl: document.getElementById('menuInDisplayContent')
@@ -198,6 +201,39 @@ export default class GraphForDataComponent extends React.Component {
         return isHtml ? '<i><b>[</b>:'+ edge.type+' {id:'+edge.id+'}<b>]</b></i>'
             : '[:'+ edge.type + ' {id:' + edge.id + '}]';
     }
+    
+    expand = function(node){
+        let __list = [];
+        if (node.hasOwnProperty('sourceEdges')){
+            for (let i=0; i<node.sourceEdges.length; i++){
+                __list.push(Number(node.sourceEdges[i].id));
+            }
+        }
+        if (node.hasOwnProperty('targetEdges')){
+            for (let i=0; i<node.targetEdges.length; i++){
+                __list.push(Number(node.targetEdges[i].id));
+            }
+        }
+
+        GlobalFunction.SendAjax(
+            (result)=>{
+                let nodes = [];
+                let edges = [];
+                for (let i=0; i<result.records.length; i++){
+                    nodes.push(result.records[i].m);
+                    edges.push(result.records[i].r);
+                }
+                this.props.onExpand(nodes, edges, node.id);
+                //console.log(result);
+            },
+            (error)=>{this.props.onMessage(error.message, 0)},
+            "/expand?node=",
+            {
+                id: node.id,
+                showed: __list
+            }
+        );
+    }
 
     preDeleteNodesAndEdges = function(nodes, edges){
         if (nodes.length > 0){
@@ -284,7 +320,7 @@ export default class GraphForDataComponent extends React.Component {
                 );
 
                 this.setState(function(prevState, props) {
-                    prevState.menu.open = false;
+                    prevState.menu.open = -1;
                     return prevState;
                 })
             }
@@ -411,7 +447,7 @@ export default class GraphForDataComponent extends React.Component {
             );
             
             this.setState(function(prevState, props) {
-                prevState.menu.open = false;
+                prevState.menu.open = -1;
                 prevState.tooltip.selected.nodesOpen = false;
                 return prevState;
             })
@@ -516,7 +552,7 @@ export default class GraphForDataComponent extends React.Component {
                         this.nodeToStrForMessage(edges[i].target, true);
                 }
 
-                prevState.menu.open = false;
+                prevState.menu.open = -1;
                 prevState.tooltip.selected.edgesOpen = false;
                 this.props.onAlert('Delete Relationships', __message, ()=>this.deleteEdges(edges))
                 return prevState;
@@ -574,7 +610,7 @@ export default class GraphForDataComponent extends React.Component {
     changeConnectMode = function(){
         this.setState(function(prevState, props) {
             D3ForceSimulation.changeConnectMode();
-            prevState.menu.open = false;
+            prevState.menu.open = -1;
             return prevState;
         })
     }.bind(this)
@@ -583,7 +619,7 @@ export default class GraphForDataComponent extends React.Component {
         this.setState(function(prevState, props) {
             D3ForceSimulation.showOrHideImage();
             prevState.tooltip.showedImage = D3ForceSimulation.showedImage;
-            prevState.menu.open = false;
+            prevState.menu.open = -1;
             return prevState;
         })
     }.bind(this)
@@ -601,7 +637,7 @@ export default class GraphForDataComponent extends React.Component {
                         break;
                 }
             }
-            prevState.menu.open = false;
+            prevState.menu.open = -1;
             return prevState;
         });
     }
@@ -721,165 +757,215 @@ export default class GraphForDataComponent extends React.Component {
                                 position: 'fixed'}} 
                         />
                         <Popover
-                            open={this.state.menu.open}
+                            open={this.state.menu.open >= 0}
                             anchorEl={this.state.menu.anchorEl}
                             anchorOrigin={{horizontal:"left",vertical:"bottom"}}
                             targetOrigin={{horizontal:"left",vertical:"top"}}
                             onRequestClose={function () {
                                 this.setState(function(prevState, props) {
-                                    prevState.menu.open = false;
+                                    prevState.menu.open = -1;
                                     return prevState;
                                 });
                             }.bind(this)}
                             // animated={false}
                         >
-                            <Menu desktop={true}
-                                onChange={
-                                    function(event, value) {
-                                        switch (value){
-                                            case 'Show Views':{
-                                                this.setState(function(prevState, props) {
-                                                    prevState.menu.open = false;
-                                                    return prevState;
-                                                })
+                            {this.state.menu.open == 100 ? 
+                            //===================================================
+                            //  选中空白处的弹出菜单
+                            //===================================================
+                                <Menu desktop={true}
+                                    onChange={
+                                        function(event, value) {
+                                            switch (value){
+                                                case 'Show Views':{
+                                                    this.setState(function(prevState, props) {
+                                                        prevState.menu.open = -1;
+                                                        return prevState;
+                                                    })
 
-                                                let __count = 0;
-                                                this.state.tooltip.selected.nodes.map((node, index)=>{
-                                                    this.showCard(node, {mode: GlobalConstant.mode.node, x: index * 30, y: index * 30})
-                                                    __count++;
-                                                })
+                                                    let __count = 0;
+                                                    this.state.tooltip.selected.nodes.map((node, index)=>{
+                                                        this.showCard(node, {mode: GlobalConstant.mode.node, x: index * 30, y: index * 30})
+                                                        __count++;
+                                                    })
 
-                                                this.state.tooltip.selected.edges.map((edge, index)=>{
-                                                    this.showCard(edge, {mode: GlobalConstant.mode.edge, x: __count * 30, y: __count * 30})
-                                                    __count++;
-                                                })
-                                                break;
+                                                    this.state.tooltip.selected.edges.map((edge, index)=>{
+                                                        this.showCard(edge, {mode: GlobalConstant.mode.edge, x: __count * 30, y: __count * 30})
+                                                        __count++;
+                                                    })
+                                                    break;
+                                                }
+                                                case 'Hide Views':
+                                                    this.setState(function(prevState, props) {
+                                                        this.cards = {
+                                                            nodes:[],
+                                                            edges:[],
+                                                        };
+                                                        prevState.menu.open = -1;
+                                                        return prevState;
+                                                    });
+                                                    break;
+                                                case 'New Node':
+                                                    this.setState(function(prevState, props) {
+                                                        prevState.menu.open = -1;
+                                                        return prevState;
+                                                    })
+                                                    this.showDialog({}, -1)
+                                                    break;
+                                                case 'Connect Mode':
+                                                    this.changeConnectMode();
+                                                    break;
+                                                case 'Show Image':
+                                                    this.showOrHideImage();
+                                                    break;
+                                                case 'Select All':
+                                                    D3ForceSimulation.SelectAll(this.state)
+                                                    this.setState(function(prevState, props) {
+                                                        prevState.menu.open = -1;
+                                                        return prevState;
+                                                    })
+                                                    break;
+                                                case 'Unselect All':
+                                                    this.unselectAll();
+                                                    break;
+                                                case 'Zoom Restore':
+                                                    D3ForceSimulation.zoomRestore();
+                                                    this.setState(function(prevState, props) {
+                                                        prevState.menu.open = -1;
+                                                        return prevState;
+                                                    })
+                                                    break;
+                                                case 'Zoom In':
+                                                    D3ForceSimulation.zoomIn();
+                                                    this.setState(function(prevState, props) {
+                                                        prevState.menu.open = -1;
+                                                        return prevState;
+                                                    })
+                                                    break;
+                                                case 'Zoom Out':
+                                                    D3ForceSimulation.zoomOut();
+                                                    this.setState(function(prevState, props) {
+                                                        prevState.menu.open = -1;
+                                                        return prevState;
+                                                    })
+                                                    break;
+                                                case 'Delete':
+                                                    this.preDeleteNodesAndEdges([...this.state.tooltip.selected.nodes], [...this.state.tooltip.selected.edges])
+                                                    break;
                                             }
-                                            case 'Hide Views':
+                                        }.bind(this)
+                                    }
+                                >
+                                    <MenuItem value="New Node" primaryText="New Node" leftIcon={<ImageControlPoint />} />
+                                    <Divider />
+                                    <MenuItem 
+                                        value="Connect Mode" 
+                                        primaryText="Connect Mode" 
+                                        leftIcon={<SocialShare />} 
+                                        rightIcon={D3ForceSimulation.connectMode >= 0 ? <ActionDone /> : ''} />
+                                    <MenuItem 
+                                        value="Show Image" 
+                                        primaryText="Show Image" 
+                                        leftIcon={<ImageFilter />}
+                                        rightIcon={this.state.tooltip.showedImage ? <ActionDone /> : ''} />
+                                    <Divider />
+                                    <MenuItem value="Zoom Restore" primaryText="Zoom Restore" leftIcon={<ActionYoutubeSearchedFor />} />
+                                    <MenuItem value="Zoom In" primaryText="Zoom In" leftIcon={<ActionZoomIn />} />
+                                    <MenuItem value="Zoom Out" primaryText="Zoom Out" leftIcon={<ActionZoomOut />} />
+                                    <Divider />
+                                    <MenuItem value="Show Views" primaryText="Show Views" leftIcon={<RemoveRedEye />} />
+                                    <MenuItem value="Hide Views" primaryText="Hide Views" leftIcon={<ActionVisibilityOff />} />
+                                    <MenuItem value="Select All" primaryText="Select All" leftIcon={<ActionToll />} />
+                                    <MenuItem value="Unselect All" primaryText="Unselect All" leftIcon={<NotificationDoNotDisturb />} />
+                                    <Divider />
+                                    <MenuItem value="Delete" primaryText="Delete" leftIcon={<Delete />} />
+                                </Menu>
+                                :
+                                //===================================================
+                                //  选中节点的弹出菜单
+                                //===================================================
+                                <Menu desktop={true}
+                                    onChange={
+                                        function(event, value) {
+                                            this.setState(function(prevState, props) {
+                                                prevState.menu.open = -1;
+                                                return prevState;
+                                            })
+
+                                            switch (value){
+                                                case 'Show View':
+                                                    this.showCard(
+                                                        this.state.menu.selectedEl, 
+                                                        {
+                                                            mode: this.state.menu.open == GlobalConstant.mode.node ? GlobalConstant.mode.node : GlobalConstant.mode.edge, 
+                                                            x: 10, 
+                                                            y: 10
+                                                        })
+                                                    break;
+                                                case 'Expand':
+                                                    this.expand(this.state.menu.selectedEl);
+                                                    break;
+                                                case 'Delete':
+                                                    if (this.state.menu.open == GlobalConstant.mode.node){
+                                                        this.preDeleteNodes([this.state.menu.selectedEl]);
+                                                    }else{
+                                                        this.perDeleteEdges([this.state.menu.selectedEl]);
+                                                    }
+                                                    break;
+                                            }
+                                            
+                                        }.bind(this)
+                                    }
+                                >
+                                    <MenuItem value="Show View" primaryText="Show View" leftIcon={<RemoveRedEye />} />
+                                    {this.state.menu.open == GlobalConstant.mode.node ? 
+                                        <MenuItem value="Expand" primaryText="Expand" leftIcon={<MapsZoomOutMap />} />
+                                        :
+                                        ''}
+                                    <Divider />
+                                    <MenuItem value="Delete" primaryText="Delete" leftIcon={<Delete />} />
+                                </Menu>
+                            }
+                            </Popover>
+                            {D3ForceSimulation.connectMode >= 0 ?
+                                <div id='talkBubble' style={{right:'60px', top:'3px'}} >
+                                    <div
+                                        style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        paddingRight: '8px',
+                                        borderRadius: '3px',
+                                        backgroundColor: 'Gainsboro',
+                                        margin: '3px',
+                                        height: '34px'
+                                    }}>
+                                        <AutoComplete
+                                            hintText="Relationship Type"
+                                            errorStyle={{fontSize: '10px', lineHeight:'0px', bottom:'5px'}}
+                                            searchText={this.state.tooltip.relationshipType}
+                                            onUpdateInput={(searchText)=>{
                                                 this.setState(function(prevState, props) {
-                                                    this.cards = {
-                                                        nodes:[],
-                                                        edges:[],
-                                                    };
-                                                    prevState.menu.open = false;
+                                                    prevState.tooltip.relationshipType = searchText;
                                                     return prevState;
                                                 });
-                                                break;
-                                            case 'New Node':
+                                            }}
+                                            onNewRequest={(value)=>{
                                                 this.setState(function(prevState, props) {
-                                                    prevState.menu.open = false;
+                                                    prevState.tooltip.relationshipType = value;
                                                     return prevState;
-                                                })
-                                                this.showDialog({}, -1)
-                                                break;
-                                            case 'Connect Mode':
-                                                this.changeConnectMode();
-                                                break;
-                                            case 'Show Image':
-                                                this.showOrHideImage();
-                                                break;
-                                            case 'Select All':
-                                                D3ForceSimulation.SelectAll(this.state)
-                                                this.setState(function(prevState, props) {
-                                                    prevState.menu.open = false;
-                                                    return prevState;
-                                                })
-                                                break;
-                                            case 'Unselect All':
-                                                this.unselectAll();
-                                                break;
-                                            case 'Zoom Restore':
-                                                D3ForceSimulation.zoomRestore();
-                                                this.setState(function(prevState, props) {
-                                                    prevState.menu.open = false;
-                                                    return prevState;
-                                                })
-                                                break;
-                                            case 'Zoom In':
-                                                D3ForceSimulation.zoomIn();
-                                                this.setState(function(prevState, props) {
-                                                    prevState.menu.open = false;
-                                                    return prevState;
-                                                })
-                                                break;
-                                            case 'Zoom Out':
-                                                D3ForceSimulation.zoomOut();
-                                                this.setState(function(prevState, props) {
-                                                    prevState.menu.open = false;
-                                                    return prevState;
-                                                })
-                                                break;
-                                            case 'Delete':
-                                                this.preDeleteNodesAndEdges([...this.state.tooltip.selected.nodes], [...this.state.tooltip.selected.edges])
-                                                break;
-                                        }
-                                    }.bind(this)
-                                }
-                            >
-                                <MenuItem value="New Node" primaryText="New Node" leftIcon={<ImageControlPoint />} />
-                                <Divider />
-                                <MenuItem 
-                                    value="Connect Mode" 
-                                    primaryText="Connect Mode" 
-                                    leftIcon={<SocialShare />} 
-                                    rightIcon={D3ForceSimulation.connectMode >= 0 ? <ActionDone /> : ''} />
-                                <MenuItem 
-                                    value="Show Image" 
-                                    primaryText="Show Image" 
-                                    leftIcon={<ImageFilter />}
-                                    rightIcon={this.state.tooltip.showedImage ? <ActionDone /> : ''} />
-                                <Divider />
-                                <MenuItem value="Zoom Restore" primaryText="Zoom Restore" leftIcon={<ActionYoutubeSearchedFor />} />
-                                <MenuItem value="Zoom In" primaryText="Zoom In" leftIcon={<ActionZoomIn />} />
-                                <MenuItem value="Zoom Out" primaryText="Zoom Out" leftIcon={<ActionZoomOut />} />
-                                <Divider />
-                                <MenuItem value="Show Views" primaryText="Show Views" leftIcon={<RemoveRedEye />} />
-                                <MenuItem value="Hide Views" primaryText="Hide Views" leftIcon={<ActionVisibilityOff />} />
-                                <MenuItem value="Select All" primaryText="Select All" leftIcon={<ActionToll />} />
-                                <MenuItem value="Unselect All" primaryText="Unselect All" leftIcon={<NotificationDoNotDisturb />} />
-                                <Divider />
-                                <MenuItem value="Delete" primaryText="Delete" leftIcon={<Delete />} />
-                            </Menu>
-                        </Popover>
-                        {D3ForceSimulation.connectMode >= 0 ?
-                            <div id='talkBubble' style={{right:'60px', top:'3px'}} >
-                                <div
-                                    style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    paddingRight: '8px',
-                                    borderRadius: '3px',
-                                    backgroundColor: 'Gainsboro',
-                                    margin: '3px',
-                                    height: '34px'
-                                }}>
-                                    <AutoComplete
-                                        hintText="Relationship Type"
-										errorStyle={{fontSize: '10px', lineHeight:'0px', bottom:'5px'}}
-                                        searchText={this.state.tooltip.relationshipType}
-                                        onUpdateInput={(searchText)=>{
-                                            this.setState(function(prevState, props) {
-                                                prevState.tooltip.relationshipType = searchText;
-                                                return prevState;
-                                            });
-                                        }}
-                                        onNewRequest={(value)=>{
-                                            this.setState(function(prevState, props) {
-                                                prevState.tooltip.relationshipType = value;
-                                                return prevState;
-                                            });
-                                        }}
-                                        dataSource={GlobalVariable.relationshipTypeList}
-                                        filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
-                                        openOnFocus={false}
-                                        maxSearchResults={6}
-                                        style={{width:'190px'}} 
-                                        textFieldStyle={{width:'190px'}} 
-                                        errorText={GlobalFunction.CheckName(this.state.tooltip.relationshipType)}
-                                        //inputStyle={{fontSize: '12px'}}
-                                    />
+                                                });
+                                            }}
+                                            dataSource={GlobalVariable.relationshipTypeList}
+                                            filter={(searchText, key) => (key.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)}
+                                            openOnFocus={false}
+                                            maxSearchResults={6}
+                                            style={{width:'190px'}} 
+                                            textFieldStyle={{width:'190px'}} 
+                                            errorText={GlobalFunction.CheckName(this.state.tooltip.relationshipType)}
+                                            //inputStyle={{fontSize: '12px'}}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
                             :
                             ''
                         }

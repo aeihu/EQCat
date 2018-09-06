@@ -375,6 +375,18 @@ class EQCarServer{
 			res.send(Base64.encodeURI(JSON.stringify(__result)));
 		}.bind(this));
 		
+		this.app.get('/expand?:node', function (req, res) {
+			try{
+				let __json = JSON.parse(Base64.decode(req.query.node));
+				console.log(__json);
+				this.DBDriver.expandNode(__json, res);
+			}	
+			catch (err){
+				log4js.logger.error(err.name + ': ' + err.message + ' <expand>');
+				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
+			}
+		}.bind(this));
+		
 		this.app.get('/addNode?:node', function (req, res) {
 			try{
 				let __json = JSON.parse(Base64.decode(req.query.node));
