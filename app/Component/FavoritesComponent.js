@@ -17,6 +17,10 @@ export default class FavoritesComponent extends React.Component {
                 dir:"", 
                 index:-1
             },
+            edit: {
+                index:-1,
+                text:'',
+            },
             favorites:{}
         }
     }
@@ -169,7 +173,15 @@ export default class FavoritesComponent extends React.Component {
                                         width: '24px',
                                         height: '24px'
                                     }}
-                                    onClick={()=>{console.log('sssssssss')}}
+                                    onClick={()=>{
+                                        if (i != this.state.edit.index){
+                                            this.setState(function(prevState, props) {
+                                                prevState.edit.index = i;
+                                                prevState.edit.text = this.state.favorites[key][i];
+                                                return prevState;
+                                            })
+                                        }
+                                    }}
                                 >
                                     <ImageEdit style={{
                                         height: '24px',
@@ -229,7 +241,64 @@ export default class FavoritesComponent extends React.Component {
                                 }
                             }.bind(this)}
                         >
-                            {this.state.favorites[key][i]}
+                            {
+                                this.state.edit.index == i ? 
+                                    <input type="text" 
+                                        autoFocus
+                                        value={this.state.edit.text}
+                                        style={{
+                                            border: '2px solid #c8c8c8',
+                                            borderRadius: '3px',
+                                            width: '235px'
+                                        }}
+
+                                        onChange={(event)=>{
+                                            let __txt = event.target.value;
+                                            this.setState(function(prevState, props) {
+                                                prevState.edit.text = __txt;
+                                                return prevState;
+                                            })
+                                        }}
+
+                                        onBlur={(event)=>{
+                                            if (this.state.edit.text != this.state.favorites[key][i]){
+                                                GlobalFunction.SendAjax(
+                                                    (result)=>{
+                                                        this.setState(function(prevState, props) {
+                                                            prevState.favorites[key][i] = prevState.edit.text;
+                                                            prevState.edit.text = '';
+                                                            prevState.edit.index = -1;
+                                                            return prevState;
+                                                        })
+                                                    },
+                                                    (error)=>{
+                                                        this.props.onMessage(error.message, 0)
+                                                        this.setState(function(prevState, props) {
+                                                            prevState.edit.text = '';
+                                                            prevState.edit.index = -1;
+                                                            return prevState;
+                                                        })
+                                                    },
+                                                    "/editFavorites?data=",
+                                                    {key:key, index:i, name:this.state.edit.text}
+                                                );
+                                            }else{
+                                                this.setState(function(prevState, props) {
+                                                    prevState.edit.text = '';
+                                                    prevState.edit.index = -1;
+                                                    return prevState;
+                                                })
+                                            }
+                                        }}
+
+                                        onClick={(event)=>{
+                                            event.stopPropagation();
+                                            event.preventDefault();
+                                        }}
+                                    />
+                                    :
+                                    this.state.favorites[key][i]
+                            }
                         </div>
                     </ListItem>
                 );

@@ -269,38 +269,26 @@ class EQCarServer{
 
 		this.app.get('/editFavorites?:cypher', function (req, res) {
 			try{
-				let __json = JSON.parse(Base64.decode(req.query.cypher));
-				let __flag = true;
-				if (!this.favorites.hasOwnProperty(__json.folder)){
-					this.favorites[__json.folder] = [];
-				}
+				let __json = JSON.parse(Base64.decode(req.query.data));
+				if (this.favorites.hasOwnProperty(__json.key)){
+					this.favorites[__json.key][__json.index] = __json.name;
 
-				for (let i=0; i<this.favorites[__json.folder].length; i+=2){
-					if (this.favorites[__json.folder][i] == __json.name){
-						this.favorites[__json.folder][i+1] = __json.statement;
-						__flag = false;
-						break;
-					}
-				}
-
-				if (__flag){
-					this.favorites[__json.folder].push(__json.name);
-					this.favorites[__json.folder].push(__json.statement);
+					fs.writeFile(this.favoritesPath, JSON.stringify(this.favorites, null, 2),
+						function(err, written, buffer){
+							if(err) {
+								log4js.logger.error(err.name + ': ' + err.message + ' <editFavorites>');
+							}else{
+								log4js.logger.info('edit favorite: ' + __json.key);
+							}
+						}
+					);
+				}else{
+					log4js.logger.warn('there is no "' + __json.key + '" folder');
 				}
 				
-				fs.writeFile(this.favoritesPath, JSON.stringify(this.favorites, null, 2),
-					function(err, written, buffer){
-						if(err) {
-							log4js.logger.error(err.name + ': ' + err.message + ' <setStyle>');
-						}else{
-							log4js.logger.info('set favorites ' +
-								' style (' + __json.property + ': ' + __json.value + ')');
-						}
-					}
-				);
 				res.send(Base64.encodeURI('{}'));
 			}catch (err){
-				log4js.logger.error(err.name + ': ' + err.message + ' <setStyle>');
+				log4js.logger.error(err.name + ': ' + err.message + ' <editFavorites>');
 				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
 			}
 		}.bind(this));
@@ -378,7 +366,6 @@ class EQCarServer{
 		this.app.get('/expand?:node', function (req, res) {
 			try{
 				let __json = JSON.parse(Base64.decode(req.query.node));
-				console.log(__json);
 				this.DBDriver.expandNode(__json, res);
 			}	
 			catch (err){
