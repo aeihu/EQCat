@@ -29,6 +29,7 @@ export default class TooltipComponent extends React.Component {
                 case 1:
                     __page.push(<FavoritesComponent 
                         flag={this.props.flag}
+                        onAlert={this.props.onAlert}
                         onMessage={this.props.onMessage}
                         onSetCypher={this.props.onSetCypher} />);
                     break;

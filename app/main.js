@@ -897,6 +897,7 @@ class App extends React.Component {
                         flexDirection: 'column'}}>
                     <TooltipComponent 
                         flag={this.getFlagForSomeComponent(this.flagForTTC)}
+                        onAlert={this.showAlert}
                         onMessage={this.showSnackbar}
                         onSetCypher={this.setCypher}/>
                 </div>

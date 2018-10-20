@@ -198,6 +198,32 @@ class EQCarServer{
 			}
 		}.bind(this));
 
+		this.app.get('/removeFavoritesDir?:data', function (req, res) {
+			try{
+				let __json = JSON.parse(Base64.decode(req.query.data));
+				if (this.favorites.hasOwnProperty(__json.key)){
+					delete this.favorites[__json.key];
+
+					fs.writeFile(this.favoritesPath, JSON.stringify(this.favorites, null, 2),
+						function(err, written, buffer){
+							if(err) {
+								log4js.logger.error(err.name + ': ' + err.message + ' <removeFavoritesDir>');
+							}else{
+								log4js.logger.info('remove favorite dir: "' + __json.key + '"');
+							}
+						}
+					);
+				}else{
+					log4js.logger.warn('there is no "' + __json.key + '" folder');
+				}
+				
+				res.send(Base64.encodeURI('{}'));
+			}catch (err){
+				log4js.logger.error(err.name + ': ' + err.message + ' <removeFavoritesDir>');
+				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
+			}
+		}.bind(this));
+
 		this.app.get('/removeFavorites?:data', function (req, res) {
 			try{
 				let __json = JSON.parse(Base64.decode(req.query.data));
@@ -266,8 +292,34 @@ class EQCarServer{
 				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
 			}
 		}.bind(this));
+		
+		this.app.get('/editFavoritesDir?:data', function (req, res) {
+			try{
+				let __json = JSON.parse(Base64.decode(req.query.data));
+				if (this.favorites.hasOwnProperty(__json.oldName)){
+					let __txt = JSON.stringify(this.favorites).replace('"' + __json.oldName + '":', '"' + __json.newName + '":');
+					this.favorites = JSON.parse(__txt);
+					fs.writeFile(this.favoritesPath, JSON.stringify(this.favorites, null, 2),
+						function(err, written, buffer){
+							if(err) {
+								log4js.logger.error(err.name + ': ' + err.message + ' <editFavoritesDir>');
+							}else{
+								log4js.logger.info('edit favorite dir: "' + __json.oldName + '" rename to "' + __json.newName + '"');
+							}
+						}
+					);
+				}else{
+					log4js.logger.warn('there is no "' + __json.oldName + '" folder');
+				}
+				
+				res.send(Base64.encodeURI('{}'));
+			}catch (err){
+				log4js.logger.error(err.name + ': ' + err.message + ' <editFavoritesDir>');
+				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
+			}
+		}.bind(this));
 
-		this.app.get('/editFavorites?:cypher', function (req, res) {
+		this.app.get('/editFavorites?:data', function (req, res) {
 			try{
 				let __json = JSON.parse(Base64.decode(req.query.data));
 				if (this.favorites.hasOwnProperty(__json.key)){

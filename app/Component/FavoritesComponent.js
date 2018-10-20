@@ -19,7 +19,11 @@ export default class FavoritesComponent extends React.Component {
             },
             edit: {
                 index:-1,
-                text:'',
+                text:''
+            },
+            editDir: {
+                index:'',
+                text:''
             },
             favorites:{}
         }
@@ -249,7 +253,7 @@ export default class FavoritesComponent extends React.Component {
                                         style={{
                                             border: '2px solid #c8c8c8',
                                             borderRadius: '3px',
-                                            width: '235px'
+                                            width: '225px'
                                         }}
 
                                         onChange={(event)=>{
@@ -335,10 +339,124 @@ export default class FavoritesComponent extends React.Component {
                                     }
                                 }.bind(this)}
                             >
-                                {key}
+                                {this.state.editDir.index == key ? 
+                                    <input type="text" 
+                                        autoFocus
+                                        value={this.state.editDir.text}
+                                        style={{
+                                            border: '2px solid #c8c8c8',
+                                            borderRadius: '3px',
+                                            width: '225px'
+                                        }}
+
+                                        onChange={(event)=>{
+                                            let __txt = event.target.value;
+                                            this.setState(function(prevState, props) {
+                                                prevState.editDir.text = __txt;
+                                                return prevState;
+                                            })
+                                        }}
+
+                                        onBlur={(event)=>{
+                                            if (this.state.editDir.text != key){
+                                                GlobalFunction.SendAjax(
+                                                    (result)=>{
+                                                        this.setState(function(prevState, props) {
+                                                            let __txt = JSON.stringify(this.state.favorites).replace(
+                                                                '"' + key + '":', '"' + prevState.editDir.text + '":');
+                                                            prevState.favorites = JSON.parse(__txt);
+                                                            prevState.editDir.text = '';
+                                                            prevState.editDir.index = '';
+                                                            return prevState;
+                                                        })
+                                                    },
+                                                    (error)=>{
+                                                        this.props.onMessage(error.message, 0)
+                                                        this.setState(function(prevState, props) {
+                                                            prevState.editDir.text = '';
+                                                            prevState.editDir.index = '';
+                                                            return prevState;
+                                                        })
+                                                    },
+                                                    "/editFavoritesDir?data=",
+                                                    {oldName:key, newName:this.state.editDir.text}
+                                                );
+                                            }else{
+                                                this.setState(function(prevState, props) {
+                                                    prevState.editDir.text = '';
+                                                    prevState.editDir.index = '';
+                                                    return prevState;
+                                                })
+                                            }
+                                        }}
+
+                                        onClick={(event)=>{
+                                            event.stopPropagation();
+                                            event.preventDefault();
+                                        }}
+                                    />
+                                    :
+                                    key
+                                }
                             </div>}
                         primaryTogglesNestedList={true}
                         nestedItems={__scr}
+                        
+                        rightIconButton={
+                            <div>
+                                <IconButton 
+                                    style={{
+                                        top:'10px',
+                                        padding:'0px',
+                                        width: '24px',
+                                        height: '24px'
+                                    }}
+                                    onClick={()=>{
+                                        if (key != this.state.editDir.index){
+                                            this.setState(function(prevState, props) {
+                                                prevState.editDir.index =
+                                                prevState.editDir.text = key;
+                                                return prevState;
+                                            })
+                                        }
+                                    }}
+                                >
+                                    <ImageEdit style={{
+                                        height: '24px',
+                                        width: '24px',}}
+                                    />
+                                </IconButton>
+                                <IconButton 
+                                    style={{
+                                        top:'10px',
+                                        padding:'0px',
+                                        width: '24px',
+                                        height: '24px'
+                                    }}
+                                    onClick={()=>this.props.onAlert('Remove Favorite Directory', 
+                                        'Do you want to remove directory "' + key + '"?', 
+                                        ()=>{
+                                            GlobalFunction.SendAjax(
+                                                (result)=>{
+                                                    this.setState(function(prevState, props) {
+                                                        delete prevState.favorites[key];
+                                                        return prevState;
+                                                    })
+                                                },
+                                                (error)=>{this.props.onMessage(error.message, 0)},
+                                                "/removeFavoritesDir?data=",
+                                                {key:key}
+                                            );
+                                        })
+                                    }
+                                >
+                                    <ActionDelete style={{
+                                            height: '24px',
+                                            width: '24px',}} 
+                                    />
+                                </IconButton>
+                            </div>
+                        }
                     />
                 );
             }
