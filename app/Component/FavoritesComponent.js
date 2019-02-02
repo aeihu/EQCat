@@ -3,11 +3,13 @@ import GlobalFunction from '../../Common/GlobalFunction';
 
 import IconButton from 'material-ui/IconButton';
 import {List, ListItem} from 'material-ui/List';
+import Divider from 'material-ui/Divider';
 
 import FileFolder from 'material-ui/svg-icons/file/folder';
 import AvPlayCircleFilled from 'material-ui/svg-icons/av/play-circle-filled';
 import ActionDelete from 'material-ui/svg-icons/action/delete';
 import ImageEdit from 'material-ui/svg-icons/image/edit';
+import NewFolder from 'material-ui/svg-icons/file/create-new-folder';
 
 export default class FavoritesComponent extends React.Component {
     constructor(props) {
@@ -471,11 +473,35 @@ export default class FavoritesComponent extends React.Component {
                 marginLeft: '5px'}}
             >
                 <h3>Favorites</h3>
-                <h4 style={{borderBottom: '1px solid #ddd',}}>Saved Scripts</h4>
+                <h4 style={{borderBottom: '1px solid #ddd', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                    Saved Scripts
+                    <IconButton 
+                        //tooltip="Create Folder"
+                        style={{
+                            padding:'0px',
+                            width: '25px',
+                            height: '25px',
+                            marginRight: '5px'
+                        }}
+                        onClick={
+                            () => GlobalFunction.SendAjax(
+                                (result)=>{
+                                    this.setState(function(prevState, props) {
+                                        prevState.favorites[result.folder] = [];
+                                        return prevState;
+                                    })
+                                },
+                                (error)=>{this.props.onMessage(error.message, 0)},
+                                "/addFavoritesDir"
+                            )}
+                    >
+                        <NewFolder />
+                    </IconButton>
+                </h4>
                 <List>
                     {__default}
                     {__scripts}
-                </List>
+                </List>    
             </div>
         );
     }

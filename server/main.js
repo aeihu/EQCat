@@ -172,6 +172,34 @@ class EQCarServer{
 			res.send(Base64.encodeURI(JSON.stringify(__result)));
 		}.bind(this));
 
+		this.app.get('/addFavoritesDir', function (req, res) {
+			try{
+				let __i = 0;
+				let __folder = 'NewFolder';
+				while (this.favorites.hasOwnProperty(__folder)){
+					__i++;
+					__folder = 'NewFolder' + __i;
+				}
+
+				this.favorites[__folder] = [];
+
+				fs.writeFile(this.favoritesPath, JSON.stringify(this.favorites, null, 2),
+					function(err, written, buffer){
+						if(err) {
+							log4js.logger.error(err.name + ': ' + err.message + ' <addFavoritesDir>');
+						}else{
+							log4js.logger.info('add favorite dir: "' + __folder + '"');
+						}
+					}
+				);
+				
+				res.send(Base64.encodeURI(JSON.stringify({folder: __folder})));
+			}catch (err){
+				log4js.logger.error(err.name + ': ' + err.message + ' <addFavoritesDir>');
+				res.send(Base64.encodeURI(JSON.stringify({error: err.name, message:err.message})));
+			}
+		}.bind(this));
+
 		this.app.get('/addFavorites?:cypher', function (req, res) {
 			try{
 				let __json = JSON.parse(Base64.decode(req.query.cypher));
