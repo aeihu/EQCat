@@ -16,6 +16,9 @@ import Avatar from 'material-ui/Avatar';
 import ImageEdit from 'material-ui/svg-icons/image/edit';
 import NavigationClose from 'material-ui/svg-icons/navigation/close';
 
+import ActionGrade from 'material-ui/svg-icons/action/grade';
+import DeviceStorage from 'material-ui/svg-icons/device/storage';
+
 export default class CardComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -24,6 +27,8 @@ export default class CardComponent extends React.Component {
                 data: null,
                 x: 0,
                 y: 0,
+                idxForMemo: 0,
+                flagForMemo: false
             }
         }
     }
@@ -32,7 +37,7 @@ export default class CardComponent extends React.Component {
     {
         this.setState(function(prevState, props) {
             console.log('componentDidMount11')
-            this.state.card = props.data;
+            prevState.card = props.data;
             return prevState;
         })
     }
@@ -40,15 +45,15 @@ export default class CardComponent extends React.Component {
     componentWillReceiveProps(newProps)
     {
         this.setState(function(prevState, props) {
-            this.state.card = newProps.data;
+            prevState.card = newProps.data;
             return prevState;
         })
     }
 
     setPosition = function(event, data){
         this.setState(function(prevState, props) {
-            this.state.card.x = data.x;
-            this.state.card.y = data.y;
+            prevState.card.x = data.x;
+            prevState.card.y = data.y;
             return prevState;
         })
     }.bind(this)
@@ -160,6 +165,28 @@ export default class CardComponent extends React.Component {
                     {this.state.card.data.type}
                 </Chip>);
         }
+
+        let __memos = [];
+        if (this.state.card.data.properties.hasOwnProperty(GlobalConstant.memoOfProperty)){
+            for (let i = 0; i < this.state.card.data.properties[GlobalConstant.memoOfProperty].length; i+=2){
+                __memos.push(
+                    <Chip 
+                        onClick={function(){
+                            this.setState(function(prevState, props) {
+                                prevState.card.idxForMemo = i;
+                                return prevState;
+                            })
+                        }.bind(this)}
+                        
+                        className="labelChip"
+                        labelStyle={{fontSize: '12px'}}
+                        backgroundColor={this.state.card.idxForMemo == i ? '#ff6347' : '#dcdcdc'}
+                    >
+                        {this.state.card.data.properties[GlobalConstant.memoOfProperty][i]}
+                    </Chip>
+                );
+            }
+        }
     
         return (
             <Draggable 
@@ -172,7 +199,7 @@ export default class CardComponent extends React.Component {
             >
                 <Paper style={{
                     position:"absolute", 
-                    width:"553px"}} 
+                    width:"577px"}} 
                     zDepth={1}
                 >
                     <strong>
@@ -224,77 +251,131 @@ export default class CardComponent extends React.Component {
                             }}
                         />
                     </strong>
-                    
-                    <div style={{
-                        display: 'flex', 
-                        flexDirection: 'column'}}
-                    >  
-                        <div style={{
-                            display: 'flex', 
-                            flexWrap: 'wrap',
-                            flexDirection: 'row'}}>   
-                            {__chips}
+
+                    <div style={{display: 'flex', flexDirection: 'row'}}>
+                        <div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', borderRight: '1px solid #ddd'}} >
+                            <IconButton 
+                                //tooltip="Favorites"
+                                style={this.state.card.flagForMemo ? 
+                                    {borderBottom: '1px solid #ddd'} 
+                                    : 
+                                    {borderBottom: '1px solid #ddd', backgroundColor: 'YellowGreen'}}
+                                hoveredStyle={{backgroundColor:'SkyBlue'}}
+                                onClick={function() {
+                                    if (this.state.card.flagForMemo){
+                                        this.setState(function(prevState, props) {
+                                            prevState.card.flagForMemo = false;
+                                            return prevState;
+                                        })
+                                    }
+                                }.bind(this)}
+                            >
+                                <DeviceStorage />
+                            </IconButton>
+                            <IconButton 
+                                //tooltip="Favorites"
+                                style={this.state.card.flagForMemo ? 
+                                    {borderBottom: '1px solid #ddd', backgroundColor: 'YellowGreen'} 
+                                    : 
+                                    {borderBottom: '1px solid #ddd'}}
+                                hoveredStyle={{backgroundColor:'SkyBlue'}}
+                                onClick={function() {
+                                    if (!this.state.card.flagForMemo){
+                                        this.setState(function(prevState, props) {
+                                            prevState.card.flagForMemo = true;
+                                            return prevState;
+                                        })
+                                    }
+                                }.bind(this)}
+                            >
+                                <ActionGrade />
+                            </IconButton>
                         </div>
 
-                        <Divider />
-                        <div style={{
-                            display: 'flex', 
-                            flexDirection: 'column',
-                            overflowY: 'auto',
-                            maxHeight: '450px',}}
-                        >  
-                            <div>
-                                {this.state.card.data.properties.hasOwnProperty(GlobalConstant.imagesOfProperty) ?
-                                    this.state.card.data.properties[GlobalConstant.imagesOfProperty].length > 0 ?
-                                        <div 
-                                            style={{
-                                                width:'230px',
-                                                border: '1px solid #ddd',
-                                                borderRadius: '4px',
-                                                padding: '5px',
-                                                margin: '6px 6px 6px 16px',
-                                                float: 'inline-start'
-                                            }}
-                                        >
-                                            <Carousel 
-                                                showThumbs={false}
-                                                //centerMode={true}
-                                            >
-                                                {this.state.card.data.properties[GlobalConstant.imagesOfProperty].map((img, index)=>(
-                                                    <div>
-                                                    <img src={img}  />
-                                                    </div>
-                                                ))}
-                                            </Carousel>
+                        {this.state.card.flagForMemo ? 
+                            this.state.card.data.properties.hasOwnProperty(GlobalConstant.memoOfProperty) ?
+                                this.state.card.data.properties[GlobalConstant.memoOfProperty].length > 0 ?
+                                    <div style={{
+                                        width: '100%',
+                                        display: 'flex', 
+                                        flexDirection: 'column'}}>  
+                                        <div style={{
+                                            display: 'flex', 
+                                            flexWrap: 'wrap',
+                                            flexDirection: 'row'}}>   
+                                            {__memos}
                                         </div>
-                                        :
-                                        ''
-                                    :
-                                    ''
-                                }     
-                                {__properties}
-                            </div>
-                            
-                            {this.state.card.data.properties.hasOwnProperty(GlobalConstant.memoOfProperty) ?
-                                this.state.card.data.properties[GlobalConstant.memoOfProperty].trim() != '' ?
-                                    <div 
-                                        dangerouslySetInnerHTML={{
-                                            __html: this.state.card.data.properties[GlobalConstant.memoOfProperty]
-                                        }}
-                                        style={{
-                                            border: '1px solid #ddd',
-                                            borderRadius: '4px',
-                                            padding: '5px',
-                                            margin: '6px',
-                                        }}
-                                    >  
+        
+                                        <Divider />
+                                        <div 
+                                            dangerouslySetInnerHTML={{
+                                                __html: this.state.card.data.properties[GlobalConstant.memoOfProperty][this.state.card.idxForMemo]
+                                            }}
+                                            style={{
+                                                //border: '1px solid #ddd',
+                                                //borderRadius: '4px',
+                                                padding: '5px',
+                                                margin: '6px',
+                                            }}
+                                        >  
+                                        </div>
                                     </div>
                                     :
                                     ''
                                 :
                                 ''
-                            }
-                        </div>
+                            :
+                            <div style={{
+                                display: 'flex', 
+                                flexDirection: 'column'}}>  
+                                <div style={{
+                                    display: 'flex', 
+                                    flexWrap: 'wrap',
+                                    flexDirection: 'row'}}>   
+                                    {__chips}
+                                </div>
+
+                                <Divider />
+                                <div style={{
+                                    display: 'flex', 
+                                    flexDirection: 'column',
+                                    overflowY: 'auto',
+                                    maxHeight: '450px',}}
+                                >  
+                                    <div>
+                                        {this.state.card.data.properties.hasOwnProperty(GlobalConstant.imagesOfProperty) ?
+                                            this.state.card.data.properties[GlobalConstant.imagesOfProperty].length > 0 ?
+                                                <div 
+                                                    style={{
+                                                        width:'230px',
+                                                        border: '1px solid #ddd',
+                                                        borderRadius: '4px',
+                                                        padding: '5px',
+                                                        margin: '6px 6px 6px 16px',
+                                                        float: 'inline-start'
+                                                    }}
+                                                >
+                                                    <Carousel 
+                                                        showThumbs={false}
+                                                        //centerMode={true}
+                                                    >
+                                                        {this.state.card.data.properties[GlobalConstant.imagesOfProperty].map((img, index)=>(
+                                                            <div>
+                                                            <img src={img}  />
+                                                            </div>
+                                                        ))}
+                                                    </Carousel>
+                                                </div>
+                                                :
+                                                ''
+                                            :
+                                            ''
+                                        }     
+                                        {__properties}
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     </div>
                 </Paper>
             </Draggable>

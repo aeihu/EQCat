@@ -153,7 +153,13 @@ export default class GraphForDataComponent extends React.Component {
         }
 
         this.setState(function(prevState, props) {
-            this.cards[__mode].push({data:d, x:para.x, y:para.y});
+            this.cards[__mode].push({
+                data:d, 
+                x:para.x, 
+                y:para.y, 
+                idxForMemo: 0,
+                flagForMemo: false
+            });
             return prevState;
         });
     }.bind(this);

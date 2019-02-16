@@ -39,7 +39,12 @@ export default class EditorDialogComponent extends React.Component {
 			progress: false,
 			labelForTemplate: '',
 
-			memo: {},
+			memo: {
+				SelectIdx: 0,
+				key: GlobalConstant.memoOfProperty,
+				value: [],
+				type: 'listString'
+			},
 			images: [],
 			labels: [],
 			type:'',    // edge
@@ -195,6 +200,17 @@ export default class EditorDialogComponent extends React.Component {
 	addLabel = () => {
 		this.setState(function(prevState, props) {
             prevState.labels.push('');
+            return prevState;
+        });
+	};
+
+
+	addMemo = () => {
+		this.setState(function(prevState, props) {
+			console.log('sssssssssssss')
+            prevState.memo.value.push('');
+            prevState.memo.value.push('');
+			console.log(prevState.memo.value)
             return prevState;
         });
 	};
@@ -550,9 +566,10 @@ export default class EditorDialogComponent extends React.Component {
 				prevState.images = [];
 				prevState.labelForTemplate = '';
 				prevState.memo = {
+					SelectIdx: 0,
 					key: GlobalConstant.memoOfProperty,
-					value: '',
-					type: 'string'
+					value: [],
+					type: 'listString'
 				};
 				
 				prevState.properties.push(prevState.memo);
@@ -576,9 +593,10 @@ export default class EditorDialogComponent extends React.Component {
 				prevState.properties=[];
 				prevState.images = [];
 				prevState.memo = {
+					SelectIdx: 0,
 					key: GlobalConstant.memoOfProperty,
-					value: '',
-					type: 'string'
+					value: [],
+					type: 'listString'
 				};
 
 				for (let key in newProps.data.properties){
@@ -587,7 +605,7 @@ export default class EditorDialogComponent extends React.Component {
 							prevState.images = [...newProps.data.properties[key]];
 							break;
 						case GlobalConstant.memoOfProperty:
-							prevState.memo.value = newProps.data.properties[key];
+							prevState.memo.value = [...newProps.data.properties[key]];
 							break;
 						default:{
 							let __type = typeof newProps.data.properties[key];
@@ -688,7 +706,89 @@ export default class EditorDialogComponent extends React.Component {
 				onClick={this.closeDialog}
 			/>,
 		];
-
+		
+		let __memos = [];
+		for (let i = 0; i < this.state.memo.value.length; i+=2){
+			__memos.push(
+				<div
+					style={{
+					display: 'flex',
+					alignItems: 'center',
+					paddingRight: '8px',
+					borderRadius: '30px',
+					backgroundColor: 'Gainsboro',
+					margin: '3px',
+					height: '25px',
+					border: this.state.memo.SelectIdx == i ? '2px solid tomato' : '2px solid Gainsboro'
+				}}>
+					{/* // 	<Avatar
+					// 	backgroundColor={
+					// 		this.state.properties[i].type == 'listBoolean' ?
+					// 			'SeaGreen'
+					// 			:
+					// 			this.state.properties[i].type == 'listString' ?
+					// 				'Tomato'
+					// 				:
+					// 				'MediumVioletRed'
+					// 	}
+					// 	size={25}
+					// 	style={{marginRight:'2px'}}
+					// > */}
+					<Avatar
+						style={{
+							cursor: 'pointer',
+							width: '28px',
+							height: '28px',
+							marginLeft: '-1px',
+							marginRight: '6px',
+							backgroundColor: 'royalblue'
+						}}
+						onClick={function(event) {
+							this.setState(function(prevState, props) {
+								prevState.memo.SelectIdx = i;
+								return prevState;
+							});
+						}.bind(this)}
+					>
+						{i / 2}
+					</Avatar>
+					<TextField
+						style={{width:'80px', height:'32px'}}
+						inputStyle={{fontSize: '12px'}}
+						onChange={(event, newValue) => {
+							this.setState(function(prevState, props) {
+								prevState.memo.value[i] = newValue;
+								return prevState;
+							})
+						}}
+						value={this.state.memo.value[i]}
+						style={{width:'85px',height:'32px'}} 
+						textFieldStyle={{width:'85px',height:'32px'}} 
+					/>
+					<IconButton 
+						tooltip="Delete Memo"
+						style={{
+							padding:'0px',
+							width: '24px',
+							height: '24px'
+						}}
+						onClick={function(event) {
+							this.setState(function(prevState, props) {
+								prevState.memo.value.splice(i, 2);
+								return prevState;
+							});
+						}.bind(this)}
+					>
+						<Clear
+							style={{
+								height: '24px',
+								width: '24px',}} 
+						/>
+					</IconButton>
+				</div>
+			)
+		}
+		
 		let __chips = [];
 		if (this.props.mode != GlobalConstant.mode.edge){
 			for (let i = 0; i < this.state.labels.length; i++){
@@ -1152,7 +1252,7 @@ export default class EditorDialogComponent extends React.Component {
 				autoScrollBodyContent={true}
 			>
 				<h2>{this.props.mode != GlobalConstant.mode.edge ? 'Labels' : 'Type'}</h2>
-				<div style={{display: 'flex', flexDirection: 'row', flex:'0 0 auto'}} >
+				<div style={{flexWrap: 'wrap', display: 'flex', flexDirection: 'row', flex:'0 0 auto'}} >
 					{__chips}
 					{this.props.mode != GlobalConstant.mode.edge ?
 						<IconButton 
@@ -1345,16 +1445,36 @@ export default class EditorDialogComponent extends React.Component {
 				</div>
 				<div style={{display: 'flex', flexDirection: 'column', flex:'0 0 auto', borderTop:'1px solid #e8e8e8'}} >
 					<h2>Memo</h2>
-					<ReactQuill 
-						style={{marginBottom: 12}}
-						value={this.state.memo.value}
-                  		onChange={(value)=>{
-							this.setState(function(prevState, props) {
-								prevState.memo.value = value;
-								return prevState;
-							})
-						  }}
-					/>
+					<div style={{flexWrap: 'wrap', display: 'flex', flexDirection: 'row', flex:'0 0 auto'}} >
+						{__memos}
+						<IconButton 
+							tooltip="Add Memo"
+							style={{
+								padding:'0px',
+								width: '25px',
+								height: '25px',
+								marginRight: '5px'
+							}}
+							onClick={this.addMemo}
+							tooltipPosition={this.state.memo.value.length > 0 ? "bottom-center" : "top-center"}
+						>
+							<ContentAdd />
+						</IconButton>
+					</div>
+					{this.state.memo.value.length > 0 ?
+						<ReactQuill 
+							style={{marginBottom: 12}}
+							value={this.state.memo.value[this.state.memo.SelectIdx+1]}
+							onChange={(value)=>{
+								this.setState(function(prevState, props) {
+									prevState.memo.value[this.state.memo.SelectIdx+1] = value;
+									return prevState;
+								})
+							}}
+						/>
+						:
+						''
+					}
 				</div>
 			</Dialog>
 		);
