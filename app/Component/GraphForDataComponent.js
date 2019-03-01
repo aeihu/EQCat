@@ -630,6 +630,47 @@ export default class GraphForDataComponent extends React.Component {
         })
     }.bind(this)
 
+    graphToFavorites = function() {
+        console.log(this.props.data.edges[0]);
+        let __nodesId = [];
+        let __needPush = true;
+
+        for (let i=0; i<this.props.data.nodes.length; i++){
+            __needPush = true;
+            for (let j=0; j<this.props.data.edges.length; j++){
+                if (this.props.data.edges[j].source.id == this.props.data.nodes[i].id 
+                    ||
+                    this.props.data.edges[j].target.id == this.props.data.nodes[i].id)
+                {
+                    __needPush = false;
+                    break;
+                }
+            }
+            if (__needPush){
+                __nodesId.push(this.props.data.nodes[i].id);
+            }
+        }
+        
+        let __nodesStr = "";
+        for (let i=0; i<__nodesId.length; i++){
+            __nodesStr += (i > 0 ? ' or ' : '') + 'id(n)=' + __nodesId[i];
+        }
+        __nodesStr = __nodesStr.length > 0 ? '(' + __nodesStr + ')' : '';
+
+        let __edgesStr = "";
+        for (let i=0; i<this.props.data.edges.length; i++){
+            __edgesStr += (i > 0 ? ' or ' : '') + 'id(r)=' + this.props.data.edges[i].id;
+        }
+        __edgesStr = __edgesStr.length > 0 ? '(' + __edgesStr + ')' : '';
+        
+        this.props.onSaveCypher(__nodesStr.length > 0 || __edgesStr.length > 0 ?
+            'match p=()-[r]->(), (n) where ' + __nodesStr + 
+            (__nodesStr.length > 0 && __edgesStr.length > 0 ? ' and ' : '') + 
+            __edgesStr + ' return p,n'
+            :
+            '');
+    }.bind(this)
+
     unselectAll = function() {
         this.setState(function(prevState, props) {
             for (let key in prevState.tooltip.selected){
@@ -824,6 +865,9 @@ export default class GraphForDataComponent extends React.Component {
                                                 case 'Show Image':
                                                     this.showOrHideImage();
                                                     break;
+                                                case 'Graph To Favorites':
+                                                    this.graphToFavorites();
+                                                        break;
                                                 case 'Select All':
                                                     D3ForceSimulation.SelectAll(this.state)
                                                     this.setState(function(prevState, props) {
@@ -874,6 +918,11 @@ export default class GraphForDataComponent extends React.Component {
                                         primaryText="Show Image" 
                                         leftIcon={<ImageFilter />}
                                         rightIcon={this.state.tooltip.showedImage ? <ActionDone /> : ''} />
+                                    <Divider />
+                                    <MenuItem 
+                                        value="Graph To Favorites" 
+                                        primaryText="Graph To Favorites" 
+                                        leftIcon={<ImageFilter />} />
                                     <Divider />
                                     <MenuItem value="Zoom Restore" primaryText="Zoom Restore" leftIcon={<ActionYoutubeSearchedFor />} />
                                     <MenuItem value="Zoom In" primaryText="Zoom In" leftIcon={<ActionZoomIn />} />

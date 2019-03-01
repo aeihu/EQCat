@@ -16,8 +16,8 @@ import Avatar from 'material-ui/Avatar';
 import ImageEdit from 'material-ui/svg-icons/image/edit';
 import NavigationClose from 'material-ui/svg-icons/navigation/close';
 
-import ActionGrade from 'material-ui/svg-icons/action/grade';
-import DeviceStorage from 'material-ui/svg-icons/device/storage';
+import ListBulleted from 'material-ui/svg-icons/editor/format-list-bulleted';
+import Description from 'material-ui/svg-icons/action/description';
 
 export default class CardComponent extends React.Component {
     constructor(props) {
@@ -270,7 +270,7 @@ export default class CardComponent extends React.Component {
                                     }
                                 }.bind(this)}
                             >
-                                <DeviceStorage />
+                                <ListBulleted />
                             </IconButton>
                             <IconButton 
                                 //tooltip="Favorites"
@@ -288,7 +288,7 @@ export default class CardComponent extends React.Component {
                                     }
                                 }.bind(this)}
                             >
-                                <ActionGrade />
+                                <Description />
                             </IconButton>
                         </div>
 
@@ -309,7 +309,7 @@ export default class CardComponent extends React.Component {
                                         <Divider />
                                         <div 
                                             dangerouslySetInnerHTML={{
-                                                __html: this.state.card.data.properties[GlobalConstant.memoOfProperty][this.state.card.idxForMemo]
+                                                __html: this.state.card.data.properties[GlobalConstant.memoOfProperty][this.state.card.idxForMemo+1]
                                             }}
                                             style={{
                                                 //border: '1px solid #ddd',
@@ -326,6 +326,7 @@ export default class CardComponent extends React.Component {
                                 ''
                             :
                             <div style={{
+                                width: '100%',
                                 display: 'flex', 
                                 flexDirection: 'column'}}>  
                                 <div style={{

@@ -1,7 +1,5 @@
 import React from 'react';
 import Upload from 'rc-upload';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import { Base64 } from 'js-base64';
 
 import {D3ForceSimulation} from './D3ForceSimulation';
@@ -31,6 +29,9 @@ import ContentFontDownload from 'material-ui/svg-icons/content/font-download';
 import SocialPoll from 'material-ui/svg-icons/social/poll';
 import ToggleCheckBox from 'material-ui/svg-icons/toggle/check-box';
 import ContentAdd from 'material-ui/svg-icons/content/add';
+
+import CKEditor from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 	
 export default class EditorDialogComponent extends React.Component {
     constructor(props) {
@@ -721,19 +722,6 @@ export default class EditorDialogComponent extends React.Component {
 					height: '25px',
 					border: this.state.memo.SelectIdx == i ? '2px solid tomato' : '2px solid Gainsboro'
 				}}>
-					{/* // 	<Avatar
-					// 	backgroundColor={
-					// 		this.state.properties[i].type == 'listBoolean' ?
-					// 			'SeaGreen'
-					// 			:
-					// 			this.state.properties[i].type == 'listString' ?
-					// 				'Tomato'
-					// 				:
-					// 				'MediumVioletRed'
-					// 	}
-					// 	size={25}
-					// 	style={{marginRight:'2px'}}
-					// > */}
 					<Avatar
 						style={{
 							cursor: 'pointer',
@@ -836,7 +824,6 @@ export default class EditorDialogComponent extends React.Component {
 							/>
 						}
 						<AutoComplete
-							//floatingLabelText="Label"
 							errorStyle={{fontSize: '10px', lineHeight:'0px'}}
 							errorText={GlobalFunction.CheckName(this.state.labels[i])}
 							searchText={this.state.labels[i]}
@@ -1065,40 +1052,6 @@ export default class EditorDialogComponent extends React.Component {
 										</IconButton>
 									</div>
 								))}
-								{/* <IconMenu
-									iconButtonElement={
-										<IconButton 
-											style={{
-												padding:'0px',
-												width: '25px',
-												height: '25px'
-											}}
-										>
-										{this.state.properties[i].type == 'listBoolean' ?
-											<ToggleCheckBox />
-											:
-											this.state.properties[i].type == 'listString' ?
-												<ContentFontDownload />
-												:
-												<ImageLooksOne />
-										}
-										</IconButton>}
-									onChange ={function(event, value) {
-											this.setState(function(prevState, props) {
-												prevState.properties[i].value = prevState.properties[i].hasOwnProperty('oldType') ?
-														prevState.properties[i].oldType == 'list'+value ? [...this.state.properties[i].oldValue] : []
-														:
-														[];
-												prevState.properties[i].type = 'list'+value;
-												return prevState;
-											});
-										}.bind(this)
-									}
-								>
-									<MenuItem value="String" primaryText="String" leftIcon={<ContentFontDownload />} />
-									<MenuItem value="Number" primaryText="Number" leftIcon={<ImageLooksOne />} />
-									<MenuItem value="Boolean" primaryText="Boolean" leftIcon={<ToggleCheckBox />} />
-								</IconMenu> */}
 								
 								<IconButton 
 									tooltip="Add Item"
@@ -1462,18 +1415,29 @@ export default class EditorDialogComponent extends React.Component {
 						</IconButton>
 					</div>
 					{this.state.memo.value.length > 0 ?
-						<ReactQuill 
+						<CKEditor 
+							// config={ {
+							// 	toolbar: [ 'heading', '|', 
+							// 		'fontsize','fontfamily','|',
+							// 		'bold', 'italic', 'underline', 'strikethrough', 'highlight','|', 
+							// 		'textalinment', '|', 
+							// 		'numberedlist', 'bulletedlist','|', 
+							// 		'numberedlist', 'bulletedlist','|', 
+							// 		'undo', 'redo' ]
+							// } }
+							disabled={this.state.memo.value.length == 0}
 							style={{marginBottom: 12}}
-							value={this.state.memo.value[this.state.memo.SelectIdx+1]}
-							onChange={(value)=>{
+							editor={ ClassicEditor }
+							data={this.state.memo.value[this.state.memo.SelectIdx+1]}
+							onChange={(event, editor)=>{
 								this.setState(function(prevState, props) {
-									prevState.memo.value[this.state.memo.SelectIdx+1] = value;
+									prevState.memo.value[this.state.memo.SelectIdx+1] = editor.getData();
 									return prevState;
 								})
 							}}
 						/>
 						:
-						''
+						""
 					}
 				</div>
 			</Dialog>

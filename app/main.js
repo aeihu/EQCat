@@ -918,6 +918,7 @@ class App extends React.Component {
                         onDeleteEdge={this.deleteEdges}
                         onMessage={this.showSnackbar}
                         onAlert={this.showAlert}
+                        onSaveCypher={this.saveCypher}
                     />
                 </div>
                 

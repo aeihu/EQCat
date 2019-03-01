@@ -38,6 +38,7 @@ export default class VisualizationComponent extends React.Component {
                         onDeleteEdge={this.props.onDeleteEdge}
                         onMessage={this.props.onMessage}
                         onAlert={this.props.onAlert}
+                        onSaveCypher={this.props.onSaveCypher}
                     />
                 </Tab>
                 <Tab
