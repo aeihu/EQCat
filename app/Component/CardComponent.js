@@ -125,7 +125,7 @@ export default class CardComponent extends React.Component {
                                         :
                                         this.state.card.data.properties[key].toLowerCase().indexOf('http://') == 0 ||
                                         this.state.card.data.properties[key].toLowerCase().indexOf('https://') == 0 ?
-                                            <a href={this.state.card.data.properties[key]} target="_blank">{this.state.card.data.properties[key]}</a>
+                                            <a href={this.state.card.data.properties[key]} target="_blank">点击跳转</a>
                                             :
                                             this.state.card.data.properties[key]
                                 }
@@ -199,7 +199,7 @@ export default class CardComponent extends React.Component {
             >
                 <Paper style={{
                     position:"absolute", 
-                    width:"577px"}} 
+                    width:"597px"}} 
                     zDepth={1}
                 >
                     <strong>

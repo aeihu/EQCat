@@ -6,6 +6,7 @@ import {D3ForceSimulation} from './D3ForceSimulation';
 import GlobalVariable from '../../Common/GlobalVariable';
 import GlobalConstant from '../../Common/GlobalConstant';
 import GlobalFunction from '../../Common/GlobalFunction';
+import EditorConvertToHTML from './EditorConvertToHTML';
 
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
@@ -30,9 +31,6 @@ import SocialPoll from 'material-ui/svg-icons/social/poll';
 import ToggleCheckBox from 'material-ui/svg-icons/toggle/check-box';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 
-import CKEditor from '@ckeditor/ckeditor5-react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-	
 export default class EditorDialogComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -208,7 +206,6 @@ export default class EditorDialogComponent extends React.Component {
 
 	addMemo = () => {
 		this.setState(function(prevState, props) {
-			console.log('sssssssssssss')
             prevState.memo.value.push('');
             prevState.memo.value.push('');
 			console.log(prevState.memo.value)
@@ -1203,6 +1200,7 @@ export default class EditorDialogComponent extends React.Component {
 				open={this.props.open}
 				onRequestClose={this.closeDialog}
 				autoScrollBodyContent={true}
+				paperProps={{style: {width: '870px'}}}
 			>
 				<h2>{this.props.mode != GlobalConstant.mode.edge ? 'Labels' : 'Type'}</h2>
 				<div style={{flexWrap: 'wrap', display: 'flex', flexDirection: 'row', flex:'0 0 auto'}} >
@@ -1415,23 +1413,12 @@ export default class EditorDialogComponent extends React.Component {
 						</IconButton>
 					</div>
 					{this.state.memo.value.length > 0 ?
-						<CKEditor 
-							// config={ {
-							// 	toolbar: [ 'heading', '|', 
-							// 		'fontsize','fontfamily','|',
-							// 		'bold', 'italic', 'underline', 'strikethrough', 'highlight','|', 
-							// 		'textalinment', '|', 
-							// 		'numberedlist', 'bulletedlist','|', 
-							// 		'numberedlist', 'bulletedlist','|', 
-							// 		'undo', 'redo' ]
-							// } }
-							disabled={this.state.memo.value.length == 0}
-							style={{marginBottom: 12}}
-							editor={ ClassicEditor }
+						<EditorConvertToHTML 
+							index={this.state.memo.SelectIdx}
 							data={this.state.memo.value[this.state.memo.SelectIdx+1]}
-							onChange={(event, editor)=>{
+							onChange={(context, index)=>{
 								this.setState(function(prevState, props) {
-									prevState.memo.value[this.state.memo.SelectIdx+1] = editor.getData();
+									prevState.memo.value[index+1] = context;
 									return prevState;
 								})
 							}}

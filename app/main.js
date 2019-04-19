@@ -78,6 +78,11 @@ class App extends React.Component {
     }
 
     saveCypher = function(statement){
+        if (statement.trim().length == 0){
+            this.showSnackbar('the statement must be not empty.', 0);
+            return;
+        }
+
         GlobalFunction.SendAjax(
             (result)=>{
                 this.flagForTTC = {statement: statement};

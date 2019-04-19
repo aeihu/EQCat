@@ -36,6 +36,7 @@ import NotificationPriorityHigh from 'material-ui/svg-icons/notification/priorit
 import ActionZoomIn from 'material-ui/svg-icons/action/zoom-in';
 import ActionZoomOut from 'material-ui/svg-icons/action/zoom-out';
 import ActionYoutubeSearchedFor from 'material-ui/svg-icons/action/youtube-searched-for';
+import ActionGrade from 'material-ui/svg-icons/action/grade';
 
 export default class GraphForDataComponent extends React.Component {
     constructor(props) {
@@ -631,44 +632,53 @@ export default class GraphForDataComponent extends React.Component {
     }.bind(this)
 
     graphToFavorites = function() {
-        console.log(this.props.data.edges[0]);
-        let __nodesId = [];
-        let __needPush = true;
+        //console.log(this.props.data.edges[0]);
+        this.setState(function(prevState, props) {
+            let __nodesId = [];
+            let __needPush = true;
 
-        for (let i=0; i<this.props.data.nodes.length; i++){
-            __needPush = true;
-            for (let j=0; j<this.props.data.edges.length; j++){
-                if (this.props.data.edges[j].source.id == this.props.data.nodes[i].id 
-                    ||
-                    this.props.data.edges[j].target.id == this.props.data.nodes[i].id)
-                {
-                    __needPush = false;
-                    break;
+            for (let i=0; i<props.data.nodes.length; i++){
+                __needPush = true;
+                for (let j=0; j<props.data.edges.length; j++){
+                    if (props.data.edges[j].source.id == props.data.nodes[i].id 
+                        ||
+                        props.data.edges[j].target.id == props.data.nodes[i].id)
+                    {
+                        __needPush = false;
+                        break;
+                    }
+                }
+                if (__needPush){
+                    __nodesId.push(props.data.nodes[i].id);
                 }
             }
-            if (__needPush){
-                __nodesId.push(this.props.data.nodes[i].id);
+            
+            let __nodesStr = "";
+            for (let i=0; i<__nodesId.length; i++){
+                __nodesStr += (i > 0 ? ' or ' : '') + 'id(n)=' + __nodesId[i];
             }
-        }
-        
-        let __nodesStr = "";
-        for (let i=0; i<__nodesId.length; i++){
-            __nodesStr += (i > 0 ? ' or ' : '') + 'id(n)=' + __nodesId[i];
-        }
-        __nodesStr = __nodesStr.length > 0 ? '(' + __nodesStr + ')' : '';
+            __nodesStr = __nodesStr.length > 0 ? '(' + __nodesStr + ')' : '';
 
-        let __edgesStr = "";
-        for (let i=0; i<this.props.data.edges.length; i++){
-            __edgesStr += (i > 0 ? ' or ' : '') + 'id(r)=' + this.props.data.edges[i].id;
-        }
-        __edgesStr = __edgesStr.length > 0 ? '(' + __edgesStr + ')' : '';
-        
-        this.props.onSaveCypher(__nodesStr.length > 0 || __edgesStr.length > 0 ?
-            'match p=()-[r]->(), (n) where ' + __nodesStr + 
-            (__nodesStr.length > 0 && __edgesStr.length > 0 ? ' and ' : '') + 
-            __edgesStr + ' return p,n'
-            :
-            '');
+            let __edgesStr = "";
+            for (let i=0; i<props.data.edges.length; i++){
+                __edgesStr += (i > 0 ? ' or ' : '') + 'id(r)=' + props.data.edges[i].id;
+            }
+            __edgesStr = __edgesStr.length > 0 ? '(' + __edgesStr + ')' : '';
+            
+            let __cypher = ""
+            if (__nodesStr.length > 0 && __edgesStr.length > 0){
+                __cypher = 'match p=()-[r]->(), (n) where ' + __nodesStr + ' and ' + __edgesStr + ' return p,n';
+            }else if(__nodesStr.length > 0){
+                __cypher = 'match (n) where ' + __nodesStr + ' return n';
+            }else if(__edgesStr.length > 0){
+                __cypher = 'match p=()-[r]->() where ' + __edgesStr + ' return p';
+            }
+
+            props.onSaveCypher(__cypher);
+
+            prevState.menu.open = -1;
+            return prevState;
+        })
     }.bind(this)
 
     unselectAll = function() {
@@ -922,7 +932,7 @@ export default class GraphForDataComponent extends React.Component {
                                     <MenuItem 
                                         value="Graph To Favorites" 
                                         primaryText="Graph To Favorites" 
-                                        leftIcon={<ImageFilter />} />
+                                        leftIcon={<ActionGrade />} />
                                     <Divider />
                                     <MenuItem value="Zoom Restore" primaryText="Zoom Restore" leftIcon={<ActionYoutubeSearchedFor />} />
                                     <MenuItem value="Zoom In" primaryText="Zoom In" leftIcon={<ActionZoomIn />} />
