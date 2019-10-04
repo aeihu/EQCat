@@ -61,22 +61,44 @@ export default class CypherBarComponent extends React.Component {
                                     theme: 'solarized',
                                     smartIndent: true,
                                     showCursorWhenSelecting: true,
+                                    lineWrapping: true,
                                     lineNumbers: true
                             }}
+                            onKeyDown={(event, value) => {
+                                let __needChange = value.key != "Enter" || (value.key == "Enter" && value.shiftKey == true);
+                                
+                                if (!__needChange){
+                                    this.props.runCypher(this.state.text);
+                                    value.stopPropagation();
+                                    value.preventDefault(); 
+                                }
+                            }}
                             onBeforeChange={(editor, data, value) => {
+                                console.log(1111)
                                 this.setState(function(prevState, props) {
                                     prevState.text = value;
                                     return prevState;
                                 });
                             }}
                             onChange={(editor, data, value) => {
-                                if (editor.lineCount() <= 6){
-                                    editor.setSize('100%', (10 + 24 * editor.lineCount()).toString() +'px')
+                                console.log(2222)
+                                let __tmp = editor.charCoords({line: editor.lineCount(), ch: 0}, "local");
+                                
+                                if (__tmp.bottom < 154){
+                                    editor.setSize('100%', (__tmp.bottom + 6).toString() +'px')
                                     this.setState(function(prevState, props) {
-                                        prevState.height = 33 + 24 * editor.lineCount();
+                                        prevState.height = 30 + __tmp.bottom;
                                         return prevState;
                                     });
                                 }
+
+                                // if (editor.lineCount() <= 6){
+                                //     editor.setSize('100%', (10 + 24 * editor.lineCount()).toString() +'px')
+                                //     this.setState(function(prevState, props) {
+                                //         prevState.height = 33 + 24 * editor.lineCount();
+                                //         return prevState;
+                                //     });
+                                // }
                             }}
                             editorDidConfigure={(editor) => {
                                 console.log('hello world!');
