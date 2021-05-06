@@ -20,7 +20,7 @@
     "react-codemirror2": "^3.0.7",
     "react-color": "^2.13.8",
     "react-dom": "^16.2.0",
-    "react-draft-wysiwyg": "^1.13.2",
+    "react-draft-wysiwyg": "^1.14.6",
     "react-draggable": "^3.0.5",
     "react-responsive-carousel": "^3.1.33"
   },
